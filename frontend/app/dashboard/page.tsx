@@ -24,27 +24,9 @@ export default function DashboardPage() {
       });
   }, [router]);
 
-  function logout() {
-    clearToken();
-    router.replace("/login");
-  }
-
   return (
-    <div className="min-h-screen">
-      {/* Header */}
-      <header className="flex items-center justify-between border-b border-slate-800 px-6 py-4">
-        <h1 className="text-lg font-semibold">🔎 OSINT Dashboard</h1>
-        <div className="flex items-center gap-4 text-sm">
-          {me && <span className="text-slate-400">{me.email}</span>}
-          <button
-            onClick={logout}
-            className="rounded-md border border-slate-700 px-3 py-1.5 hover:bg-slate-800"
-          >
-            Chiqish
-          </button>
-        </div>
-      </header>
-
+    <div>
+      {/* Yuqori panel (🔔, Chiqish) — app/dashboard/layout.tsx da */}
       <div className="flex">
         {/* Sidebar */}
         <aside className="hidden w-56 shrink-0 border-r border-slate-800 p-4 sm:block">

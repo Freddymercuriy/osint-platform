@@ -40,8 +40,9 @@ class Settings(BaseSettings):
     # Fon yig'uvchi (Events)
     events_poll_enabled: bool = True
     events_poll_seconds: int = 300  # har necha soniyada yig'ish
-    # Ogohlantirish: yangi hodisa shu kategoriyalarda bo'lsa → Telegram "Saved Messages"
-    notify_telegram: bool = True
+    # Ogohlantirish: shu kategoriyalardagi yangi hodisalar saytdagi 🔔 da ko'rsatiladi.
+    # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi.
+    notify_telegram: bool = False
     notify_categories: str = "leak,ransomware"
 
     @property

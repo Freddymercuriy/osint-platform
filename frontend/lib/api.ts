@@ -163,6 +163,31 @@ export type CollectorStatus = {
   notified_total: number;
 };
 
+// --- Saytdagi ogohlantirishlar (🔔) ---
+export type NotificationItem = EventItem & { id: number; first_seen: string; is_new: boolean };
+
+export type NotificationsResponse = {
+  unread: number;
+  categories: string[];
+  seen_at: string | null;
+  items: NotificationItem[];
+};
+
+export async function getNotifications(limit = 20): Promise<NotificationsResponse> {
+  const res = await fetch(`${API_URL}/api/notifications?limit=${limit}`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<NotificationsResponse>(res);
+}
+
+export async function markNotificationsRead(): Promise<void> {
+  const res = await fetch(`${API_URL}/api/notifications/read`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  await handle(res);
+}
+
 export async function getCollectorStatus(): Promise<CollectorStatus> {
   const res = await fetch(`${API_URL}/api/events/status`, {
     headers: { Authorization: `Bearer ${getToken()}` },

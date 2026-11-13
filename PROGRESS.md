@@ -84,6 +84,13 @@
   - `DB_ECHO` alohida (avval DEBUG=true SQL bilan loglarni to'ldirardi); `osint.events` logger INFO
   - Test: bootstrap 85 yozuv; refresh → new=0 (dedup ✓); ransomware yozuvini o'chirib qayta topish → ogohlantirish yuborildi, notified=t ✓
 
+- [x] **Saytdagi ogohlantirishlar 🔔 (Bosqich 7b)** — foydalanuvchi talabi: Telegram Saved Messages'ga EMAS, saytga chiqsin
+  - `NOTIFY_TELEGRAM=false` (default ham false). Telegram'ga yuborish kodi qoldi, lekin o'chiq
+  - `notification_state` jadvali (user_id → seen_at); o'qilmagan = `NOTIFY_CATEGORIES` dagi, `first_seen > seen_at`
+  - `GET /api/notifications`, `POST /api/notifications/read`
+  - Frontend: `components/NotificationBell.tsx` (har 60 s tekshiradi, qizil hisoblagich, ochiladigan ro'yxat,
+    "Hammasini o'qildi", sahifa sarlavhasida "(N)"); `app/dashboard/layout.tsx` — umumiy yuqori panel barcha dashboard sahifalarida
+
 ## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
 | Manba | Holat | Qaror |
 |---|---|---|
