@@ -29,7 +29,8 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title=settings.app_name, debug=settings.debug, lifespan=lifespan)
+# debug=False: xato tafsilotlari (traceback) mijozga emas, faqat server logiga yoziladi
+app = FastAPI(title=settings.app_name, debug=False, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,

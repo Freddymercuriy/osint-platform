@@ -17,7 +17,15 @@ export function clearToken() {
 
 type ApiError = { detail?: string };
 
-async function handle<T>(res: Response): Promise<T> {
+export async function handle<T>(res: Response): Promise<T> {
+  // Token muddati tugagan/yaroqsiz — tizimdan chiqarib, login sahifasiga qaytaramiz
+  if (res.status === 401 && typeof window !== "undefined" && getToken()) {
+    clearToken();
+    if (!window.location.pathname.startsWith("/login")) {
+      window.location.assign("/login?expired=1");
+    }
+    throw new Error("Sessiya muddati tugadi. Qaytadan kiring.");
+  }
   if (!res.ok) {
     let msg = `Xatolik: ${res.status}`;
     try {

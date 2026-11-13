@@ -1,4 +1,4 @@
-import { getToken, type EventItem } from "@/lib/api";
+import { getToken, handle, type EventItem } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -19,6 +19,5 @@ export async function getOverview(days = 14): Promise<Overview> {
   const res = await fetch(`${API_URL}/api/stats/overview?days=${days}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
-  if (!res.ok) throw new Error(`Statistika yuklanmadi (${res.status})`);
-  return res.json();
+  return handle<Overview>(res);
 }

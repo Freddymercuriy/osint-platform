@@ -10,7 +10,8 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
     ports:
-      - "5432:5432"
+      # Faqat shu kompyuterdan — LAN/VPN'dan ko'rinmaydi
+      - "127.0.0.1:5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U osint"]
       interval: 5s
@@ -27,7 +28,8 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "8000:8000"
+      # Faqat shu kompyuterdan. Tashqariga ochish kerak bo'lsa — reverse proxy + HTTPS orqali
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./backend:/app
 

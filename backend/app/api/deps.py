@@ -24,7 +24,7 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     subject = decode_access_token(token)
-    if subject is None:
+    if subject is None or not str(subject).isdigit():
         raise credentials_exc
     user = await db.scalar(select(User).where(User.id == int(subject)))
     if user is None or not user.is_active:

@@ -49,3 +49,4 @@ tmp/
 
 # TypeScript build keshi
 *.tsbuildinfo
+.next-build/
