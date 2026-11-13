@@ -119,10 +119,45 @@ async def _fetch_telegram(client: httpx.AsyncClient, feed: Feed) -> list[EventIt
     return items
 
 
+async def _fetch_telegram_user(_client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
+    """Foydalanuvchining o'z akkaunti orqali a'zo bo'lgan kanal/guruhlar."""
+    from app.core.config import settings
+    from app.services import telegram_user as tg
+
+    if not tg.is_configured():
+        return []
+    messages = await tg.fetch_messages()
+    extra = settings.tg_extra_keywords_list
+
+    def keep(text: str) -> bool:
+        t = text.lower()
+        hit_extra = any(k in t for k in extra)
+        if settings.tg_uz_filter:
+            return _is_uz(t) or hit_extra
+        return hit_extra if extra else True
+
+    items: list[EventItem] = []
+    for m in messages:
+        if not keep(m.text):
+            continue
+        first_line = m.text.strip().split("\n")[0]
+        items.append(EventItem(
+            source=f"TG: {m.chat.title}",
+            title=first_line[:140] + ("..." if len(first_line) > 140 else ""),
+            url=m.url,
+            summary=_clean(m.text),
+            published=m.date,
+            lang=feed.lang,
+            category="tg_group" if m.chat.kind == "group" else "telegram",
+        ))
+    return items
+
+
 _FETCHERS = {
     "rss": _fetch_rss,
     "ransomware_live": _fetch_ransomware_live,
     "telegram": _fetch_telegram,
+    "telegram_user": _fetch_telegram_user,
 }
 
 # ---------------------------------------------------------------- kesh
@@ -153,13 +188,14 @@ async def fetch_events(
     limit: int = 40, query: str | None = None, category: str | None = None
 ) -> list[EventItem]:
     feeds = enabled_feeds()
-    if category:
-        feeds = [f for f in feeds if f.category == category]
     headers = {"User-Agent": _USER_AGENT}
     async with httpx.AsyncClient(timeout=12.0, headers=headers, follow_redirects=True) as client:
         batches = await asyncio.gather(*(_fetch_cached(client, f) for f in feeds))
 
     items = [i for batch in batches for i in batch]
+    # Kategoriya natija darajasida (bitta manba bir nechta kategoriya berishi mumkin; kesh tufayli arzon)
+    if category:
+        items = [i for i in items if i.category == category]
     if query:
         q = query.lower()
         items = [i for i in items if q in i.title.lower() or q in i.summary.lower()]

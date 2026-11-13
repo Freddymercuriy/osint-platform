@@ -4,7 +4,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        env_ignore_empty=True,  # "TG_API_ID=" kabi bo'sh qiymatlar → default (None)
+    )
 
     app_name: str = "OSINT Platform"
     environment: str = "development"
@@ -17,6 +22,26 @@ class Settings(BaseSettings):
     algorithm: str = "HS256"
 
     cors_origins: str = "http://localhost:3000"
+
+    # Telegram user API (my.telegram.org → API development tools)
+    tg_api_id: int | None = None
+    tg_api_hash: str | None = None
+    tg_session_path: str = "data/tg_session"  # .session fayli — MAXFIY, git'ga tushmaydi
+    # Qaysi chatlarni o'qish: bo'sh = a'zo bo'lgan barcha kanal/guruhlar,
+    # yoki vergul bilan: "kanal_username,-1001234567890"
+    tg_chats: str = ""
+    tg_dialog_limit: int = 100  # nechta dialogni ko'rib chiqish
+    tg_messages_per_chat: int = 30  # har chatdan nechta so'nggi xabar
+    tg_uz_filter: bool = True  # faqat O'zbekistonga oid xabarlar
+    tg_extra_keywords: str = ""  # qo'shimcha kalit so'zlar, vergul bilan
+
+    @property
+    def tg_chats_list(self) -> list[str]:
+        return [c.strip().lstrip("@") for c in self.tg_chats.split(",") if c.strip()]
+
+    @property
+    def tg_extra_keywords_list(self) -> list[str]:
+        return [k.strip().lower() for k in self.tg_extra_keywords.split(",") if k.strip()]
 
     @property
     def cors_origins_list(self) -> list[str]:

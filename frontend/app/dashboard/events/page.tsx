@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getEvents, getToken, type EventItem } from "@/lib/api";
+import { getEvents, getTgStatus, getToken, type EventItem, type TgStatus } from "@/lib/api";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "Hammasi" },
   { key: "ransomware", label: "🔴 Ransomware" },
   { key: "leak", label: "🟠 Leak" },
-  { key: "telegram", label: "✈️ Telegram" },
+  { key: "telegram", label: "✈️ TG kanallar" },
+  { key: "tg_group", label: "👥 TG guruhlar" },
   { key: "news", label: "📰 Yangiliklar" },
 ];
 
@@ -16,8 +17,32 @@ const CATEGORY_STYLE: Record<string, string> = {
   ransomware: "bg-red-950 text-red-300 border-red-800",
   leak: "bg-orange-950 text-orange-300 border-orange-800",
   telegram: "bg-sky-950 text-sky-300 border-sky-800",
+  tg_group: "bg-violet-950 text-violet-300 border-violet-800",
   news: "bg-slate-800 text-slate-300 border-slate-700",
 };
+
+function TgStatusBar({ s }: { s: TgStatus | null }) {
+  if (!s) return null;
+  return (
+    <div
+      className={`mt-4 rounded-lg border px-4 py-2 text-sm ${
+        s.authorized
+          ? "border-emerald-900 bg-emerald-950/40 text-emerald-300"
+          : "border-amber-900 bg-amber-950/40 text-amber-300"
+      }`}
+    >
+      <span className="font-medium">Telegram akkaunt:</span>{" "}
+      {s.authorized ? s.account : s.message}
+      {s.authorized && (
+        <span className="text-slate-400">
+          {" "}
+          · chatlar: {s.chats_filter.length ? s.chats_filter.join(", ") : "barchasi"} · UZ filtr:{" "}
+          {s.uz_filter ? "yoqilgan" : "o'chiq"}
+        </span>
+      )}
+    </div>
+  );
+}
 
 function timeAgo(iso: string | null): string {
   if (!iso) return "";
@@ -63,6 +88,11 @@ export default function EventsPage() {
   const [tab, setTab] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [tg, setTg] = useState<TgStatus | null>(null);
+
+  useEffect(() => {
+    if (getToken()) getTgStatus().then(setTg).catch(() => setTg(null));
+  }, []);
 
   const load = useCallback(async (query: string, category: string) => {
     setLoading(true);
@@ -94,8 +124,9 @@ export default function EventsPage() {
       </a>
       <h1 className="mt-2 text-2xl font-bold">Events — O'zbekiston</h1>
       <p className="mt-1 text-sm text-slate-400">
-        Ochiq manbalardan: ransomware hodisalari, Telegram kanallar va yangiliklar.
+        Ransomware hodisalari, Telegram kanal/guruhlar va yangiliklar — O'zbekiston bo'yicha.
       </p>
+      <TgStatusBar s={tg} />
 
       <div className="mt-5 flex flex-wrap gap-2">
         {TABS.map((t) => (

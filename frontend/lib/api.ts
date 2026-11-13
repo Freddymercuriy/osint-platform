@@ -116,6 +116,24 @@ export async function getHistory(): Promise<SearchJob[]> {
   return handle<SearchJob[]>(res);
 }
 
+// --- Telegram (foydalanuvchi akkaunti) ---
+export type TgStatus = {
+  configured: boolean;
+  session: boolean;
+  authorized: boolean;
+  account: string | null;
+  chats_filter: string[];
+  uz_filter: boolean;
+  message: string;
+};
+
+export async function getTgStatus(): Promise<TgStatus> {
+  const res = await fetch(`${API_URL}/api/telegram/status`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<TgStatus>(res);
+}
+
 // --- Events (yangiliklar/tadbirlar) ---
 export type EventItem = {
   source: string;

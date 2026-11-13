@@ -46,7 +46,11 @@ FEEDS: list[Feed] = [
     Feed("Gazeta.uz (RU)", "https://www.gazeta.uz/ru/rss/", lang="ru"),
     Feed("Kun.uz (UZ)", "https://kun.uz/uz/news/rss", lang="uz"),
 
-    # --- Telegram ochiq kanallar ---
+    # --- Telegram: o'z akkauntingiz orqali (a'zo bo'lgan kanal/guruhlar) ---
+    # Sozlash: backend/.env → TG_API_ID, TG_API_HASH, TG_CHATS ...; login: scripts/tg_login.py
+    Feed("Telegram (akkaunt)", "", kind="telegram_user", category="telegram", ttl=300),
+
+    # --- Telegram ochiq kanallar (login'siz, t.me/s) ---
     # Na'muna: Feed("Kanal nomi", "kanal_username", kind="telegram",
     #               category="telegram", uz_filter=True),
 ]

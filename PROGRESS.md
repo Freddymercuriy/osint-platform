@@ -56,6 +56,16 @@
   - Telegram ochiq kanallar `t.me/s/<kanal>` (BeautifulSoup parser) — test: kunuzofficial ✅
   - `/api/events?category=` ; frontend tablar: Hammasi / Ransomware / Leak / Telegram / Yangiliklar
 
+- [x] **Telegram user API (Bosqich 6c)** — foydalanuvchining o'z akkaunti orqali (Telethon 1.45):
+  - `services/telegram_user.py` — yagona klient, `list_chats()`, `fetch_messages()` (faqat kanal/guruh, shaxsiy chatlar o'qilmaydi;
+    yuboruvchi ismi/telefoni saqlanmaydi)
+  - `scripts/tg_login.py` — BIR MARTA interaktiv login → `backend/data/tg_session.session` (gitignored!)
+  - Feed `kind="telegram_user"` → kategoriyalar `telegram` (kanal) / `tg_group` (guruh); UZ filtr + `TG_EXTRA_KEYWORDS`
+  - `GET /api/telegram/status`, `GET /api/telegram/chats`
+  - `.env`: TG_API_ID, TG_API_HASH, TG_CHATS, TG_UZ_FILTER, TG_EXTRA_KEYWORDS ... (`env_ignore_empty=True`)
+  - Frontend: Events'da TG holat paneli + "TG guruhlar" tabi
+  - ⏳ Foydalanuvchi hali api_id/hash kiritmagan va login qilmagan
+
 ## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
 | Manba | Holat | Qaror |
 |---|---|---|
@@ -75,7 +85,8 @@ Qoida: leak'larning **o'zi (PII, dumplar) yuklanmaydi/saqlanmaydi** — faqat ho
 
 ## Keyingi qadamlar ⏭️
 
-0. TG kanallarni `feeds.py` ga qo'shish (leak kanallar uchun `category="leak", uz_filter=True`)
+0. Foydalanuvchi: my.telegram.org → api_id/hash → `backend/.env` → `docker-compose exec backend python scripts/tg_login.py`
+   → `/api/telegram/chats` bilan chatlarni ko'rib, `TG_CHATS` ni tanlash → test
 1. Domen / IP / WHOIS collector moduli
 2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
 3. Collector'larni `name` bo'yicha registry orqali ulash

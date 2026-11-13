@@ -25,6 +25,11 @@ yarn-error.log*
 *.pem
 *.key
 
+# Telegram session (akkauntga to'liq kirish beradi!)
+*.session
+*.session-journal
+backend/data/
+
 # Database
 *.sqlite3
 *.db
