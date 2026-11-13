@@ -1,134 +1,372 @@
 "use client";
 
+import {
+  Activity,
+  ArrowRight,
+  AtSign,
+  BarChart3,
+  Clock,
+  Database,
+  ExternalLink,
+  Globe,
+  Mail,
+  Phone,
+  Radar,
+  Search,
+  Send,
+  ShieldAlert,
+  Skull,
+  Table2,
+} from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { clearToken, getMe, getToken, type Me } from "@/lib/api";
+import { useEffect, useMemo, useState } from "react";
+import ColumnChart, { type ColumnDatum } from "@/components/charts/ColumnChart";
+import HBarList from "@/components/charts/HBarList";
+import {
+  ButtonLink,
+  Card,
+  CategoryBadge,
+  EmptyState,
+  ErrorBanner,
+  IconBox,
+  LiveDot,
+  Skeleton,
+  StatTile,
+  timeAgo,
+} from "@/components/ui";
+import { getCollectorStatus, getMe, type CollectorStatus, type Me } from "@/lib/api";
+import { CATEGORY_ORDER, categoryMeta } from "@/lib/categories";
+import { cn } from "@/lib/cn";
+import { getOverview, type Overview } from "@/lib/stats";
+
+const MONTHS = ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"];
+
+function greeting(): string {
+  const h = new Date().getHours();
+  if (h < 6) return "Xayrli tun";
+  if (h < 12) return "Xayrli tong";
+  if (h < 18) return "Xayrli kun";
+  return "Xayrli kech";
+}
+
+/** Bosh sahifadagi kichik radar animatsiyasi */
+function RadarVisual() {
+  return (
+    <div className="relative hidden h-44 w-44 shrink-0 md:block">
+      <div className="absolute inset-0 rounded-full border border-cyan-400/20" />
+      <div className="absolute inset-6 rounded-full border border-cyan-400/15" />
+      <div className="absolute inset-12 rounded-full border border-cyan-400/10" />
+      <div className="absolute inset-0 animate-spin-slow rounded-full [background:conic-gradient(from_0deg,rgba(34,211,238,.35),transparent_25%)]" />
+      <div className="absolute left-1/2 top-1/2 h-px w-1/2 origin-left bg-gradient-to-r from-cyan-300/60 to-transparent" />
+      {[
+        ["28%", "30%", "bg-red-400"],
+        ["62%", "22%", "bg-orange-400"],
+        ["70%", "64%", "bg-sky-400"],
+        ["35%", "70%", "bg-violet-400"],
+      ].map(([l, t, c], i) => (
+        <span key={i} className="absolute" style={{ left: l, top: t }}>
+          <span className={cn("absolute h-2 w-2 animate-pulse-ring rounded-full", c)} style={{ animationDelay: `${i * 0.4}s` }} />
+          <span className={cn("relative block h-2 w-2 rounded-full", c)} />
+        </span>
+      ))}
+      <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-cyan-300 shadow-[0_0_12px_rgba(34,211,238,.9)]" />
+    </div>
+  );
+}
+
+const MODULES = [
+  { href: "/dashboard/username", title: "Username qidiruv", desc: "13 ta ochiq saytda profil izlash", icon: AtSign, tone: "cyan" as const },
+  { href: "/dashboard/email", title: "Email tekshiruvi", desc: "Sintaksis, MX server, Gravatar", icon: Mail, tone: "violet" as const },
+  { href: "/dashboard/phone", title: "Telefon tekshiruvi", desc: "Davlat, operator, raqam turi", icon: Phone, tone: "emerald" as const },
+  { href: "#", title: "Domen / WHOIS", desc: "DNS, WHOIS, subdomenlar", icon: Globe, tone: "slate" as const, soon: true },
+];
 
 export default function DashboardPage() {
-  const router = useRouter();
   const [me, setMe] = useState<Me | null>(null);
+  const [ov, setOv] = useState<Overview | null>(null);
+  const [cs, setCs] = useState<CollectorStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [view, setView] = useState<"chart" | "table">("chart");
 
   useEffect(() => {
-    if (!getToken()) {
-      router.replace("/login");
-      return;
-    }
-    getMe()
-      .then(setMe)
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Xatolik");
-        clearToken();
-        router.replace("/login");
-      });
-  }, [router]);
+    getMe().then(setMe).catch(() => undefined);
+    const load = () => {
+      getOverview(14).then(setOv).catch((e) => setError(e instanceof Error ? e.message : "Xatolik"));
+      getCollectorStatus().then(setCs).catch(() => undefined);
+    };
+    load();
+    const t = setInterval(load, 60_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const chartData: ColumnDatum[] = useMemo(
+    () =>
+      (ov?.daily ?? []).map((d) => {
+        const dt = new Date(`${d.day}T00:00:00`);
+        return {
+          key: d.day,
+          label: String(dt.getDate()),
+          fullLabel: `${dt.getDate()}-${MONTHS[dt.getMonth()]}, ${dt.getFullYear()}`,
+          value: d.total,
+          breakdown: CATEGORY_ORDER.filter((c) => d.by_category[c]).map((c) => ({
+            label: categoryMeta(c).label,
+            value: d.by_category[c],
+          })),
+        };
+      }),
+    [ov],
+  );
+
+  const tg = ov ? (ov.by_category.telegram ?? 0) + (ov.by_category.tg_group ?? 0) : 0;
+  const loading = !ov && !error;
+  const name = me?.email.split("@")[0];
 
   return (
-    <div>
-      {/* Yuqori panel (🔔, Chiqish) — app/dashboard/layout.tsx da */}
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="hidden w-56 shrink-0 border-r border-slate-800 p-4 sm:block">
-          <nav className="space-y-1 text-sm">
-            <Link href="/dashboard" className="block rounded-md bg-slate-800 px-3 py-2 font-medium">
-              Umumiy
-            </Link>
-            <Link
-              href="/dashboard/username"
-              className="block rounded-md px-3 py-2 hover:bg-slate-800"
-            >
-              Username qidiruv
-            </Link>
-            <Link
-              href="/dashboard/email"
-              className="block rounded-md px-3 py-2 hover:bg-slate-800"
-            >
-              Email tekshiruvi
-            </Link>
-            <Link
-              href="/dashboard/phone"
-              className="block rounded-md px-3 py-2 hover:bg-slate-800"
-            >
-              Telefon tekshiruvi
-            </Link>
-            <Link
-              href="/dashboard/events"
-              className="block rounded-md px-3 py-2 hover:bg-slate-800"
-            >
-              Events (O'zbekiston)
-            </Link>
-            <div className="px-3 py-2 text-slate-500">Domen / WHOIS (tez orada)</div>
-          </nav>
-        </aside>
+    <div className="space-y-6">
+      {/* ---------- Hero ---------- */}
+      <Card glow className="relative animate-fade-in overflow-hidden p-6 sm:p-8">
+        <div className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-brand-violet/20 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-brand-cyan/10 blur-3xl" />
+        <div className="relative flex items-center gap-8">
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">
+              <LiveDot tone={cs?.running ? (cs.last_error ? "amber" : "emerald") : "red"} />
+              {cs?.running ? "Monitoring faol" : "Monitoring to'xtagan"}
+              {cs?.last_run && <span className="text-slate-500">· oxirgi skan {timeAgo(cs.last_run)}</span>}
+            </div>
+            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              {greeting()}
+              {name && <span className="text-gradient">, {name}</span>}
+            </h1>
+            <p className="mt-2 max-w-xl text-slate-400">
+              O'zbekiston bo'yicha tahdidlar markazi: ransomware hujumlari, leak'lar, Telegram va yangiliklar — har{" "}
+              {cs ? Math.round(cs.poll_seconds / 60) : 5} daqiqada avtomatik yig'iladi.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <ButtonLink href="/dashboard/events" icon={Radar}>
+                Events'ni ochish
+              </ButtonLink>
+              <ButtonLink href="/dashboard/username" variant="secondary" icon={Search}>
+                Tekshiruv boshlash
+              </ButtonLink>
+            </div>
+          </div>
+          <RadarVisual />
+        </div>
+      </Card>
 
-        {/* Content */}
-        <main className="flex-1 p-6">
-          {error && <p className="text-red-400">{error}</p>}
-          {!me && !error && <p className="text-slate-500">Yuklanmoqda...</p>}
-          {me && (
-            <div className="space-y-6">
-              <div>
-                <h2 className="text-2xl font-bold">Xush kelibsiz 👋</h2>
-                <p className="mt-1 text-slate-400">
-                  Bu sizning OSINT boshqaruv panelingiz. Modullar bosqichma-bosqich qo'shiladi.
-                </p>
-              </div>
-              <div className="grid gap-4 sm:grid-cols-3">
-                {[
-                  {
-                    title: "Username qidiruv",
-                    desc: "Profilarni ko'p saytda izlash",
-                    href: "/dashboard/username",
-                    ready: true,
-                  },
-                  {
-                    title: "Email tekshiruvi",
-                    desc: "Sintaksis, MX, Gravatar",
-                    href: "/dashboard/email",
-                    ready: true,
-                  },
-                  {
-                    title: "Telefon tekshiruvi",
-                    desc: "Davlat, operator, tur",
-                    href: "/dashboard/phone",
-                    ready: true,
-                  },
-                  {
-                    title: "Events",
-                    desc: "O'zbekiston yangiliklari (RSS)",
-                    href: "/dashboard/events",
-                    ready: true,
-                  },
-                  { title: "Domen / WHOIS", desc: "Domen va IP razvedka", ready: false },
-                ].map((c) => {
-                  const card = (
-                    <div className="h-full rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700">
-                      <h3 className="font-semibold">{c.title}</h3>
-                      <p className="mt-1 text-sm text-slate-500">{c.desc}</p>
-                      <span
-                        className={`mt-3 inline-block rounded px-2 py-0.5 text-xs ${
-                          c.ready
-                            ? "bg-emerald-950 text-emerald-300"
-                            : "bg-slate-800 text-slate-400"
-                        }`}
-                      >
-                        {c.ready ? "Ishga tayyor" : "Tez orada"}
-                      </span>
-                    </div>
-                  );
-                  return c.ready && c.href ? (
-                    <Link key={c.title} href={c.href}>
-                      {card}
-                    </Link>
-                  ) : (
-                    <div key={c.title}>{card}</div>
-                  );
-                })}
-              </div>
+      {error && <ErrorBanner message={error} />}
+
+      {/* ---------- KPI ---------- */}
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <StatTile label="Jami hodisalar" value={ov?.total_events ?? 0} icon={Database} tone="cyan" loading={loading} hint="bazada saqlangan" />
+        <StatTile label="So'nggi 24 soat" value={ov?.new_24h ?? 0} icon={Activity} tone="violet" loading={loading} hint="yangi topilgan" />
+        <StatTile label="Ransomware" value={ov?.by_category.ransomware ?? 0} icon={Skull} tone="red" loading={loading} hint="UZ qurbonlar" />
+        <StatTile label="Leak" value={ov?.by_category.leak ?? 0} icon={ShieldAlert} tone="orange" loading={loading} hint="leak chatlarida" />
+        <StatTile label="Telegram" value={tg} icon={Send} tone="sky" loading={loading} hint="kanal va guruhlar" />
+      </div>
+
+      {/* ---------- Grafiklar ---------- */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="animate-fade-in p-5 lg:col-span-2" style={{ animationDelay: "80ms" }}>
+          <div className="mb-4 flex items-start justify-between gap-3">
+            <div>
+              <h2 className="font-semibold text-white">Kunlik hodisalar</h2>
+              <p className="text-xs text-slate-500">So'nggi 14 kun · hodisa sanasi bo'yicha · barcha manbalar</p>
+            </div>
+            <div className="flex rounded-lg border border-white/10 p-0.5">
+              {(
+                [
+                  ["chart", BarChart3, "Grafik"],
+                  ["table", Table2, "Jadval"],
+                ] as const
+              ).map(([v, Icon, label]) => (
+                <button
+                  key={v}
+                  onClick={() => setView(v)}
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs transition",
+                    view === v ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300",
+                  )}
+                >
+                  <Icon className="h-3.5 w-3.5" /> {label}
+                </button>
+              ))}
+            </div>
+          </div>
+          {loading ? (
+            <Skeleton className="h-56 w-full" />
+          ) : view === "chart" ? (
+            <ColumnChart data={chartData} />
+          ) : (
+            <div className="max-h-56 overflow-y-auto">
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-ink-850 text-left text-xs text-slate-500">
+                  <tr>
+                    <th className="py-1.5 font-medium">Sana</th>
+                    {CATEGORY_ORDER.map((c) => (
+                      <th key={c} className="py-1.5 text-right font-medium">{categoryMeta(c).label}</th>
+                    ))}
+                    <th className="py-1.5 text-right font-medium">Jami</th>
+                  </tr>
+                </thead>
+                <tbody className="font-mono text-slate-300">
+                  {[...(ov?.daily ?? [])].reverse().map((d) => (
+                    <tr key={d.day} className="border-t border-white/[0.04]">
+                      <td className="py-1.5 font-sans text-slate-400">{d.day}</td>
+                      {CATEGORY_ORDER.map((c) => (
+                        <td key={c} className="py-1.5 text-right">{d.by_category[c] ?? 0}</td>
+                      ))}
+                      <td className="py-1.5 text-right text-white">{d.total}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
-        </main>
+        </Card>
+
+        <Card className="animate-fade-in p-5" style={{ animationDelay: "140ms" }}>
+          <h2 className="font-semibold text-white">Kategoriyalar</h2>
+          <p className="mb-5 text-xs text-slate-500">Bazadagi barcha hodisalar</p>
+          {loading ? (
+            <div className="space-y-4">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <HBarList
+              total={ov?.total_events}
+              data={CATEGORY_ORDER.map((c) => ({
+                key: c,
+                label: categoryMeta(c).label,
+                value: ov?.by_category[c] ?? 0,
+                icon: categoryMeta(c).icon,
+                href: "/dashboard/events",
+              }))}
+            />
+          )}
+        </Card>
+      </div>
+
+      {/* ---------- Muhim hodisalar + manbalar ---------- */}
+      <div className="grid gap-6 lg:grid-cols-3">
+        <Card className="animate-fade-in overflow-hidden lg:col-span-2" style={{ animationDelay: "200ms" }}>
+          <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
+            <div className="flex items-center gap-3">
+              <IconBox icon={ShieldAlert} tone="red" size="sm" />
+              <div>
+                <h2 className="font-semibold text-white">Muhim hodisalar</h2>
+                <p className="text-xs text-slate-500">So'nggi ransomware va leak'lar</p>
+              </div>
+            </div>
+            <Link href="/dashboard/events" className="inline-flex items-center gap-1 text-xs text-brand-cyan hover:underline">
+              Hammasi <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+          {loading ? (
+            <div className="space-y-3 p-5">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-14 w-full" />
+              ))}
+            </div>
+          ) : !ov?.critical.length ? (
+            <EmptyState icon={ShieldAlert} title="Muhim hodisa yo'q" description="Ransomware yoki leak topilsa shu yerda chiqadi." />
+          ) : (
+            <ul>
+              {ov.critical.map((e, i) => (
+                <li key={e.id} className="animate-fade-in" style={{ animationDelay: `${240 + i * 50}ms` }}>
+                  <a
+                    href={e.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-start gap-4 border-b border-white/[0.04] px-5 py-3.5 transition last:border-0 hover:bg-white/[0.03]"
+                  >
+                    <div className="mt-0.5">
+                      <CategoryBadge category={e.category} />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-sm font-medium text-slate-200 group-hover:text-white">{e.title}</div>
+                      <div className="mt-0.5 line-clamp-1 text-xs text-slate-500">{e.summary || e.source}</div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+                      <Clock className="h-3.5 w-3.5" />
+                      {timeAgo(e.published ?? e.first_seen)}
+                      <ExternalLink className="ml-1 h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
+                    </div>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </Card>
+
+        <Card className="animate-fade-in p-5" style={{ animationDelay: "260ms" }}>
+          <h2 className="font-semibold text-white">Eng faol manbalar</h2>
+          <p className="mb-5 text-xs text-slate-500">Hodisalar soni bo'yicha</p>
+          {loading ? (
+            <div className="space-y-4">
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-8 w-full" />
+              ))}
+            </div>
+          ) : (
+            <HBarList
+              total={ov?.total_events}
+              data={(ov?.top_sources ?? []).map((s) => ({
+                key: s.source,
+                label: s.source.replace(/^TG: /, ""),
+                value: s.count,
+                icon: s.source.startsWith("TG") ? Send : s.source === "ransomware.live" ? Skull : Globe,
+              }))}
+            />
+          )}
+        </Card>
+      </div>
+
+      {/* ---------- Modullar ---------- */}
+      <div>
+        <div className="mb-3 flex items-baseline justify-between">
+          <h2 className="font-semibold text-white">Tekshiruv modullari</h2>
+          <span className="text-xs text-slate-500">
+            Sizning qidiruvlaringiz: <span className="font-mono text-slate-300">{ov?.searches_total ?? 0}</span>
+          </span>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {MODULES.map((m, i) => {
+            const inner = (
+              <Card
+                hover={!m.soon}
+                className={cn("group h-full animate-fade-in p-5", m.soon && "opacity-60")}
+                style={{ animationDelay: `${300 + i * 60}ms` }}
+              >
+                <div className="flex items-start justify-between">
+                  <IconBox icon={m.icon} tone={m.tone} />
+                  {m.soon ? (
+                    <span className="kbd">tez orada</span>
+                  ) : (
+                    <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-brand-cyan" />
+                  )}
+                </div>
+                <div className="mt-4 font-medium text-white">{m.title}</div>
+                <div className="mt-1 text-sm text-slate-500">{m.desc}</div>
+                {!m.soon && (
+                  <div className="mt-3 font-mono text-[11px] text-slate-600">
+                    {ov?.searches_by_kind[m.href.split("/").pop() ?? ""] ?? 0} ta qidiruv
+                  </div>
+                )}
+              </Card>
+            );
+            return m.soon ? (
+              <div key={m.title}>{inner}</div>
+            ) : (
+              <Link key={m.title} href={m.href}>
+                {inner}
+              </Link>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

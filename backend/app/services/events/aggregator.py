@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import html
 import re
 import time
 from dataclasses import dataclass
@@ -31,8 +32,15 @@ class EventItem:
 
 
 # ---------------------------------------------------------------- yordamchilar
+def _unescape(text: str) -> str:
+    """HTML belgilari (&nbsp; &amp; &quot; ...) → oddiy matn; ikki marta kodlanganini ham."""
+    for _ in range(2):
+        text = html.unescape(text or "")
+    return text.replace("\xa0", " ")
+
+
 def _clean(text: str, limit: int = 300) -> str:
-    text = re.sub(r"<[^>]+>", "", text or "")
+    text = _unescape(re.sub(r"<[^>]+>", "", text or ""))
     text = re.sub(r"\s+", " ", text).strip()
     return text[:limit] + ("..." if len(text) > limit else "")
 
@@ -91,7 +99,7 @@ async def _fetch_rss(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
     parsed = await asyncio.to_thread(feedparser.parse, resp.content)
     items: list[EventItem] = []
     for e in parsed.entries:
-        link, title = getattr(e, "link", ""), getattr(e, "title", "").strip()
+        link, title = getattr(e, "link", ""), _unescape(getattr(e, "title", "")).strip()
         if not link or not title:
             continue
         tm = getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None)

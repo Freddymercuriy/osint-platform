@@ -143,6 +143,8 @@ export type EventItem = {
   published: string | null;
   lang: string;
   category: string;
+  id?: number;
+  first_seen?: string | null;
 };
 
 export type EventsResponse = { count: number; items: EventItem[] };
@@ -207,10 +209,12 @@ export async function getEvents(
   q?: string,
   category?: string,
   limit = 60,
+  offset?: number,
 ): Promise<EventsResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (q) params.set("q", q);
   if (category) params.set("category", category);
+  if (offset) params.set("offset", String(offset));
   const res = await fetch(`${API_URL}/api/events?${params.toString()}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });

@@ -40,7 +40,10 @@ async def tg_status(current_user: CurrentUser) -> TgStatus:
         client = await tg.get_client()
         me = await client.get_me()
         return TgStatus(**base, authorized=True,
-                        account=f"{me.first_name or ''} (@{me.username})".strip(),
+                        account=" ".join(
+                            x for x in [me.first_name, me.last_name,
+                                        f"(@{me.username})" if me.username else None] if x
+                        ) or str(me.id),
                         message="Ulangan ✅")
     except tg.TelegramNotConfigured as exc:
         return TgStatus(**base, authorized=False, message=str(exc))

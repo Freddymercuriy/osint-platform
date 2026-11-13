@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 6 — Events (O'zbekiston yangiliklari) skeleti tayyor → foydalanuvchi saytlar ro'yxatini kutyapmiz
+**Bosqich:** 8 — UI to'liq qayta dizayn tugadi (9 agent, dizayn tizimi, grafikli dashboard) → keyingi: domen/WHOIS yoki foydalanuvchi fikri
 **Oxirgi yangilanish:** 2026-11-13
 
 ## Stack (tasdiqlangan)
@@ -90,6 +90,32 @@
   - `GET /api/notifications`, `POST /api/notifications/read`
   - Frontend: `components/NotificationBell.tsx` (har 60 s tekshiradi, qizil hisoblagich, ochiladigan ro'yxat,
     "Hammasini o'qildi", sahifa sarlavhasida "(N)"); `app/dashboard/layout.tsx` — umumiy yuqori panel barcha dashboard sahifalarida
+
+- [x] **UI to'liq qayta dizayn (Bosqich 8)** — foydalanuvchi: "platforma yomon chiqqan, wow bo'lsin"
+  - Agentlar 5 → 9: `ui-designer`, `qa-tester`, `security-auditor`, `docs-writer` qo'shildi (`.claude/agents/`)
+    ⚠️ Bu sessiyada `.claude/agents` dagi turlar Agent tool'da ro'yxatda yo'q edi → `general-purpose` agentlarga
+    rol faylini o'qish buyurildi. Yangi sessiyada ular to'g'ridan-to'g'ri mavjud bo'lishi mumkin.
+  - Dizayn tizimi: `docs/design-system.md` (uslub, ranglar, qoidalar), `tailwind.config.ts` (ink/brand ranglar, animatsiyalar),
+    `globals.css` (kiber-to'r fon, `.glass`, `.text-gradient`...), `components/ui/index.tsx` (Card, Button, Input, Badge,
+    CategoryBadge, StatusBadge, IconBox, PageHeader, StatTile, EmptyState, ErrorBanner, Skeleton, LiveDot, Logo, timeAgo),
+    `lib/categories.ts` (kategoriya nom/rang/ikon), shriftlar Inter + JetBrains Mono, ikonlar `lucide-react`
+  - Qobiq: `app/dashboard/layout.tsx` + `components/shell/Sidebar.tsx` (bo'limlar, tizim holati, foydalanuvchi) + yuqori panel (🔔)
+  - Dashboard: hero + radar, 5 KPI, kunlik ustunli grafik (+jadval ko'rinishi), kategoriyalar, muhim hodisalar, faol manbalar, modullar.
+    Grafik rangi `#3987e5` dataviz validatoridan o'tgan (navy fonda ham). `components/charts/{ColumnChart,HBarList}.tsx`
+  - Backend: `GET /api/stats/overview` (kunlik taqsimot, kategoriyalar, top manbalar, muhim hodisalar, qidiruvlar)
+  - Agentlar qilgan: landing + login/register (agent A), SearchModule + username/email/phone (agent B), Events vaqt chizig'i (agent C)
+  - Tuzatishlar: HTML entity'lar (`&nbsp;`) — `_unescape()` + bazadagi 39 yozuv tozalandi (uid qayta hisoblandi, takror 0);
+    TG akkaunt yorlig'ida `(@None)`; sidebar yorlig'i sig'masligi
+  - Tekshiruv: headless Chrome (CDP) skrinshotlari — landing, login, dashboard, events, username (skan + natija) ✅
+
+## ⚠️ Docker eslatmasi (muhim)
+- `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz
+  (masalan CORS_ORIGINS), `restart` yetmaydi → konteynerni qayta yaratish kerak:
+  `docker-compose build backend && docker-compose stop backend && docker-compose rm -f backend && docker-compose up -d backend`
+  (avval `rm` qilish v1 dagi `ContainerConfig` bug'ini chetlab o'tadi). Ma'lumotlar (postgres volume, backend/data) saqlanadi.
+- 2026-11-13: image qayta qurildi — barcha paketlar (phonenumbers, feedparser, bs4, telethon) endi image ichida.
+- `CORS_ORIGINS` ga `http://localhost:3001` qo'shilgan (skrinshot uchun alohida prod server).
+- Frontend `npm run build` foydalanuvchining ishlab turgan `npm run dev` (3000) ni buzadi (.next almashadi) → dev'ni qayta ishga tushirish kerak.
 
 ## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
 | Manba | Holat | Qaror |
