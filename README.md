@@ -15,7 +15,7 @@ Open-source intelligence (OSINT) yig'ish va tahlil qilish uchun web platforma.
 
 ## Modullar (reja)
 
-- [x] Loyiha skeleti, auth, dashboard
+- [x] Loyiha skeleti, backend auth, frontend login/dashboard
 - [ ] Username / profil qidiruv (ko'p saytda izlash)
 - [ ] Email / telefon tekshiruvi
 - [ ] Domen / IP / WHOIS razvedka
@@ -23,19 +23,25 @@ Open-source intelligence (OSINT) yig'ish va tahlil qilish uchun web platforma.
 
 ## Ishga tushirish (dev)
 
+**1) Backend + DB (Docker):**
 ```bash
-# Hamma servis (Docker)
-docker compose up --build
+cp backend/.env.example backend/.env   # keyin SECRET_KEY ni o'zgartiring
+docker-compose up -d --build           # yoki: docker compose up -d --build
+```
 
-# yoki qo'lda:
-# Backend
-cd backend && pip install -r requirements.txt && uvicorn app.main:app --reload
-# Frontend
-cd frontend && npm install && npm run dev
+**2) Frontend (lokal, Node 20):**
+```bash
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
 ```
 
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:8000  (docs: http://localhost:8000/docs)
+- Backend API: http://localhost:8000  (Swagger: http://localhost:8000/docs)
+
+> Eslatma: bu muhitda eski `docker-compose` v1 bor. Kod o'zgargach backendni
+> `docker-compose restart backend` bilan yangilang (rebuild v1 da bug beradi).
 
 ## Loyiha tuzilishi
 

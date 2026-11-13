@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 2 tugadi → 3 (frontend) boshlanmoqda
+**Bosqich:** 3 tugadi → 4 (username qidiruv moduli) keyingi
 **Oxirgi yangilanish:** 2026-11-13
 
 ## Stack (tasdiqlangan)
@@ -23,17 +23,22 @@
 - [x] Backend FastAPI skeleti: config, async DB, JWT auth (register/login/me), User modeli
 - [x] OSINT collector interfeysi (`BaseCollector`, `CollectResult`)
 - [x] Docker: `backend/Dockerfile`, `docker-compose.yml` (db + backend) — test qilindi, ishlayapti
+- [x] Frontend Next.js 14 + TS + Tailwind: home, login, register, dashboard
+- [x] `lib/api.ts` — backend bilan ishlash (register/login/me, token localStorage'da)
+- [x] Frontend build + type-check o'tdi, dev server `/login` → 200 ✅
+- [x] `frontend/Dockerfile` (standalone, kelajak uchun)
 
 ## Jarayonda 🔄
 
-- [ ] Frontend Next.js skeleti (login + dashboard)
+- (bo'sh) — keyingi bosqichga tayyor
 
 ## Keyingi qadamlar ⏭️
 
-1. Frontend: Next.js + Tailwind, login/register, dashboard
-2. Frontend konteynerini docker-compose ga qo'shish
-3. Birinchi OSINT moduli: username qidiruv (collector + API + UI)
-4. (keyin) Alembic migratsiyalar — hozir dev'da `create_all` ishlatilmoqda
+1. **Username qidiruv moduli**: `UsernameCollector` (bir nechta sayt), `/api/search/username`,
+   `SearchJob`/`Result` modellar, frontend qidiruv sahifasi + natijalar jadvali
+2. Frontend'ni docker-compose ga qo'shish (compose v2 kerak bo'lishi mumkin)
+3. (keyin) Alembic migratsiyalar — hozir dev'da `create_all`
+4. (keyin) Next 15 ga ko'chish — qolgan npm audit ogohlantirishlari uchun
 
 ## Muhit eslatmalari ⚙️
 
@@ -43,6 +48,9 @@
   yoki to'liq qayta qurish kerak bo'lsa avval `docker-compose down` qilib keyin `up --build`.
 - `gh` CLI `~/.local/bin/gh` da (sudosiz o'rnatilgan). GitHub user: `Freddymercuriy`.
 - `sudo` parol so'raydi — assistant ishlata olmaydi.
+- Frontend hozircha Docker'siz: `cd frontend && npm run dev` (http://localhost:3000).
+- Next.js 14.2.35 (eng so'nggi 14.x). 2 ta npm audit ogohlantirishi qoldi —
+  faqat Next 15 da tuzaladi, ishlatilmaydigan funksiyalarga tegishli.
 
 ## Eslatmalar
 

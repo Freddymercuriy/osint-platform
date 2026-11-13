@@ -15,11 +15,11 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Auth: ro'yxatdan o'tish, login, JWT, `/me`
 - ✅ `/health` va `/docs` ishlaydi (Docker'da test qilindi)
 
-## Bosqich 3 — Frontend asos
-- ⬜ Next.js + Tailwind sozlash
-- ⬜ API client (`lib/api.ts`)
-- ⬜ Login / register sahifalari
-- ⬜ Dashboard layout (sidebar, header)
+## Bosqich 3 — Frontend asos ✅
+- ✅ Next.js + Tailwind sozlash
+- ✅ API client (`lib/api.ts`)
+- ✅ Login / register sahifalari
+- ✅ Dashboard layout (sidebar, header)
 
 ## Bosqich 4 — Username qidiruv moduli
 - ⬜ `UsernameCollector` (ko'p saytda profil tekshirish)
