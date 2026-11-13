@@ -33,7 +33,14 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ `/api/search/email`, `/api/search/phone`
 - ✅ Frontend sahifalar (umumiy `SearchModule` komponenti)
 
-## Bosqich 6+ — Kengaytirish
+## Bosqich 6 — Events (O'zbekiston) 🔄
+- ✅ RSS aggregator + `/api/events` + `/dashboard/events`
+- ✅ Seed manbalar: Gazeta.uz (UZ/RU), Kun.uz
+- ⬜ Foydalanuvchi bergan news saytlarni qo'shish
+- ⬜ Reg saytlar (ruxsat tasdiqlangandan keyin)
+- ⬜ Keshlash (har so'rovda feedlarni qayta yuklamaslik)
+
+## Bosqich 7+ — Kengaytirish
 - ⬜ Domen / IP / WHOIS moduli
 - ⬜ Hisobot (report) eksporti (PDF/JSON)
 - ⬜ Rate limiting, caching

@@ -115,3 +115,25 @@ export async function getHistory(): Promise<SearchJob[]> {
   });
   return handle<SearchJob[]>(res);
 }
+
+// --- Events (yangiliklar/tadbirlar) ---
+export type EventItem = {
+  source: string;
+  title: string;
+  url: string;
+  summary: string;
+  published: string | null;
+  lang: string;
+  category: string;
+};
+
+export type EventsResponse = { count: number; items: EventItem[] };
+
+export async function getEvents(q?: string, limit = 40): Promise<EventsResponse> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (q) params.set("q", q);
+  const res = await fetch(`${API_URL}/api/events?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<EventsResponse>(res);
+}

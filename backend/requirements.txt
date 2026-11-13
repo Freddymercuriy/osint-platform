@@ -12,3 +12,4 @@ httpx==0.28.1
 email-validator==2.2.0
 dnspython==2.7.0
 phonenumbers==8.13.52
+feedparser==6.0.11

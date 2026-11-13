@@ -70,6 +70,12 @@ export default function DashboardPage() {
             >
               Telefon tekshiruvi
             </Link>
+            <Link
+              href="/dashboard/events"
+              className="block rounded-md px-3 py-2 hover:bg-slate-800"
+            >
+              Events (O'zbekiston)
+            </Link>
             <div className="px-3 py-2 text-slate-500">Domen / WHOIS (tez orada)</div>
           </nav>
         </aside>
@@ -104,6 +110,12 @@ export default function DashboardPage() {
                     title: "Telefon tekshiruvi",
                     desc: "Davlat, operator, tur",
                     href: "/dashboard/phone",
+                    ready: true,
+                  },
+                  {
+                    title: "Events",
+                    desc: "O'zbekiston yangiliklari (RSS)",
+                    href: "/dashboard/events",
                     ready: true,
                   },
                   { title: "Domen / WHOIS", desc: "Domen va IP razvedka", ready: false },

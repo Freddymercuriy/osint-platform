@@ -57,3 +57,21 @@ class SearchJobOut(BaseModel):
     query: str
     status: str
     created_at: datetime
+
+
+# --- Events (yangiliklar/tadbirlar) ---
+class EventItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    source: str
+    title: str
+    url: str
+    summary: str
+    published: datetime | None = None
+    lang: str
+    category: str
+
+
+class EventsResponse(BaseModel):
+    count: int
+    items: list[EventItemOut]

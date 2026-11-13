@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, search
+from app.api import auth, events, search
 from app.core.config import settings
 from app.core.db import Base, engine
 
@@ -32,6 +32,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(search.router)
+app.include_router(events.router)
 
 
 @app.get("/health", tags=["system"])

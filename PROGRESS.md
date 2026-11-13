@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 5 (email/telefon modullari) tugadi → 6 (domen/WHOIS yoki tarix sahifasi) keyingi
+**Bosqich:** 6 — Events (O'zbekiston yangiliklari) skeleti tayyor → foydalanuvchi saytlar ro'yxatini kutyapmiz
 **Oxirgi yangilanish:** 2026-11-13
 
 ## Stack (tasdiqlangan)
@@ -44,12 +44,22 @@
     `/dashboard/username` (barchasi shu komponentni ishlatadi, `detail` ko'rsatiladi)
   - Test: email torvalds@linux.com → MX topildi; telefon +998901234567 → Uzbekistan/Beeline/Mobil ✅
 
+- [x] **Events moduli skeleti (Bosqich 6):**
+  - `services/events/feeds.py` — manbalar ro'yxati (`Feed` dataclass). Hozir seed: Gazeta.uz (UZ/RU), Kun.uz (UZ) — ishlaydi
+  - `services/events/aggregator.py` — RSS'larni async yig'adi (httpx + feedparser), kalit so'z filtri, sanasi bo'yicha saralash
+  - `GET /api/events?limit=&q=` endpoint
+  - Frontend: `/dashboard/events` (kartalar, "N soat oldin", filtr)
+
 ## Jarayonda 🔄
 
-- (bo'sh) — keyingi bosqichga tayyor
+- Foydalanuvchi O'zbekiston **news saytlar** va **reg (login) saytlar** ro'yxatini beradi.
+  - News → `feeds.py` ga qo'shish (RSS topish; RSS yo'q bo'lsa alohida HTML parser)
+  - Reg saytlar → ⚠️ ToS masalasi; foydalanuvchidan ruxsat/o'z hisobi borligini tasdiqlash so'raldi.
+    Ruxsat bo'lmasa scrape qilinmaydi.
 
 ## Keyingi qadamlar ⏭️
 
+0. Saytlar ro'yxati kelgach: feedlarni qo'shish, test, push
 1. Domen / IP / WHOIS collector moduli
 2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
 3. Collector'larni `name` bo'yicha registry orqali ulash
