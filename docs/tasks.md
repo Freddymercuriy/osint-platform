@@ -8,12 +8,12 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Agent ta'riflari (`.claude/agents/`)
 - 🔄 GitHub repo + birinchi push
 
-## Bosqich 2 — Backend asos
-- ⬜ FastAPI ilova (`main.py`), sozlamalar (`config.py`)
-- ⬜ PostgreSQL ulanish (SQLAlchemy async), `.env.example`
-- ⬜ User modeli + migratsiya (Alembic)
-- ⬜ Auth: ro'yxatdan o'tish, login, JWT
-- ⬜ `/health` va `/docs` ishlashini tekshirish
+## Bosqich 2 — Backend asos ✅
+- ✅ FastAPI ilova (`main.py`), sozlamalar (`config.py`)
+- ✅ PostgreSQL ulanish (SQLAlchemy async), `.env.example`
+- ✅ User modeli (migratsiya o'rniga hozir dev'da `create_all`; Alembic keyin)
+- ✅ Auth: ro'yxatdan o'tish, login, JWT, `/me`
+- ✅ `/health` va `/docs` ishlaydi (Docker'da test qilindi)
 
 ## Bosqich 3 — Frontend asos
 - ⬜ Next.js + Tailwind sozlash
