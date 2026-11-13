@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -83,6 +83,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Token muddati tugab, bu yerga qaytarilgan bo'lsa — sababini aytamiz
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("expired")) {
+      setError("Sessiya muddati tugadi. Iltimos, qaytadan kiring.");
+    }
+  }, []);
   const [loading, setLoading] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {

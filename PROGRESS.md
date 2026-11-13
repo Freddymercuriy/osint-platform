@@ -4,8 +4,57 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 8 — UI to'liq qayta dizayn tugadi (9 agent, dizayn tizimi, grafikli dashboard) → keyingi: domen/WHOIS yoki foydalanuvchi fikri
+**Bosqich:** 9 — motion design qo'shildi (JARAYONDA TO'XTATILDI, pastdagi "Uyda davom etish" bo'limiga qarang)
 **Oxirgi yangilanish:** 2026-11-13
+
+## ▶️ UYDA DAVOM ETISH (2026-11-13 kechqurun to'xtatildi)
+
+### Boshqa kompyuterda ishga tushirish
+Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
+| Nima | Qayerda | Uyda nima qilish |
+|---|---|---|
+| `backend/.env` | maxfiy | ish kompyuteridan nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false` |
+| `backend/data/tg_session.session` | Telegram sessiyasi | nusxalash YOKI uyda qayta login: `docker-compose exec backend python scripts/tg_login.py` |
+| Postgres ma'lumotlari | docker volume | ko'chmaydi: foydalanuvchi qayta ro'yxatdan o'tadi, hodisalarni fon yig'uvchi 5 daqiqada o'zi yig'adi |
+| `frontend/.env.local` | — | `cp frontend/.env.example frontend/.env.local` |
+
+```bash
+git clone https://github.com/Freddymercuriy/osint-platform && cd osint-platform   # yoki: git pull
+# backend/.env ni joylashtiring, keyin:
+docker-compose build backend && docker-compose up -d        # yoki: docker compose ...
+cd frontend && npm install && cp .env.example .env.local && npm run dev   # http://localhost:3000
+```
+Push uchun uyda ham `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### Shu sessiyada qilingan (Bosqich 8b + 9)
+- **Tekshiruv va xavfsizlik** (commit `13500e6`, push qilingan): 26 ta API testi; Postgres/backend portlari `127.0.0.1` ga bog'landi
+  (avval LAN/Tailscale'ga ochiq edi); `debug=False` (traceback mijozga chiqmaydi); buzuq JWT → 401; frontend 401'da login'ga qaytaradi
+  (`/login?expired=1`); `next dev -H 127.0.0.1`; `NEXT_DIST_DIR=.next-build npm run build` — dev serverni buzmaydigan tekshiruv build'i.
+- **Motion design** (`framer-motion` 14): `components/motion/index.tsx` — MotionProvider (reduced-motion hurmat), Reveal, Stagger/StaggerItem,
+  CountUp, TextReveal, ScrambleText, Tilt, Magnetic, PageTransition, RouteProgress, Aurora, Float. CSS: `globals.css` oxirida
+  (spotlight, btn-sheen, bar-grow, bell-ring, text-gradient-animated, aurora).
+  Ulangan joylar: root layout (Aurora fon, RouteProgress), `dashboard/template.tsx` (sahifa o'tishi), Sidebar (faol belgi `layoutId` bilan sirpanadi),
+  NotificationBell (prujinali ochilish, qo'ng'iroq silkinishi), Card (sichqonchani kuzatuvchi yorug'lik), Button (yaltirash, bosilish),
+  StatTile (raqam sanaladi), grafiklar (ustunlar o'sib chiqadi), dashboard (so'zma-so'z sarlavha, zinapoya), landing (TextReveal, 3D Tilt kartalar,
+  scroll reveal), Events (kategoriya belgisi sirpanadi, kartalar chapdan kiradi, muhim tugunlar pulslanadi), SearchModule (filtr belgisi, natija kartalari
+  `AnimatePresence popLayout`, foiz chizig'i).
+  Unumdorlik uchun: `.glass` dan `backdrop-blur` olib tashlandi; aurora — `filter: blur` emas, radial gradient.
+- Tuzatildi: landing radar hydration ogohlantirishi (koordinatalar yaxlitlandi), grafik shkalasi (`niceMax`).
+
+### Tekshirilgan / tekshirilMAGAN
+- ✅ `npx tsc --noEmit` xatosiz; dev serverda `/`, `/login`, `/dashboard`, `/dashboard/events` skrinshot bilan ko'rildi, konsol xatosiz.
+- ⚠️ **Tekshirilmadi (to'xtatilgani uchun):** qidiruv sahifalarida natija kartalari animatsiyasi va filtr almashishi (username/phone);
+  framer-motion bilan production build (`NEXT_DIST_DIR=.next-build npm run build`); mobil ko'rinish (360px); register sahifasi.
+- Skrinshot skripti ish kompyuterining vaqtinchalik papkasida qoldi (git'da yo'q) — kerak bo'lsa qayta yoziladi (headless Chrome + CDP).
+
+### Keyingi qadamlar (tartib bilan)
+1. Yuqoridagi ⚠️ tekshiruvlarni bajarish; xato chiqsa tuzatish.
+2. Foydalanuvchi UI'ni ko'rib fikr bildiradi → kerakli joylarni sayqallash (animatsiya tezligi/kuchi, ranglar).
+3. Qidiruv tarixi sahifasi (API tayyor: `/api/search/history`, `/api/search/jobs/{id}`).
+4. Domen / IP / WHOIS moduli (sidebar'da "tez orada").
+5. Events: intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak), ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
+6. Texnik qarz: Alembic migratsiyalar; Next 15+ ga ko'chish (npm audit: 2 ta ogohlantirish); test hisobi `test@example.com / password123` ni o'chirish;
+   eski hodisalarni tozalash (retention); `.claude/agents` dagi 9 agentdan foydalanish.
 
 ## Stack (tasdiqlangan)
 

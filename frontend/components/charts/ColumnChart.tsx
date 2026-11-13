@@ -20,12 +20,13 @@ export type ColumnDatum = {
 const SERIES = "#3987e5";
 const SERIES_HOVER = "#6da7ec";
 
+/** Eng katta qiymatdan sal yuqori "chiroyli" shkala cho'qqisi (yarmi ham butun son bo'ladi). */
 function niceMax(v: number): number {
   if (v <= 4) return 4;
   const p = Math.pow(10, Math.floor(Math.log10(v)));
   const n = v / p;
-  const step = n <= 2 ? 2 : n <= 5 ? 5 : 10;
-  return step * p;
+  const step = [1, 1.2, 1.6, 2, 3, 4, 5, 6, 8, 10].find((s) => n <= s) ?? 10;
+  return Math.round(step * p);
 }
 
 export default function ColumnChart({
@@ -100,6 +101,8 @@ export default function ColumnChart({
               {d.value > 0 && (
                 <path
                   pointerEvents="none"
+                  className="animate-bar-grow"
+                  style={{ animationDelay: `${i * 45}ms`, transition: "fill .2s" }}
                   fill={active ? SERIES_HOVER : SERIES}
                   // Faqat yuqori burchaklar yumaloq — pastki qismi baseline'ga tayanadi
                   d={`M${x},${top + bh} V${top + r} Q${x},${top} ${x + r},${top} H${x + barW - r} Q${x + barW},${top} ${x + barW},${top + r} V${top + bh} Z`}

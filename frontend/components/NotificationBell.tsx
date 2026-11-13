@@ -3,6 +3,7 @@
 import { Bell, BellRing, CheckCheck, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { AnimatePresence, motion, SPRING } from "@/components/motion";
 import { CategoryBadge, EmptyState, timeAgo } from "@/components/ui";
 import { getNotifications, markNotificationsRead, type NotificationsResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -13,11 +14,16 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
   const [data, setData] = useState<NotificationsResponse | null>(null);
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
+  const prevUnread = useRef<number | null>(null);
+  const [ring, setRing] = useState(0); // har o'sishda qo'ng'iroq bir marta silkinadi
 
   const load = useCallback(async () => {
     try {
       const res = await getNotifications(20);
       setData(res);
+      if (prevUnread.current !== null && res.unread > prevUnread.current) setRing((r) => r + 1);
+      else if (prevUnread.current === null && res.unread > 0) setRing(1);
+      prevUnread.current = res.unread;
       onUnreadChange?.(res.unread);
       document.title = res.unread > 0 ? `(${res.unread}) OSINT Platform` : "OSINT Platform";
     } catch {
@@ -66,19 +72,33 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
             : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06]",
         )}
       >
-        <Icon className={cn("h-[18px] w-[18px]", unread > 0 && "text-red-300")} />
+        <Icon key={ring} className={cn("h-[18px] w-[18px]", unread > 0 && "text-red-300", ring > 0 && "animate-bell-ring")} />
         {unread > 0 && (
           <>
             <span className="absolute -right-1 -top-1 h-5 min-w-5 animate-pulse-ring rounded-full bg-red-500/60" />
-            <span className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-ink-950">
+            <motion.span
+              key={unread}
+              initial={{ scale: 0.4, y: 4 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={SPRING}
+              className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-ink-950"
+            >
               {unread > 99 ? "99+" : unread}
-            </span>
+            </motion.span>
           </>
         )}
       </button>
 
+      <AnimatePresence>
       {open && (
-        <div className="glass absolute right-0 z-50 mt-3 w-[27rem] max-w-[calc(100vw-2rem)] animate-fade-in overflow-hidden !bg-ink-900/95">
+        <motion.div
+          initial={{ opacity: 0, y: -8, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -6, scale: 0.97, transition: { duration: 0.15 } }}
+          transition={SPRING}
+          style={{ transformOrigin: "top right" }}
+          className="glass absolute right-0 z-50 mt-3 w-[27rem] max-w-[calc(100vw-2rem)] overflow-hidden !bg-ink-900/95"
+        >
           <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
             <div>
               <div className="text-sm font-semibold text-white">Ogohlantirishlar</div>
@@ -100,8 +120,11 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
             {!data?.items.length ? (
               <EmptyState icon={Bell} title="Hozircha ogohlantirish yo'q" description="Yangi leak yoki ransomware topilsa shu yerda chiqadi." />
             ) : (
-              data.items.map((n) => (
-                <a
+              data.items.map((n, i) => (
+                <motion.a
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.04 * Math.min(i, 10), duration: 0.3 }}
                   key={n.id}
                   href={n.url}
                   target="_blank"
@@ -123,7 +146,7 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
                     </span>
                     <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 group-hover:text-slate-400" />
                   </div>
-                </a>
+                </motion.a>
               ))
             )}
           </div>
@@ -135,8 +158,9 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
           >
             Barcha hodisalarni ko'rish →
           </Link>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

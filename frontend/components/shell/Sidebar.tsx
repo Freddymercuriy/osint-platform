@@ -3,7 +3,8 @@
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
+import { motion, SPRING } from "@/components/motion";
 import { LiveDot, Logo, timeAgo } from "@/components/ui";
 import { getCollectorStatus, getTgStatus, type CollectorStatus, type Me, type TgStatus } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -21,6 +22,7 @@ export default function Sidebar({
   onNavigate?: () => void;
 }) {
   const pathname = usePathname();
+  const uid = useId(); // desktop va mobil nusxalar bir-biriga aralashmasligi uchun
   const [cs, setCs] = useState<CollectorStatus | null>(null);
   const [tg, setTg] = useState<TgStatus | null>(null);
 
@@ -69,18 +71,27 @@ export default function Sidebar({
                       onClick={onNavigate}
                       className={cn(
                         "group relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm transition",
-                        active
-                          ? "bg-gradient-to-r from-brand-cyan/15 to-brand-violet/10 text-white"
-                          : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100",
+                        active ? "text-white" : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100",
                       )}
                     >
                       {active && (
-                        <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-brand-gradient" />
+                        <motion.span
+                          layoutId={`sidebar-active-${uid}`}
+                          transition={SPRING}
+                          className="absolute inset-0 rounded-xl bg-gradient-to-r from-brand-cyan/15 to-brand-violet/10 ring-1 ring-inset ring-white/[0.06]"
+                        >
+                          <span className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r bg-brand-gradient shadow-[0_0_10px_rgba(34,211,238,.9)]" />
+                        </motion.span>
                       )}
-                      <Icon className={cn("h-4 w-4", active ? "text-brand-cyan" : "text-slate-500 group-hover:text-slate-300")} />
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <Icon
+                        className={cn(
+                          "relative h-4 w-4 transition-transform duration-300 group-hover:scale-110",
+                          active ? "text-brand-cyan" : "text-slate-500 group-hover:text-slate-300",
+                        )}
+                      />
+                      <span className="relative flex-1 truncate">{item.label}</span>
                       {item.badge === "notifications" && unread > 0 && (
-                        <span className="rounded-full bg-red-500/90 px-1.5 text-[10px] font-semibold text-white">
+                        <span className="relative rounded-full bg-red-500/90 px-1.5 text-[10px] font-semibold text-white">
                           {unread > 99 ? "99+" : unread}
                         </span>
                       )}

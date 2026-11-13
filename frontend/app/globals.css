@@ -41,7 +41,8 @@
 @layer components {
   /* Shisha karta — asosiy konteyner */
   .glass {
-    @apply rounded-2xl border border-white/[0.06] bg-ink-850/70 shadow-card backdrop-blur-xl;
+    /* backdrop-blur ataylab yo'q: harakatlanuvchi fon ustida har kadrda qayta hisoblanib, sekinlashtiradi */
+    @apply rounded-2xl border border-white/[0.06] bg-ink-850/80 shadow-card;
   }
   .glass-hover {
     @apply transition duration-300 hover:border-brand-cyan/30 hover:bg-ink-800/70;
@@ -90,4 +91,82 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ================================================================ Motion design */
+@keyframes aurora-drift {
+  0%   { transform: translate3d(0, 0, 0) scale(1); }
+  33%  { transform: translate3d(6%, 8%, 0) scale(1.12); }
+  66%  { transform: translate3d(-5%, 4%, 0) scale(0.94); }
+  100% { transform: translate3d(0, 0, 0) scale(1); }
+}
+@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes bar-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes sheen { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(14deg); } 30% { transform: rotate(-12deg); }
+  45% { transform: rotate(9deg); }  60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); }
+}
+@keyframes gradient-pan { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+@keyframes dash-flow { to { stroke-dashoffset: -24; } }
+@keyframes blink { 50% { opacity: 0; } }
+
+@layer components {
+  /* Fon nur dog'lari */
+  .aurora-blob {
+    position: absolute;
+    border-radius: 9999px;
+    /* filter: blur o'rniga yumshoq radial gradient — GPU uchun ancha arzon */
+    background-image: radial-gradient(closest-side, currentColor, transparent);
+    background-color: transparent !important;
+    animation: aurora-drift 30s ease-in-out infinite;
+    will-change: transform;
+  }
+
+  /* Sichqonchani kuzatuvchi yorug'lik (Card hover) — --mx/--my JS orqali beriladi */
+  .spotlight { position: relative; isolation: isolate; }
+  .spotlight::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(34, 211, 238, 0.13), rgba(139, 92, 246, 0.06) 40%, transparent 65%);
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
+    z-index: -1;
+  }
+  .spotlight:hover::after { opacity: 1; }
+  .spotlight { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, background-color 0.3s; }
+  .spotlight:hover { transform: translateY(-2px); }
+
+  /* Asosiy tugma ustidan o'tadigan yaltirash */
+  .btn-sheen { position: relative; overflow: hidden; }
+  .btn-sheen::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    width: 45%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
+    transform: translateX(-120%) skewX(-20deg);
+    pointer-events: none;
+  }
+  .btn-sheen:hover::after { animation: sheen 0.9s ease; }
+
+  /* Harakatlanuvchi gradient matn/chegara */
+  .text-gradient-animated {
+    background-image: linear-gradient(90deg, #22d3ee, #8b5cf6, #d946ef, #22d3ee);
+    background-size: 200% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: gradient-pan 6s linear infinite;
+  }
+
+  .animate-bell-ring { animation: bell-ring 0.9s ease-in-out; transform-origin: 50% 10%; }
+  .animate-bar-grow { animation: bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom; transform-box: fill-box; }
+  .animate-bar-grow-x { animation: bar-grow-x 1s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: left; }
+  .animate-dash-flow { stroke-dasharray: 4 8; animation: dash-flow 1.2s linear infinite; }
+  .caret::after { content: "▍"; margin-left: 2px; color: #22d3ee; animation: blink 1s steps(1) infinite; }
 }

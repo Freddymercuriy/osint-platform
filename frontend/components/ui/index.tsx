@@ -8,6 +8,7 @@
 import { CheckCircle2, CircleHelp, Loader2, XCircle, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { forwardRef } from "react";
+import { CountUp } from "@/components/motion";
 import { cn } from "@/lib/cn";
 import { categoryMeta, type Tone } from "@/lib/categories";
 
@@ -49,16 +50,32 @@ const TONE_ICON_BG: Record<Tone, string> = {
 };
 
 /* ------------------------------------------------------------------ Card */
+/** Sichqoncha joylashuvini CSS o'zgaruvchilariga yozadi (.spotlight yorug'ligi uchun). */
+export function trackPointer(e: React.MouseEvent<HTMLElement>) {
+  const r = e.currentTarget.getBoundingClientRect();
+  e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
+  e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+}
+
 export function Card({
   className,
   hover,
   glow,
   children,
+  onMouseMove,
   ...rest
 }: React.HTMLAttributes<HTMLDivElement> & { hover?: boolean; glow?: boolean }) {
   return (
     <div
-      className={cn("glass", hover && "glass-hover", glow && "gradient-border", className)}
+      className={cn("glass", hover && "glass-hover spotlight", glow && "gradient-border", className)}
+      onMouseMove={
+        hover
+          ? (e) => {
+              trackPointer(e);
+              onMouseMove?.(e);
+            }
+          : onMouseMove
+      }
       {...rest}
     >
       {children}
@@ -72,7 +89,7 @@ type ButtonSize = "sm" | "md" | "lg";
 
 const BTN_VARIANT: Record<ButtonVariant, string> = {
   primary:
-    "bg-brand-gradient text-white shadow-glow hover:brightness-110 active:brightness-95 disabled:shadow-none",
+    "btn-sheen bg-brand-gradient text-white shadow-glow hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(34,211,238,.35),0_10px_50px_-6px_rgba(34,211,238,.55)] disabled:shadow-none",
   secondary:
     "border border-white/10 bg-white/[0.04] text-slate-200 hover:border-white/20 hover:bg-white/[0.08]",
   ghost: "text-slate-400 hover:bg-white/[0.06] hover:text-slate-100",
@@ -100,7 +117,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex select-none items-center justify-center font-medium transition duration-200",
+        "inline-flex select-none items-center justify-center font-medium transition duration-200 active:scale-[0.97]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
         "disabled:cursor-not-allowed disabled:opacity-50",
         BTN_VARIANT[variant],
@@ -135,7 +152,7 @@ export function ButtonLink({
     <Link
       href={href}
       className={cn(
-        "inline-flex items-center justify-center font-medium transition duration-200",
+        "inline-flex items-center justify-center font-medium transition duration-200 active:scale-[0.97]",
         BTN_VARIANT[variant],
         BTN_SIZE[size],
         className,
@@ -324,7 +341,9 @@ export function StatTile({
           {loading ? (
             <div className="skeleton mt-2 h-8 w-20" />
           ) : (
-            <div className="mt-1.5 font-mono text-3xl font-semibold tabular-nums text-white">{value}</div>
+            <div className="mt-1.5 font-mono text-3xl font-semibold tabular-nums text-white">
+              {typeof value === "number" ? <CountUp value={value} /> : value}
+            </div>
           )}
           {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
         </div>

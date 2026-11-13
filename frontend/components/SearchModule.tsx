@@ -35,6 +35,7 @@ import {
 } from "@/components/ui";
 import { getHistory, type CollectResult, type SearchJob, type SearchResponse } from "@/lib/api";
 import type { Tone } from "@/lib/categories";
+import { AnimatePresence, EASE, SPRING, motion } from "@/components/motion";
 import { cn } from "@/lib/cn";
 
 export type SearchKind = "username" | "email" | "phone";
@@ -119,7 +120,7 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
     <Card
       hover
       className={cn(
-        "group relative flex animate-fade-in flex-col gap-3 overflow-hidden p-4",
+        "group relative flex h-full animate-fade-in flex-col gap-3 overflow-hidden p-4",
         found && "border-emerald-400/20",
         status === "not_found" && "opacity-80 hover:opacity-100",
       )}
@@ -438,9 +439,11 @@ export default function SearchModule({
                   aria-valuemin={0}
                   aria-valuemax={100}
                 >
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 transition-[width] duration-700"
-                    style={{ width: `${ratio}%` }}
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-[0_0_12px_rgba(52,211,153,.6)]"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${ratio}%` }}
+                    transition={{ duration: 1.1, ease: EASE, delay: 0.2 }}
                   />
                 </div>
               </Card>
@@ -455,17 +458,24 @@ export default function SearchModule({
                       type="button"
                       onClick={() => setFilter(f.id)}
                       className={cn(
-                        "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition",
+                        "relative inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition active:scale-95",
                         active
-                          ? "border-brand-cyan/40 bg-brand-cyan/10 text-cyan-200 shadow-glow"
+                          ? "border-transparent text-cyan-200"
                           : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200",
                       )}
                     >
-                      <f.icon className="h-3.5 w-3.5" />
-                      {f.label}
+                      {active && (
+                        <motion.span
+                          layoutId="search-filter-active"
+                          transition={SPRING}
+                          className="absolute inset-0 rounded-full bg-brand-cyan/10 shadow-glow ring-1 ring-brand-cyan/40"
+                        />
+                      )}
+                      <f.icon className="relative h-3.5 w-3.5" />
+                      <span className="relative">{f.label}</span>
                       <span
                         className={cn(
-                          "rounded-full px-1.5 font-mono text-[10px] tabular-nums",
+                          "relative rounded-full px-1.5 font-mono text-[10px] tabular-nums",
                           active ? "bg-cyan-400/20 text-cyan-100" : "bg-white/5 text-slate-500",
                         )}
                       >
@@ -485,10 +495,22 @@ export default function SearchModule({
                   />
                 </Card>
               ) : (
-                <div key={filter} className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {visible.map((r, i) => (
-                    <ResultCard key={`${r.source}-${r.value}-${i}`} r={r} index={i} />
-                  ))}
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <AnimatePresence mode="popLayout" initial={false}>
+                    {visible.map((r, i) => (
+                      <motion.div
+                        key={`${r.source}-${r.value}`}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
+                        transition={SPRING}
+                        className="h-full"
+                      >
+                        <ResultCard r={r} index={i} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
               )}
             </div>

@@ -30,6 +30,8 @@ import {
   Skeleton,
   timeAgo,
 } from "@/components/ui";
+import { CountUp, SPRING, motion } from "@/components/motion";
+import { trackPointer } from "@/components/ui";
 import {
   getCollectorStatus,
   getEvents,
@@ -313,14 +315,18 @@ function CategoryCard({
       aria-pressed={active}
       style={{ animationDelay: `${index * 50}ms` }}
       className={cn(
-        "glass group relative animate-fade-in overflow-hidden p-4 text-left transition duration-300",
+        "glass group relative animate-fade-in overflow-hidden p-4 text-left transition duration-300 active:scale-[0.97]",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
-        active
-          ? "gradient-border bg-ink-800/80 shadow-glow"
-          : "hover:-translate-y-0.5 hover:border-white/15 hover:bg-ink-800/60",
+        active ? "bg-ink-800/80" : "hover:-translate-y-0.5 hover:border-white/15 hover:bg-ink-800/60",
       )}
     >
-      {active && <div className="pointer-events-none absolute inset-0 bg-brand-gradient-soft opacity-60" />}
+      {active && (
+        <motion.div
+          layoutId="events-category-active"
+          transition={SPRING}
+          className="pointer-events-none absolute inset-0 rounded-2xl bg-brand-gradient-soft ring-1 ring-inset ring-brand-cyan/50 shadow-[inset_0_0_30px_rgba(34,211,238,.12)]"
+        />
+      )}
       <div className="relative flex items-center justify-between gap-2">
         <Icon
           className={cn(
@@ -332,14 +338,14 @@ function CategoryCard({
         {active && <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan shadow-[0_0_8px_rgba(34,211,238,.9)]" />}
       </div>
       <div className="relative mt-3 font-mono text-2xl font-semibold tabular-nums text-white">
-        {count === null ? <Skeleton className="h-7 w-12" /> : fmt(count)}
+        {count === null ? <Skeleton className="h-7 w-12" /> : <CountUp value={count} />}
       </div>
       <div className={cn("relative mt-0.5 truncate text-xs font-medium", active ? "text-slate-200" : "text-slate-400")}>
         {label}
       </div>
       <div className="relative mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
         <div
-          className={cn("h-full rounded-full transition-all duration-700", tone === "brand" ? "bg-brand-gradient" : BAR[tone])}
+          className={cn("animate-bar-grow-x h-full rounded-full transition-all duration-700", tone === "brand" ? "bg-brand-gradient" : BAR[tone])}
           style={{ width: `${Math.max(share > 0 ? 4 : 0, Math.round(share * 100))}%` }}
         />
       </div>
@@ -356,20 +362,39 @@ function EventCard({ e, query, delay }: { e: FeedItem; query: string; delay: num
   const critical = e.category === "ransomware" || e.category === "leak";
 
   return (
-    <li className="relative animate-fade-in pl-12 sm:pl-14" style={{ animationDelay: `${delay}ms` }}>
+    <motion.li
+      className="relative pl-12 sm:pl-14"
+      initial={{ opacity: 0, x: -18 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: "0px 0px -30px 0px" }}
+      transition={{ duration: 0.5, delay: Math.min(delay, 300) / 1000, ease: [0.16, 1, 0.3, 1] }}
+    >
       {/* timeline tuguni */}
-      <div
+      <motion.div
+        initial={{ scale: 0 }}
+        whileInView={{ scale: 1 }}
+        viewport={{ once: true }}
+        transition={{ ...SPRING, delay: Math.min(delay, 300) / 1000 + 0.1 }}
         className={cn(
           "absolute left-0 top-4 z-[1] grid h-8 w-8 place-items-center rounded-full bg-ink-900 ring-1 sm:left-1",
           DOT[meta.tone],
         )}
       >
-        <Icon className="h-4 w-4" />
-      </div>
+        {critical && (
+          <span
+            className={cn(
+              "absolute inset-0 animate-pulse-ring rounded-full",
+              e.category === "ransomware" ? "bg-red-500/40" : "bg-orange-500/40",
+            )}
+          />
+        )}
+        <Icon className="relative h-4 w-4" />
+      </motion.div>
 
       <article
+        onMouseMove={trackPointer}
         className={cn(
-          "glass glass-hover group relative overflow-hidden p-4 sm:p-5",
+          "glass glass-hover spotlight group relative overflow-hidden p-4 sm:p-5",
           critical && (e.category === "ransomware" ? "bg-red-500/[0.03]" : "bg-orange-500/[0.03]"),
         )}
       >
@@ -448,7 +473,7 @@ function EventCard({ e, query, delay }: { e: FeedItem; query: string; delay: num
           </div>
         )}
       </article>
-    </li>
+    </motion.li>
   );
 }
 

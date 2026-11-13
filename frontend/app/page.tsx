@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { Badge, ButtonLink, Card, IconBox, LiveDot, Logo } from "@/components/ui";
 import type { Tone } from "@/lib/categories";
+import { CountUp, Float, Magnetic, Reveal, ScrambleText, Stagger, StaggerItem, TextReveal, Tilt } from "@/components/motion";
 import { cn } from "@/lib/cn";
 
 /* ------------------------------------------------------------------ data */
@@ -125,6 +126,9 @@ const BLIPS = [
   { x: 24, y: 34, c: "bg-amber-400", delay: "1.8s" },
 ];
 
+/** Server va brauzerda bir xil chiqishi uchun koordinatani yaxlitlaydi (hydration farqi bo'lmasin). */
+const r3 = (n: number) => Math.round(n * 1000) / 1000;
+
 function RadarVisual() {
   return (
     <div className="relative mx-auto aspect-square w-full max-w-[460px]">
@@ -172,10 +176,10 @@ function RadarVisual() {
             return (
               <line
                 key={i}
-                x1={100 + Math.cos(a) * r1}
-                y1={100 + Math.sin(a) * r1}
-                x2={100 + Math.cos(a) * 90}
-                y2={100 + Math.sin(a) * 90}
+                x1={r3(100 + Math.cos(a) * r1)}
+                y1={r3(100 + Math.sin(a) * r1)}
+                x2={r3(100 + Math.cos(a) * 90)}
+                y2={r3(100 + Math.sin(a) * 90)}
                 stroke="rgba(34,211,238,.35)"
                 strokeWidth=".6"
               />
@@ -223,7 +227,7 @@ function RadarVisual() {
       </svg>
 
       {/* floating intel chips */}
-      <div className="absolute -left-2 top-[14%] animate-float sm:-left-8">
+      <Float className="absolute -left-2 top-[14%] sm:-left-8" amplitude={10} duration={5.5}>
         <Card className="flex items-center gap-2.5 px-3 py-2">
           <IconBox icon={Skull} tone="red" size="sm" />
           <div className="leading-tight">
@@ -231,8 +235,8 @@ function RadarVisual() {
             <div className="font-mono text-[10px] text-slate-500">.uz · yangi qurbon</div>
           </div>
         </Card>
-      </div>
-      <div className="absolute -right-2 top-[46%] animate-float sm:-right-10" style={{ animationDelay: "1.5s" }}>
+      </Float>
+      <Float className="absolute -right-2 top-[46%] sm:-right-10" amplitude={12} duration={7} delay={1.2}>
         <Card className="flex items-center gap-2.5 px-3 py-2">
           <IconBox icon={Send} tone="sky" size="sm" />
           <div className="leading-tight">
@@ -240,13 +244,13 @@ function RadarVisual() {
             <div className="font-mono text-[10px] text-slate-500">3 ta mos xabar</div>
           </div>
         </Card>
-      </div>
-      <div className="absolute bottom-[6%] left-[8%] animate-float" style={{ animationDelay: "3s" }}>
+      </Float>
+      <Float className="absolute bottom-[6%] left-[8%]" amplitude={7} duration={6} delay={2.4}>
         <Card className="flex items-center gap-2 px-3 py-2">
           <LiveDot tone="emerald" />
           <span className="font-mono text-[11px] text-slate-300">skan: faol</span>
         </Card>
-      </div>
+      </Float>
     </div>
   );
 }
@@ -282,14 +286,11 @@ export default function Home() {
             <div className="animate-fade-in">
               <Badge tone="cyan" className="gap-2 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em]">
                 <LiveDot tone="cyan" />
-                OSINT · O'zbekiston
+                <ScrambleText text="OSINT · O'zbekiston" delay={0.2} />
               </Badge>
             </div>
-            <h1
-              className="mt-6 animate-fade-in text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl"
-              style={{ animationDelay: "80ms" }}
-            >
-              Tahdidlarni <span className="text-gradient">birinchi bo'lib</span> ko'ring.
+            <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
+              <TextReveal text="Tahdidlarni birinchi bo'lib ko'ring." gradientWords={[1, 2]} delay={0.15} />
             </h1>
             <p
               className="mt-5 max-w-xl animate-fade-in text-base leading-relaxed text-slate-400 sm:text-lg"
@@ -302,9 +303,11 @@ export default function Home() {
               className="mt-8 flex animate-fade-in flex-col gap-3 sm:flex-row"
               style={{ animationDelay: "240ms" }}
             >
-              <ButtonLink href="/register" size="lg" icon={ArrowRight} className="flex-row-reverse">
-                Boshlash
-              </ButtonLink>
+              <Magnetic>
+                <ButtonLink href="/register" size="lg" icon={ArrowRight} className="w-full flex-row-reverse">
+                  Boshlash
+                </ButtonLink>
+              </Magnetic>
               <ButtonLink href="/login" size="lg" variant="secondary">
                 Kirish
               </ButtonLink>
@@ -317,7 +320,9 @@ export default function Home() {
               {STATS.map((s) => (
                 <div key={s.label}>
                   <dt className="sr-only">{s.label}</dt>
-                  <dd className="font-mono text-2xl font-semibold tabular-nums text-white">{s.value}</dd>
+                  <dd className="font-mono text-2xl font-semibold tabular-nums text-white">
+                    {/^\d+$/.test(s.value) ? <CountUp value={Number(s.value)} duration={1.6} /> : s.value}
+                  </dd>
                   <dd className="mt-0.5 text-xs text-slate-500">{s.label}</dd>
                 </div>
               ))}
@@ -331,7 +336,7 @@ export default function Home() {
 
         {/* features */}
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <div className="mb-10 max-w-2xl animate-fade-in">
+          <Reveal className="mb-10 max-w-2xl">
             <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">Modullar</div>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Razvedka uchun kerakli <span className="text-gradient">hamma narsa</span>
@@ -339,20 +344,13 @@ export default function Home() {
             <p className="mt-3 text-slate-400">
               Monitoringdan tortib bitta identifikatorni chuqur tekshirishgacha — to'rtta asosiy modul.
             </p>
-          </div>
+          </Reveal>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map((f, i) => (
-              <Card
-                key={f.title}
-                hover
-                glow={f.wide}
-                className={cn(
-                  "group relative animate-fade-in overflow-hidden p-6",
-                  f.wide && "sm:col-span-2 lg:col-span-2 lg:row-span-1",
-                )}
-                style={{ animationDelay: `${i * 90}ms` }}
-              >
+          <Stagger className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" stagger={0.09}>
+            {FEATURES.map((f) => (
+              <StaggerItem key={f.title} className={cn(f.wide && "sm:col-span-2 lg:col-span-2 lg:row-span-1")}>
+              <Tilt className="h-full" max={f.wide ? 3 : 6}>
+              <Card hover glow={f.wide} className="group relative h-full overflow-hidden p-6">
                 {f.wide && (
                   <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-red-500/10 blur-3xl" />
                 )}
@@ -370,12 +368,12 @@ export default function Home() {
                   ))}
                 </div>
               </Card>
+              </Tilt>
+              </StaggerItem>
             ))}
 
-            <Card
-              className="relative flex animate-fade-in flex-col justify-between overflow-hidden bg-brand-gradient-soft p-6 sm:col-span-2 lg:col-span-1"
-              style={{ animationDelay: `${FEATURES.length * 90}ms` }}
-            >
+            <StaggerItem className="sm:col-span-2 lg:col-span-1">
+            <Card className="relative flex h-full flex-col justify-between overflow-hidden bg-brand-gradient-soft p-6">
               <div>
                 <IconBox icon={Eye} tone="fuchsia" size="lg" />
                 <h3 className="mt-5 text-lg font-semibold text-white">Bitta oynada nazorat</h3>
@@ -390,28 +388,25 @@ export default function Home() {
                 Hisob ochish <ArrowRight className="h-4 w-4" />
               </Link>
             </Card>
-          </div>
+            </StaggerItem>
+          </Stagger>
         </section>
 
         {/* how it works */}
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <div className="mb-10 text-center">
+          <Reveal className="mb-10 text-center">
             <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">Qanday ishlaydi</div>
             <h2 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Uch qadam — <span className="text-gradient">manbadan signalgacha</span>
             </h2>
-          </div>
+          </Reveal>
 
-          <div className="relative grid gap-4 md:grid-cols-3">
+          <Stagger className="relative grid gap-4 md:grid-cols-3" stagger={0.16}>
             {/* connector line */}
             <div className="pointer-events-none absolute left-[16%] right-[16%] top-[52px] hidden h-px bg-gradient-to-r from-cyan-400/40 via-violet-400/40 to-fuchsia-400/40 md:block" />
             {STEPS.map((s, i) => (
-              <Card
-                key={s.title}
-                hover
-                className="relative animate-fade-in p-6 text-center"
-                style={{ animationDelay: `${i * 120}ms` }}
-              >
+              <StaggerItem key={s.title}>
+              <Card hover className="relative h-full p-6 text-center">
                 <div className="relative mx-auto w-fit">
                   <div className="absolute inset-0 rounded-2xl bg-brand-cyan/10 blur-xl" />
                   <IconBox icon={s.icon} tone={s.tone} size="lg" className="relative h-14 w-14" />
@@ -422,13 +417,15 @@ export default function Home() {
                 <h3 className="mt-1 text-lg font-semibold text-white">{s.title}</h3>
                 <p className="mx-auto mt-2 max-w-xs text-sm leading-relaxed text-slate-400">{s.text}</p>
               </Card>
+              </StaggerItem>
             ))}
-          </div>
+          </Stagger>
         </section>
 
         {/* ethics */}
         <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6">
-          <Card glow className="relative animate-fade-in overflow-hidden p-6 sm:p-10">
+          <Reveal>
+          <Card glow className="relative overflow-hidden p-6 sm:p-10">
             <div className="pointer-events-none absolute -left-24 -top-24 h-72 w-72 rounded-full bg-emerald-500/10 blur-3xl" />
             <div className="relative grid gap-8 lg:grid-cols-[1fr_1.2fr] lg:items-center">
               <div>
@@ -464,12 +461,14 @@ export default function Home() {
               </ul>
             </div>
           </Card>
+          </Reveal>
         </section>
 
         {/* final CTA */}
         <section className="mx-auto max-w-6xl px-4 pb-20 pt-4 text-center sm:px-6">
+          <Reveal>
           <h2 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-            Monitoringni <span className="text-gradient">bugun</span> boshlang
+            Monitoringni <span className="text-gradient-animated">bugun</span> boshlang
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-slate-400">Ro'yxatdan o'tish bir daqiqa oladi.</p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -480,6 +479,7 @@ export default function Home() {
               Kirish
             </ButtonLink>
           </div>
+          </Reveal>
         </section>
       </main>
 

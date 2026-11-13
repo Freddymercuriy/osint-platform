@@ -19,7 +19,7 @@ export default function HBarList({ data, total }: { data: HBarDatum[]; total?: n
 
   return (
     <ul className="space-y-3">
-      {data.map((d) => {
+      {data.map((d, idx) => {
         const Icon = d.icon;
         const pct = sum ? Math.round((d.value / sum) * 100) : 0;
         const row = (
@@ -38,8 +38,9 @@ export default function HBarList({ data, total }: { data: HBarDatum[]; total?: n
             </div>
             <div className="h-2 overflow-hidden rounded-full bg-white/[0.04]">
               <div
-                className="h-full rounded-full transition-all duration-700"
+                className="animate-bar-grow-x h-full rounded-full transition-colors duration-300"
                 style={{
+                  animationDelay: `${150 + idx * 90}ms`,
                   width: `${Math.max(d.value ? 2 : 0, (d.value / max) * 100)}%`,
                   background: hover === d.key ? "#6da7ec" : SERIES,
                 }}

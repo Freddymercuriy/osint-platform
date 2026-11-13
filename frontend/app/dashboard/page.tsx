@@ -22,6 +22,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import ColumnChart, { type ColumnDatum } from "@/components/charts/ColumnChart";
 import HBarList from "@/components/charts/HBarList";
+import { Magnetic, Reveal, ScrambleText, Stagger, StaggerItem, TextReveal } from "@/components/motion";
 import {
   ButtonLink,
   Card,
@@ -131,21 +132,27 @@ export default function DashboardPage() {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">
               <LiveDot tone={cs?.running ? (cs.last_error ? "amber" : "emerald") : "red"} />
-              {cs?.running ? "Monitoring faol" : "Monitoring to'xtagan"}
+              <ScrambleText text={cs?.running === false ? "Monitoring to'xtagan" : "Monitoring faol"} />
               {cs?.last_run && <span className="text-slate-500">· oxirgi skan {timeAgo(cs.last_run)}</span>}
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
-              {greeting()}
-              {name && <span className="text-gradient">, {name}</span>}
+              <TextReveal text={`${greeting()},`} delay={0.1} />{" "}
+              {name && (
+                <span className="inline-block overflow-hidden pb-[0.12em] align-bottom">
+                  <span className="text-gradient-animated inline-block animate-fade-in [animation-delay:450ms]">{name}</span>
+                </span>
+              )}
             </h1>
             <p className="mt-2 max-w-xl text-slate-400">
               O'zbekiston bo'yicha tahdidlar markazi: ransomware hujumlari, leak'lar, Telegram va yangiliklar — har{" "}
               {cs ? Math.round(cs.poll_seconds / 60) : 5} daqiqada avtomatik yig'iladi.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
-              <ButtonLink href="/dashboard/events" icon={Radar}>
-                Events'ni ochish
-              </ButtonLink>
+              <Magnetic>
+                <ButtonLink href="/dashboard/events" icon={Radar}>
+                  Events'ni ochish
+                </ButtonLink>
+              </Magnetic>
               <ButtonLink href="/dashboard/username" variant="secondary" icon={Search}>
                 Tekshiruv boshlash
               </ButtonLink>
@@ -158,17 +165,17 @@ export default function DashboardPage() {
       {error && <ErrorBanner message={error} />}
 
       {/* ---------- KPI ---------- */}
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
-        <StatTile label="Jami hodisalar" value={ov?.total_events ?? 0} icon={Database} tone="cyan" loading={loading} hint="bazada saqlangan" />
-        <StatTile label="So'nggi 24 soat" value={ov?.new_24h ?? 0} icon={Activity} tone="violet" loading={loading} hint="yangi topilgan" />
-        <StatTile label="Ransomware" value={ov?.by_category.ransomware ?? 0} icon={Skull} tone="red" loading={loading} hint="UZ qurbonlar" />
-        <StatTile label="Leak" value={ov?.by_category.leak ?? 0} icon={ShieldAlert} tone="orange" loading={loading} hint="leak chatlarida" />
-        <StatTile label="Telegram" value={tg} icon={Send} tone="sky" loading={loading} hint="kanal va guruhlar" />
-      </div>
+      <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-5" inView={false}>
+        <StaggerItem><StatTile label="Jami hodisalar" value={ov?.total_events ?? 0} icon={Database} tone="cyan" loading={loading} hint="bazada saqlangan" /></StaggerItem>
+        <StaggerItem><StatTile label="So'nggi 24 soat" value={ov?.new_24h ?? 0} icon={Activity} tone="violet" loading={loading} hint="yangi topilgan" /></StaggerItem>
+        <StaggerItem><StatTile label="Ransomware" value={ov?.by_category.ransomware ?? 0} icon={Skull} tone="red" loading={loading} hint="UZ qurbonlar" /></StaggerItem>
+        <StaggerItem><StatTile label="Leak" value={ov?.by_category.leak ?? 0} icon={ShieldAlert} tone="orange" loading={loading} hint="leak chatlarida" /></StaggerItem>
+        <StaggerItem><StatTile label="Telegram" value={tg} icon={Send} tone="sky" loading={loading} hint="kanal va guruhlar" /></StaggerItem>
+      </Stagger>
 
       {/* ---------- Grafiklar ---------- */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="animate-fade-in p-5 lg:col-span-2" style={{ animationDelay: "80ms" }}>
+      <Reveal className="grid gap-6 lg:grid-cols-3" delay={0.1}>
+        <Card className="p-5 lg:col-span-2">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h2 className="font-semibold text-white">Kunlik hodisalar</h2>
@@ -226,7 +233,7 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card className="animate-fade-in p-5" style={{ animationDelay: "140ms" }}>
+        <Card className="p-5">
           <h2 className="font-semibold text-white">Kategoriyalar</h2>
           <p className="mb-5 text-xs text-slate-500">Bazadagi barcha hodisalar</p>
           {loading ? (
@@ -248,11 +255,11 @@ export default function DashboardPage() {
             />
           )}
         </Card>
-      </div>
+      </Reveal>
 
       {/* ---------- Muhim hodisalar + manbalar ---------- */}
-      <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="animate-fade-in overflow-hidden lg:col-span-2" style={{ animationDelay: "200ms" }}>
+      <Reveal className="grid gap-6 lg:grid-cols-3">
+        <Card className="overflow-hidden lg:col-span-2">
           <div className="flex items-center justify-between border-b border-white/[0.06] px-5 py-4">
             <div className="flex items-center gap-3">
               <IconBox icon={ShieldAlert} tone="red" size="sm" />
@@ -302,7 +309,7 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        <Card className="animate-fade-in p-5" style={{ animationDelay: "260ms" }}>
+        <Card className="p-5">
           <h2 className="font-semibold text-white">Eng faol manbalar</h2>
           <p className="mb-5 text-xs text-slate-500">Hodisalar soni bo'yicha</p>
           {loading ? (
@@ -323,10 +330,10 @@ export default function DashboardPage() {
             />
           )}
         </Card>
-      </div>
+      </Reveal>
 
       {/* ---------- Modullar ---------- */}
-      <div>
+      <Reveal>
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="font-semibold text-white">Tekshiruv modullari</h2>
           <span className="text-xs text-slate-500">
@@ -338,8 +345,7 @@ export default function DashboardPage() {
             const inner = (
               <Card
                 hover={!m.soon}
-                className={cn("group h-full animate-fade-in p-5", m.soon && "opacity-60")}
-                style={{ animationDelay: `${300 + i * 60}ms` }}
+                className={cn("group h-full p-5", m.soon && "opacity-60")}
               >
                 <div className="flex items-start justify-between">
                   <IconBox icon={m.icon} tone={m.tone} />
@@ -367,7 +373,7 @@ export default function DashboardPage() {
             );
           })}
         </div>
-      </div>
+      </Reveal>
     </div>
   );
 }

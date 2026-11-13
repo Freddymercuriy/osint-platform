@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import { Aurora, MotionProvider, RouteProgress } from "@/components/motion";
 import "./globals.css";
 
 const sans = Inter({ subsets: ["latin", "cyrillic"], variable: "--font-sans", display: "swap" });
@@ -13,7 +14,13 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="uz" className={`${sans.variable} ${mono.variable}`}>
-      <body className="min-h-screen">{children}</body>
+      <body className="min-h-screen">
+        <MotionProvider>
+          <Aurora />
+          <RouteProgress />
+          {children}
+        </MotionProvider>
+      </body>
     </html>
   );
 }
