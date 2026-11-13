@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 4 tugadi (username qidiruv ishlaydi) → 5 (yangi modullar) keyingi
+**Bosqich:** 5 (email/telefon modullari) tugadi → 6 (domen/WHOIS yoki tarix sahifasi) keyingi
 **Oxirgi yangilanish:** 2026-11-13
 
 ## Stack (tasdiqlangan)
@@ -35,6 +35,14 @@
   - `/api/search/username`, `/api/search/history`, `/api/search/jobs/{id}` endpointlar
   - Frontend: `/dashboard/username` qidiruv sahifasi (status badge, saralash)
   - To'liq test: "torvalds" → 13 tekshirildi, 5 topildi ✅
+- [x] **Email / telefon modullari (Bosqich 5):**
+  - `Result` modeliga `detail` ustuni qo'shildi (CollectResult, schema ham)
+  - `EmailCollector`: sintaksis (email-validator), MX (dns.asyncresolver), Gravatar (md5 avatar)
+  - `PhoneCollector`: `phonenumbers` — yaroqlilik, format, davlat, operator, tur, vaqt mintaqasi (offline)
+  - `/api/search/email`, `/api/search/phone` endpointlar (`_run_and_save` umumiy yordamchi)
+  - Frontend: umumiy `components/SearchModule.tsx`; `/dashboard/email`, `/dashboard/phone`,
+    `/dashboard/username` (barchasi shu komponentni ishlatadi, `detail` ko'rsatiladi)
+  - Test: email torvalds@linux.com → MX topildi; telefon +998901234567 → Uzbekistan/Beeline/Mobil ✅
 
 ## Jarayonda 🔄
 
@@ -42,11 +50,15 @@
 
 ## Keyingi qadamlar ⏭️
 
-1. Yangi collector: email/telefon yoki domen/WHOIS (xohishga qarab)
-2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history` bor)
-3. Collector'larni `name` bo'yicha registry orqali ulash (yangi modul qo'shishni osonlashtiradi)
-4. (keyin) Alembic migratsiyalar — hozir dev'da `create_all`
-5. (keyin) Next 15 ga ko'chish — qolgan npm audit ogohlantirishlari uchun
+1. Domen / IP / WHOIS collector moduli
+2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
+3. Collector'larni `name` bo'yicha registry orqali ulash
+4. (keyin) Alembic migratsiyalar — hozir dev'da `create_all` (sxema o'zgarsa jadvalni DROP qilib qayta yaratish kerak)
+5. (keyin) Next 15 ga ko'chish — npm audit ogohlantirishlari uchun
+
+## Yangi dep eslatmasi ⚠️
+- `phonenumbers` requirements.txt da bor, lekin hozir faqat konteynerga `pip install` bilan
+  qo'shilgan (v1 rebuild bug'i sabab). To'liq rebuild bo'lsa avtomatik o'rnatiladi.
 
 ## Muhit eslatmalari ⚙️
 

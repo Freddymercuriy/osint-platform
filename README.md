@@ -17,7 +17,7 @@ Open-source intelligence (OSINT) yig'ish va tahlil qilish uchun web platforma.
 
 - [x] Loyiha skeleti, backend auth, frontend login/dashboard
 - [x] Username / profil qidiruv (ko'p saytda izlash)
-- [ ] Email / telefon tekshiruvi
+- [x] Email / telefon tekshiruvi
 - [ ] Domen / IP / WHOIS razvedka
 - [ ] Hisobotlar (report) eksporti
 

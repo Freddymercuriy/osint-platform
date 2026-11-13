@@ -27,8 +27,13 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Frontend: qidiruv formasi + natijalar jadvali (status badge)
 - ✅ Natijalarni DB ga saqlash (tarix) + `/history`, `/jobs/{id}`
 
-## Bosqich 5+ — Kengaytirish
-- ⬜ Email / telefon moduli
+## Bosqich 5 — Email / telefon moduli ✅
+- ✅ `EmailCollector` (sintaksis + MX + Gravatar)
+- ✅ `PhoneCollector` (phonenumbers: davlat/operator/tur/vaqt mintaqasi)
+- ✅ `/api/search/email`, `/api/search/phone`
+- ✅ Frontend sahifalar (umumiy `SearchModule` komponenti)
+
+## Bosqich 6+ — Kengaytirish
 - ⬜ Domen / IP / WHOIS moduli
 - ⬜ Hisobot (report) eksporti (PDF/JSON)
 - ⬜ Rate limiting, caching

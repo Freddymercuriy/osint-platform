@@ -74,6 +74,7 @@ export type CollectResult = {
   type: string;
   value: string;
   url: string | null;
+  detail: string | null;
   status: "found" | "not_found" | "error";
   confidence: number;
 };
@@ -95,14 +96,18 @@ export type SearchJob = {
   created_at: string;
 };
 
-export async function searchUsername(query: string): Promise<SearchResponse> {
-  const res = await fetch(`${API_URL}/api/search/username`, {
+async function postSearch(path: string, query: string): Promise<SearchResponse> {
+  const res = await fetch(`${API_URL}${path}`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ query }),
   });
   return handle<SearchResponse>(res);
 }
+
+export const searchUsername = (query: string) => postSearch("/api/search/username", query);
+export const searchEmail = (query: string) => postSearch("/api/search/email", query);
+export const searchPhone = (query: string) => postSearch("/api/search/phone", query);
 
 export async function getHistory(): Promise<SearchJob[]> {
   const res = await fetch(`${API_URL}/api/search/history`, {

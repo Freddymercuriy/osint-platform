@@ -13,6 +13,7 @@ class CollectResult:
     type: str  # topilma turi (masalan "profile", "email", "domain")
     value: str  # asosiy qiymat
     url: str | None = None  # topilma havolasi
+    detail: str | None = None  # qo'shimcha matn (masalan "MX: gmail.com", "Operator: Beeline")
     status: str = "found"  # "found" | "not_found" | "error"
     confidence: float = 1.0  # 0..1 ishonch darajasi
     raw: dict[str, Any] = field(default_factory=dict)  # xom ma'lumot

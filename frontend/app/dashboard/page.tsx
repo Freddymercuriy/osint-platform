@@ -58,7 +58,18 @@ export default function DashboardPage() {
             >
               Username qidiruv
             </Link>
-            <div className="px-3 py-2 text-slate-500">Email / telefon (tez orada)</div>
+            <Link
+              href="/dashboard/email"
+              className="block rounded-md px-3 py-2 hover:bg-slate-800"
+            >
+              Email tekshiruvi
+            </Link>
+            <Link
+              href="/dashboard/phone"
+              className="block rounded-md px-3 py-2 hover:bg-slate-800"
+            >
+              Telefon tekshiruvi
+            </Link>
             <div className="px-3 py-2 text-slate-500">Domen / WHOIS (tez orada)</div>
           </nav>
         </aside>
@@ -83,7 +94,18 @@ export default function DashboardPage() {
                     href: "/dashboard/username",
                     ready: true,
                   },
-                  { title: "Email / telefon", desc: "Identifikator tekshiruvi", ready: false },
+                  {
+                    title: "Email tekshiruvi",
+                    desc: "Sintaksis, MX, Gravatar",
+                    href: "/dashboard/email",
+                    ready: true,
+                  },
+                  {
+                    title: "Telefon tekshiruvi",
+                    desc: "Davlat, operator, tur",
+                    href: "/dashboard/phone",
+                    ready: true,
+                  },
                   { title: "Domen / WHOIS", desc: "Domen va IP razvedka", ready: false },
                 ].map((c) => {
                   const card = (

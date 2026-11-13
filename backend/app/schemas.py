@@ -35,6 +35,7 @@ class CollectResultOut(BaseModel):
     type: str
     value: str
     url: str | None = None
+    detail: str | None = None
     status: str = "found"
     confidence: float = 1.0
 
