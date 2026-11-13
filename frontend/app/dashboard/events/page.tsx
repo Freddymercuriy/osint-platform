@@ -4,6 +4,21 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { getEvents, getToken, type EventItem } from "@/lib/api";
 
+const TABS: { key: string; label: string }[] = [
+  { key: "", label: "Hammasi" },
+  { key: "ransomware", label: "🔴 Ransomware" },
+  { key: "leak", label: "🟠 Leak" },
+  { key: "telegram", label: "✈️ Telegram" },
+  { key: "news", label: "📰 Yangiliklar" },
+];
+
+const CATEGORY_STYLE: Record<string, string> = {
+  ransomware: "bg-red-950 text-red-300 border-red-800",
+  leak: "bg-orange-950 text-orange-300 border-orange-800",
+  telegram: "bg-sky-950 text-sky-300 border-sky-800",
+  news: "bg-slate-800 text-slate-300 border-slate-700",
+};
+
 function timeAgo(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
@@ -23,11 +38,20 @@ function EventCard({ e }: { e: EventItem }) {
       className="block rounded-xl border border-slate-800 bg-slate-900 p-4 transition hover:border-indigo-700"
     >
       <div className="flex items-center justify-between gap-3 text-xs text-slate-500">
-        <span className="rounded bg-slate-800 px-2 py-0.5 text-slate-300">{e.source}</span>
+        <div className="flex items-center gap-2">
+          <span
+            className={`rounded border px-2 py-0.5 ${
+              CATEGORY_STYLE[e.category] ?? CATEGORY_STYLE.news
+            }`}
+          >
+            {e.category}
+          </span>
+          <span className="text-slate-400">{e.source}</span>
+        </div>
         <span>{timeAgo(e.published)}</span>
       </div>
       <h3 className="mt-2 font-medium leading-snug">{e.title}</h3>
-      {e.summary && <p className="mt-1 line-clamp-2 text-sm text-slate-400">{e.summary}</p>}
+      {e.summary && <p className="mt-1 line-clamp-3 text-sm text-slate-400">{e.summary}</p>}
     </a>
   );
 }
@@ -36,14 +60,15 @@ export default function EventsPage() {
   const router = useRouter();
   const [items, setItems] = useState<EventItem[]>([]);
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const load = useCallback(async (query?: string) => {
+  const load = useCallback(async (query: string, category: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getEvents(query);
+      const res = await getEvents(query || undefined, category || undefined);
       setItems(res.items);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xatolik");
@@ -57,30 +82,48 @@ export default function EventsPage() {
       router.replace("/login");
       return;
     }
-    load();
-  }, [router, load]);
+    load(q.trim(), tab);
+    // q faqat "Filtr" bosilganda ishlatiladi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [router, load, tab]);
 
   return (
     <main className="mx-auto max-w-3xl p-6">
       <a href="/dashboard" className="text-sm text-slate-500 hover:text-slate-300">
         ← Dashboard
       </a>
-      <h1 className="mt-2 text-2xl font-bold">Events — O'zbekiston yangiliklari</h1>
+      <h1 className="mt-2 text-2xl font-bold">Events — O'zbekiston</h1>
       <p className="mt-1 text-sm text-slate-400">
-        Ochiq manbalardan (RSS) yig'ilgan so'nggi yangiliklar.
+        Ochiq manbalardan: ransomware hodisalari, Telegram kanallar va yangiliklar.
       </p>
+
+      <div className="mt-5 flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <button
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`rounded-full border px-3 py-1 text-sm ${
+              tab === t.key
+                ? "border-indigo-500 bg-indigo-950 text-indigo-200"
+                : "border-slate-700 text-slate-400 hover:bg-slate-800"
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
 
       <form
         onSubmit={(e) => {
           e.preventDefault();
-          load(q.trim() || undefined);
+          load(q.trim(), tab);
         }}
-        className="mt-5 flex gap-2"
+        className="mt-4 flex gap-2"
       >
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Kalit so'z bo'yicha filtr (masalan: iqtisod)"
+          placeholder="Kalit so'z (masalan: bank, .uz, Toshkent)"
           className="flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 py-2 outline-none focus:border-indigo-500"
         />
         <button className="rounded-md bg-indigo-600 px-5 py-2 font-medium hover:bg-indigo-500">
@@ -91,7 +134,7 @@ export default function EventsPage() {
       {error && <p className="mt-4 text-red-400">{error}</p>}
       {loading && <p className="mt-6 text-slate-500">Yuklanmoqda...</p>}
       {!loading && items.length === 0 && !error && (
-        <p className="mt-6 text-slate-500">Hech narsa topilmadi.</p>
+        <p className="mt-6 text-slate-500">Bu bo'limda hozircha hech narsa yo'q.</p>
       )}
 
       <div className="mt-5 grid gap-3">

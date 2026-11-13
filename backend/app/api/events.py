@@ -12,8 +12,9 @@ async def list_events(
     current_user: CurrentUser,
     limit: int = Query(40, ge=1, le=100),
     q: str | None = Query(None, description="Sarlavha/matn bo'yicha filtr"),
+    category: str | None = Query(None, description="news | ransomware | telegram | leak"),
 ) -> EventsResponse:
-    items = await fetch_events(limit=limit, query=q)
+    items = await fetch_events(limit=limit, query=q, category=category)
     return EventsResponse(
         count=len(items),
         items=[EventItemOut.model_validate(i) for i in items],

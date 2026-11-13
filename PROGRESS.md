@@ -50,16 +50,32 @@
   - `GET /api/events?limit=&q=` endpoint
   - Frontend: `/dashboard/events` (kartalar, "N soat oldin", filtr)
 
+- [x] **Events → threat intel (Bosqich 6b):**
+  - `Feed.kind`: `rss` | `telegram` | `ransomware_live`; `uz_filter` (UZ_KEYWORDS bo'yicha), `ttl` kesh
+  - ransomware.live API `/v2/countryvictims/UZ` (rate limit 1/min → 15 daq kesh; .onion havolalar berilmaydi)
+  - Telegram ochiq kanallar `t.me/s/<kanal>` (BeautifulSoup parser) — test: kunuzofficial ✅
+  - `/api/events?category=` ; frontend tablar: Hammasi / Ransomware / Leak / Telegram / Yangiliklar
+
+## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
+| Manba | Holat | Qaror |
+|---|---|---|
+| ransomware.live | ochiq API | ✅ ulandi |
+| Telegram kanallar | ochiq preview | ✅ tayyor — kanal nomlari kutilmoqda |
+| intelforums.cc | 200, ochiq | ⏳ ochiq bo'limlar sarlavhalarini UZ filtr bilan kuzatish mumkin (kelishilmagan) |
+| breached.st, cracked.st | Cloudflare 403 | ❌ himoyani chetlab o'tmaymiz |
+| darkforums.as | JS challenge | ❌ |
+| altenens.is, exploit.in | login'ga redirect | ❌ avtomatik login/scrape qilinmaydi |
+| reddit | 403/429 | ⏳ rasmiy API (client_id/secret) kerak |
+
+Qoida: leak'larning **o'zi (PII, dumplar) yuklanmaydi/saqlanmaydi** — faqat hodisa metadata (kim, qachon, guruh, manba).
+
 ## Jarayonda 🔄
 
-- Foydalanuvchi O'zbekiston **news saytlar** va **reg (login) saytlar** ro'yxatini beradi.
-  - News → `feeds.py` ga qo'shish (RSS topish; RSS yo'q bo'lsa alohida HTML parser)
-  - Reg saytlar → ⚠️ ToS masalasi; foydalanuvchidan ruxsat/o'z hisobi borligini tasdiqlash so'raldi.
-    Ruxsat bo'lmasa scrape qilinmaydi.
+- Foydalanuvchidan: Telegram kanal nomlari; Reddit API kaliti (ixtiyoriy); intelforums bo'yicha qaror.
 
 ## Keyingi qadamlar ⏭️
 
-0. Saytlar ro'yxati kelgach: feedlarni qo'shish, test, push
+0. TG kanallarni `feeds.py` ga qo'shish (leak kanallar uchun `category="leak", uz_filter=True`)
 1. Domen / IP / WHOIS collector moduli
 2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
 3. Collector'larni `name` bo'yicha registry orqali ulash

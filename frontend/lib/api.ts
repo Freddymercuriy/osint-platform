@@ -129,9 +129,14 @@ export type EventItem = {
 
 export type EventsResponse = { count: number; items: EventItem[] };
 
-export async function getEvents(q?: string, limit = 40): Promise<EventsResponse> {
+export async function getEvents(
+  q?: string,
+  category?: string,
+  limit = 60,
+): Promise<EventsResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (q) params.set("q", q);
+  if (category) params.set("category", category);
   const res = await fetch(`${API_URL}/api/events?${params.toString()}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
