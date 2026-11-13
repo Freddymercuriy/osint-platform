@@ -64,7 +64,14 @@
   - `GET /api/telegram/status`, `GET /api/telegram/chats`
   - `.env`: TG_API_ID, TG_API_HASH, TG_CHATS, TG_UZ_FILTER, TG_EXTRA_KEYWORDS ... (`env_ignore_empty=True`)
   - Frontend: Events'da TG holat paneli + "TG guruhlar" tabi
-  - ⏳ Foydalanuvchi hali api_id/hash kiritmagan va login qilmagan
+  - ✅ Akkaunt ulandi (2026-11-13), 70 chat (41 kanal / 29 guruh) ko'rinadi
+  - `TG_CHATS` = 22 ta xavfsizlik/leak chat (foydalanuvchi tasdiqlagan), `TG_LEAK_CHATS` = 9 ta leak chat → "leak" kategoriyasi
+  - `TG_MESSAGES_PER_CHAT=100`; birinchi yuklash ~25 s, keyin 5 daq kesh
+  - Filtr: `_kw_regex` — UZ o'zaklar prefiks bo'yicha (uzbek→uzbekistan), `TG_EXTRA_KEYWORDS` butun so'z
+    (payme≠payment), `.uz` domen chegarasi (day.uz ✓, .uzum ✗). Snippet topilgan joy atrofidan + "🔎 kalit so'zlar"; takror postlar olib tashlanadi
+  - ⚠️ `TG_EXTRA_KEYWORDS` ga "leak/db/database" kabi UMUMIY so'z qo'ymang — "YOKI" bilan ulanadi, chet el leaklari to'lib ketadi.
+    U yerda faqat O'zbekistonni bildiruvchi nomlar (uzcard, humo, payme, ucell, kapitalbank, viloyatlar...)
+  - Test natijasi: 24 ta UZ xabar (masalan Azrael Group: "SYSTEM BREACH — TARGET: day.uz"); leak chatlarning so'nggi 100 xabarida UZ yo'q
 
 ## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
 | Manba | Holat | Qaror |
@@ -85,8 +92,8 @@ Qoida: leak'larning **o'zi (PII, dumplar) yuklanmaydi/saqlanmaydi** — faqat ho
 
 ## Keyingi qadamlar ⏭️
 
-0. Foydalanuvchi: my.telegram.org → api_id/hash → `backend/.env` → `docker-compose exec backend python scripts/tg_login.py`
-   → `/api/telegram/chats` bilan chatlarni ko'rib, `TG_CHATS` ni tanlash → test
+0. Telegram'ni fon rejimida yig'ish (har N daqiqada) + natijalarni DB'ga saqlash → sahifa tez ochiladi, tarix yo'qolmaydi,
+   yangi UZ leak chiqsa ogohlantirish (bildirishnoma) yuborish mumkin bo'ladi
 1. Domen / IP / WHOIS collector moduli
 2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
 3. Collector'larni `name` bo'yicha registry orqali ulash

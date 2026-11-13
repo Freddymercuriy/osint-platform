@@ -108,10 +108,13 @@ async def list_chats() -> list[ChatInfo]:
     return chats
 
 
+def chat_matches(info: ChatInfo, keys: list[str]) -> bool:
+    """Chat username yoki ID bo'yicha ro'yxatda bormi."""
+    return (info.username or "").lower() in {k.lower() for k in keys} or str(info.id) in keys
+
+
 def _selected(info: ChatInfo, wanted: list[str]) -> bool:
-    if not wanted:
-        return True
-    return (info.username or "").lower() in {w.lower() for w in wanted} or str(info.id) in wanted
+    return True if not wanted else chat_matches(info, wanted)
 
 
 async def fetch_messages() -> list[TgMessage]:

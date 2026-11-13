@@ -34,10 +34,19 @@ class Settings(BaseSettings):
     tg_messages_per_chat: int = 30  # har chatdan nechta so'nggi xabar
     tg_uz_filter: bool = True  # faqat O'zbekistonga oid xabarlar
     tg_extra_keywords: str = ""  # qo'shimcha kalit so'zlar, vergul bilan
+    tg_leak_chats: str = ""  # shu chatlardagi xabarlar "leak" kategoriyasiga tushadi
+
+    @staticmethod
+    def _split_chats(value: str) -> list[str]:
+        return [c.strip().lstrip("@") for c in value.split(",") if c.strip()]
 
     @property
     def tg_chats_list(self) -> list[str]:
-        return [c.strip().lstrip("@") for c in self.tg_chats.split(",") if c.strip()]
+        return self._split_chats(self.tg_chats)
+
+    @property
+    def tg_leak_chats_list(self) -> list[str]:
+        return self._split_chats(self.tg_leak_chats)
 
     @property
     def tg_extra_keywords_list(self) -> list[str]:

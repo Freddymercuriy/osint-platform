@@ -47,9 +47,41 @@ def _parse_iso(value: str | None) -> datetime | None:
         return None
 
 
+def _kw_regex(keyword: str, whole_word: bool) -> re.Pattern[str]:
+    """Kalit so'z uchun chegarali regex.
+
+    - whole_word=False (o'zak): "uzbek" → "uzbekistan" ham mos, lekin "xuzbek" emas.
+    - whole_word=True (nom): "payme" → "payment" ga mos EMAS.
+    - ".uz" kabi belgidan boshlanganlar: "day.uz" mos, ".uzum" emas.
+    """
+    esc = re.escape(keyword)
+    left = r"(?<!\w)" if keyword[0].isalnum() else ""
+    domain_like = not keyword[0].isalnum()  # ".uz" — domen oxiri, davomi bo'lmasligi kerak
+    right = r"(?!\w)" if (whole_word or domain_like or not keyword[-1].isalnum()) else ""
+    return re.compile(left + esc + right, re.IGNORECASE)
+
+
+_UZ_PATTERNS = [(k, _kw_regex(k, whole_word=False)) for k in UZ_KEYWORDS]
+
+
 def _is_uz(text: str) -> bool:
-    t = text.lower()
-    return any(k in t for k in UZ_KEYWORDS)
+    return any(p.search(text) for _, p in _UZ_PATTERNS)
+
+
+def _match_snippet(
+    text: str, patterns: list[tuple[str, re.Pattern[str]]], width: int = 260
+) -> tuple[list[str], str]:
+    """Topilgan kalit so'zlar va birinchi topilgan joy atrofidagi matn parchasi."""
+    flat = re.sub(r"\s+", " ", text).strip()
+    found = [(k, m.start()) for k, p in patterns if (m := p.search(flat))]
+    if not found:
+        return [], _clean(flat)
+    hits = [k for k, _ in found]
+    pos = min(s for _, s in found)
+    start = max(0, pos - width // 3)
+    end = min(len(flat), start + width)
+    snippet = ("..." if start else "") + flat[start:end] + ("..." if end < len(flat) else "")
+    return hits, snippet
 
 
 # ---------------------------------------------------------------- manba turlari
@@ -128,27 +160,37 @@ async def _fetch_telegram_user(_client: httpx.AsyncClient, feed: Feed) -> list[E
         return []
     messages = await tg.fetch_messages()
     extra = settings.tg_extra_keywords_list
+    leak_chats = settings.tg_leak_chats_list
 
-    def keep(text: str) -> bool:
-        t = text.lower()
-        hit_extra = any(k in t for k in extra)
-        if settings.tg_uz_filter:
-            return _is_uz(t) or hit_extra
-        return hit_extra if extra else True
+    def category_for(chat) -> str:
+        if leak_chats and tg.chat_matches(chat, leak_chats):
+            return "leak"
+        return "tg_group" if chat.kind == "group" else "telegram"
+
+    extra_patterns = [(k, _kw_regex(k, whole_word=True)) for k in extra]
+    keywords = (_UZ_PATTERNS + extra_patterns) if settings.tg_uz_filter else extra_patterns
 
     items: list[EventItem] = []
-    for m in messages:
-        if not keep(m.text):
+    seen: set[str] = set()
+    # Yangilari birinchi — takrorlarda eng yangisi qoladi
+    for m in sorted(messages, key=lambda x: x.date or datetime.min.replace(tzinfo=UTC),
+                    reverse=True):
+        hits, snippet = _match_snippet(m.text, keywords)
+        if keywords and not hits:
             continue
+        fingerprint = re.sub(r"\W+", "", m.text.lower())[:200]
+        if fingerprint in seen:
+            continue
+        seen.add(fingerprint)
         first_line = m.text.strip().split("\n")[0]
         items.append(EventItem(
             source=f"TG: {m.chat.title}",
             title=first_line[:140] + ("..." if len(first_line) > 140 else ""),
             url=m.url,
-            summary=_clean(m.text),
+            summary=(f"🔎 {', '.join(hits[:4])} · " if hits else "") + snippet,
             published=m.date,
             lang=feed.lang,
-            category="tg_group" if m.chat.kind == "group" else "telegram",
+            category=category_for(m.chat),
         ))
     return items
 
