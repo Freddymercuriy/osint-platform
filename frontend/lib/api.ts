@@ -147,6 +147,37 @@ export type EventItem = {
 
 export type EventsResponse = { count: number; items: EventItem[] };
 
+export type CollectorStatus = {
+  enabled: boolean;
+  running: boolean;
+  poll_seconds: number;
+  last_run: string | null;
+  last_duration: number | null;
+  last_new: number;
+  last_error: string | null;
+  runs: number;
+  total_events: number;
+  by_category: Record<string, number>;
+  notify_telegram: boolean;
+  notify_categories: string[];
+  notified_total: number;
+};
+
+export async function getCollectorStatus(): Promise<CollectorStatus> {
+  const res = await fetch(`${API_URL}/api/events/status`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<CollectorStatus>(res);
+}
+
+export async function refreshEvents(): Promise<{ new: number }> {
+  const res = await fetch(`${API_URL}/api/events/refresh`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<{ new: number }>(res);
+}
+
 export async function getEvents(
   q?: string,
   category?: string,

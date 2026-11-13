@@ -207,10 +207,14 @@ _FETCHERS = {
 _cache: dict[str, tuple[float, list[EventItem]]] = {}
 
 
-async def _fetch_cached(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
+async def _fetch_cached(
+    client: httpx.AsyncClient, feed: Feed, force: bool = False
+) -> list[EventItem]:
     now = time.monotonic()
     cached = _cache.get(feed.name)
-    if cached and now - cached[0] < feed.ttl:
+    # ransomware.live kabi rate-limitli manbalar uchun ttl force'da ham hurmat qilinadi
+    min_age = feed.ttl if not force else min(feed.ttl, 60)
+    if cached and now - cached[0] < min_age:
         return cached[1]
     fetcher = _FETCHERS.get(feed.kind)
     if fetcher is None:
@@ -224,6 +228,16 @@ async def _fetch_cached(client: httpx.AsyncClient, feed: Feed) -> list[EventItem
         items = [i for i in items if _is_uz(i.title + " " + i.summary)]
     _cache[feed.name] = (now, items)
     return items
+
+
+async def collect_all(force: bool = True) -> list[EventItem]:
+    """Barcha yoqilgan manbalardan hammasini yig'adi (fon yig'uvchi uchun)."""
+    headers = {"User-Agent": _USER_AGENT}
+    async with httpx.AsyncClient(timeout=12.0, headers=headers, follow_redirects=True) as client:
+        batches = await asyncio.gather(
+            *(_fetch_cached(client, f, force=force) for f in enabled_feeds())
+        )
+    return [i for batch in batches for i in batch]
 
 
 async def fetch_events(

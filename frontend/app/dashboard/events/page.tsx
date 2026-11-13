@@ -2,7 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { getEvents, getTgStatus, getToken, type EventItem, type TgStatus } from "@/lib/api";
+import {
+  getCollectorStatus,
+  getEvents,
+  getTgStatus,
+  getToken,
+  refreshEvents,
+  type CollectorStatus,
+  type EventItem,
+  type TgStatus,
+} from "@/lib/api";
 
 const TABS: { key: string; label: string }[] = [
   { key: "", label: "Hammasi" },
@@ -54,6 +63,39 @@ function timeAgo(iso: string | null): string {
   return d.toLocaleDateString("uz-UZ");
 }
 
+function CollectorBar({
+  s,
+  refreshing,
+  onRefresh,
+}: {
+  s: CollectorStatus | null;
+  refreshing: boolean;
+  onRefresh: () => void;
+}) {
+  if (!s) return null;
+  return (
+    <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-800 bg-slate-900 px-4 py-2 text-sm text-slate-400">
+      <div>
+        <span className={s.running ? "text-emerald-400" : "text-amber-400"}>●</span>{" "}
+        Fon yig'uvchi: har {Math.round(s.poll_seconds / 60)} daq · oxirgi:{" "}
+        {s.last_run ? timeAgo(s.last_run) : "hali yo'q"} · bazada{" "}
+        <span className="text-slate-200">{s.total_events}</span> ta
+        {s.notify_telegram && (
+          <> · 🔔 {s.notify_categories.join(", ")} → Saved Messages</>
+        )}
+        {s.last_error && <span className="text-red-400"> · xato: {s.last_error}</span>}
+      </div>
+      <button
+        onClick={onRefresh}
+        disabled={refreshing}
+        className="rounded-md border border-slate-700 px-3 py-1 hover:bg-slate-800 disabled:opacity-50"
+      >
+        {refreshing ? "Yig'ilmoqda..." : "↻ Yangilash"}
+      </button>
+    </div>
+  );
+}
+
 function EventCard({ e }: { e: EventItem }) {
   return (
     <a
@@ -89,17 +131,36 @@ export default function EventsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [tg, setTg] = useState<TgStatus | null>(null);
+  const [cs, setCs] = useState<CollectorStatus | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    if (getToken()) getTgStatus().then(setTg).catch(() => setTg(null));
+    if (!getToken()) return;
+    getTgStatus().then(setTg).catch(() => setTg(null));
+    getCollectorStatus().then(setCs).catch(() => setCs(null));
   }, []);
+
+  async function onRefresh() {
+    setRefreshing(true);
+    try {
+      await refreshEvents();
+      await load(q.trim(), tab);
+      setCs(await getCollectorStatus());
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Xatolik");
+    } finally {
+      setRefreshing(false);
+    }
+  }
 
   const load = useCallback(async (query: string, category: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getEvents(query || undefined, category || undefined);
+      const res = await getEvents(query || undefined, category || undefined, 100);
       setItems(res.items);
+      setTotal(res.count);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Xatolik");
     } finally {
@@ -127,6 +188,7 @@ export default function EventsPage() {
         Ransomware hodisalari, Telegram kanal/guruhlar va yangiliklar — O'zbekiston bo'yicha.
       </p>
       <TgStatusBar s={tg} />
+      <CollectorBar s={cs} refreshing={refreshing} onRefresh={onRefresh} />
 
       <div className="mt-5 flex flex-wrap gap-2">
         {TABS.map((t) => (
@@ -168,7 +230,12 @@ export default function EventsPage() {
         <p className="mt-6 text-slate-500">Bu bo'limda hozircha hech narsa yo'q.</p>
       )}
 
-      <div className="mt-5 grid gap-3">
+      {!loading && items.length > 0 && (
+        <p className="mt-4 text-xs text-slate-500">
+          {total} tadan {items.length} tasi ko'rsatilmoqda
+        </p>
+      )}
+      <div className="mt-2 grid gap-3">
         {items.map((e, i) => (
           <EventCard key={`${e.url}-${i}`} e={e} />
         ))}

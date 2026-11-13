@@ -73,6 +73,17 @@
     U yerda faqat O'zbekistonni bildiruvchi nomlar (uzcard, humo, payme, ucell, kapitalbank, viloyatlar...)
   - Test natijasi: 24 ta UZ xabar (masalan Azrael Group: "SYSTEM BREACH — TARGET: day.uz"); leak chatlarning so'nggi 100 xabarida UZ yo'q
 
+- [x] **Fon yig'uvchi + ogohlantirish (Bosqich 7):**
+  - `models/event.py` → `events` jadvali (`uid` = sha256(category|source|title|url), unique → takror yozilmaydi; `notified`)
+  - `services/events/collector.py` — lifespan'da ishga tushadigan asyncio task, har `EVENTS_POLL_SECONDS` (300) da
+    `collect_all()` → yangi yozuvlar → `NOTIFY_CATEGORIES` (leak,ransomware) bo'yicha Telegram **Saved Messages** ga ogohlantirish
+    (foydalanuvchining o'z akkaunti `send_message("me")`, bot shart emas)
+  - Bootstrap: jadval bo'sh bo'lsa eski yozuvlar uchun ogohlantirilmaydi, faqat "monitoring boshlandi"
+  - API: `GET /api/events` endi DB'dan (0.01 s; avval ~25 s), `GET /api/events/status`, `POST /api/events/refresh`
+  - Frontend: yig'uvchi holati paneli, "↻ Yangilash", "N tadan M tasi"
+  - `DB_ECHO` alohida (avval DEBUG=true SQL bilan loglarni to'ldirardi); `osint.events` logger INFO
+  - Test: bootstrap 85 yozuv; refresh → new=0 (dedup ✓); ransomware yozuvini o'chirib qayta topish → ogohlantirish yuborildi, notified=t ✓
+
 ## Foydalanuvchi bergan manbalar holati (2026-11-13 tekshirildi)
 | Manba | Holat | Qaror |
 |---|---|---|
@@ -92,8 +103,8 @@ Qoida: leak'larning **o'zi (PII, dumplar) yuklanmaydi/saqlanmaydi** — faqat ho
 
 ## Keyingi qadamlar ⏭️
 
-0. Telegram'ni fon rejimida yig'ish (har N daqiqada) + natijalarni DB'ga saqlash → sahifa tez ochiladi, tarix yo'qolmaydi,
-   yangi UZ leak chiqsa ogohlantirish (bildirishnoma) yuborish mumkin bo'ladi
+0. (ixtiyoriy) Eski yozuvlarni tozalash (retention), Events sahifasida sahifalash (offset API'da bor)
+0. (ixtiyoriy) Ogohlantirish uchun alohida bot / boshqa kanal (email)
 1. Domen / IP / WHOIS collector moduli
 2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
 3. Collector'larni `name` bo'yicha registry orqali ulash

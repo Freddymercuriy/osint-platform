@@ -1,3 +1,4 @@
+import logging
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -6,9 +7,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import auth, events, search, telegram
 from app.core.config import settings
 from app.core.db import Base, engine
+from app.services.events import collector as events_collector
 
 # Modellar Base.metadata ga ro'yxatdan o'tishi uchun import qilinadi
 from app import models  # noqa: F401
+
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+logging.getLogger("telethon").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 @asynccontextmanager
@@ -16,7 +23,9 @@ async def lifespan(app: FastAPI):
     # Dev uchun jadvallarni avtomatik yaratamiz. Prod'da Alembic migratsiya ishlatiladi.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    events_collector.start()  # fon yig'uvchi (Events)
     yield
+    await events_collector.stop()
     await engine.dispose()
 
 

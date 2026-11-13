@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     debug: bool = True
 
     database_url: str = "postgresql+asyncpg://osint:osint@localhost:5432/osint"
+    db_echo: bool = False  # SQL so'rovlarni logga chiqarish (faqat debug uchun)
 
     secret_key: str = "change-me"
     access_token_expire_minutes: int = 60
@@ -35,6 +36,17 @@ class Settings(BaseSettings):
     tg_uz_filter: bool = True  # faqat O'zbekistonga oid xabarlar
     tg_extra_keywords: str = ""  # qo'shimcha kalit so'zlar, vergul bilan
     tg_leak_chats: str = ""  # shu chatlardagi xabarlar "leak" kategoriyasiga tushadi
+
+    # Fon yig'uvchi (Events)
+    events_poll_enabled: bool = True
+    events_poll_seconds: int = 300  # har necha soniyada yig'ish
+    # Ogohlantirish: yangi hodisa shu kategoriyalarda bo'lsa → Telegram "Saved Messages"
+    notify_telegram: bool = True
+    notify_categories: str = "leak,ransomware"
+
+    @property
+    def notify_categories_list(self) -> list[str]:
+        return [c.strip() for c in self.notify_categories.split(",") if c.strip()]
 
     @staticmethod
     def _split_chats(value: str) -> list[str]:
