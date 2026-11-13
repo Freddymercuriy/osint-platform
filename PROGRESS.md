@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 3 tugadi → 4 (username qidiruv moduli) keyingi
+**Bosqich:** 4 tugadi (username qidiruv ishlaydi) → 5 (yangi modullar) keyingi
 **Oxirgi yangilanish:** 2026-11-13
 
 ## Stack (tasdiqlangan)
@@ -27,6 +27,14 @@
 - [x] `lib/api.ts` — backend bilan ishlash (register/login/me, token localStorage'da)
 - [x] Frontend build + type-check o'tdi, dev server `/login` → 200 ✅
 - [x] `frontend/Dockerfile` (standalone, kelajak uchun)
+- [x] **Username qidiruv moduli (Bosqich 4):**
+  - `SearchJob` + `Result` modellar (qidiruv tarixi DB da)
+  - `UsernameCollector` — 13 ta ochiq saytni async tekshiradi (GitHub, GitLab,
+    Twitch, Telegram, Medium, Dev.to, Replit, SoundCloud, Pinterest, Steam,
+    HackerNews, Keybase, Reddit). Bloklovchi saytlar "error" sifatida qaytadi.
+  - `/api/search/username`, `/api/search/history`, `/api/search/jobs/{id}` endpointlar
+  - Frontend: `/dashboard/username` qidiruv sahifasi (status badge, saralash)
+  - To'liq test: "torvalds" → 13 tekshirildi, 5 topildi ✅
 
 ## Jarayonda 🔄
 
@@ -34,11 +42,11 @@
 
 ## Keyingi qadamlar ⏭️
 
-1. **Username qidiruv moduli**: `UsernameCollector` (bir nechta sayt), `/api/search/username`,
-   `SearchJob`/`Result` modellar, frontend qidiruv sahifasi + natijalar jadvali
-2. Frontend'ni docker-compose ga qo'shish (compose v2 kerak bo'lishi mumkin)
-3. (keyin) Alembic migratsiyalar — hozir dev'da `create_all`
-4. (keyin) Next 15 ga ko'chish — qolgan npm audit ogohlantirishlari uchun
+1. Yangi collector: email/telefon yoki domen/WHOIS (xohishga qarab)
+2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history` bor)
+3. Collector'larni `name` bo'yicha registry orqali ulash (yangi modul qo'shishni osonlashtiradi)
+4. (keyin) Alembic migratsiyalar — hozir dev'da `create_all`
+5. (keyin) Next 15 ga ko'chish — qolgan npm audit ogohlantirishlari uchun
 
 ## Muhit eslatmalari ⚙️
 

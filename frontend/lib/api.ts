@@ -60,3 +60,53 @@ export async function getMe(): Promise<Me> {
   });
   return handle<Me>(res);
 }
+
+function authHeaders(): HeadersInit {
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${getToken()}`,
+  };
+}
+
+// --- OSINT qidiruv ---
+export type CollectResult = {
+  source: string;
+  type: string;
+  value: string;
+  url: string | null;
+  status: "found" | "not_found" | "error";
+  confidence: number;
+};
+
+export type SearchResponse = {
+  job_id: number;
+  query: string;
+  kind: string;
+  checked: number;
+  found: number;
+  results: CollectResult[];
+};
+
+export type SearchJob = {
+  id: number;
+  kind: string;
+  query: string;
+  status: string;
+  created_at: string;
+};
+
+export async function searchUsername(query: string): Promise<SearchResponse> {
+  const res = await fetch(`${API_URL}/api/search/username`, {
+    method: "POST",
+    headers: authHeaders(),
+    body: JSON.stringify({ query }),
+  });
+  return handle<SearchResponse>(res);
+}
+
+export async function getHistory(): Promise<SearchJob[]> {
+  const res = await fetch(`${API_URL}/api/search/history`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<SearchJob[]>(res);
+}

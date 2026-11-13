@@ -29,14 +29,30 @@ class SearchRequest(BaseModel):
 
 
 class CollectResultOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
     source: str
     type: str
     value: str
     url: str | None = None
+    status: str = "found"
     confidence: float = 1.0
 
 
 class SearchResponse(BaseModel):
+    job_id: int
     query: str
-    count: int
+    kind: str
+    checked: int  # tekshirilgan manbalar soni
+    found: int  # topilgan profillar soni
     results: list[CollectResultOut]
+
+
+class SearchJobOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    kind: str
+    query: str
+    status: str
+    created_at: datetime

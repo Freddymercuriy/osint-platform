@@ -21,11 +21,11 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Login / register sahifalari
 - ✅ Dashboard layout (sidebar, header)
 
-## Bosqich 4 — Username qidiruv moduli
-- ⬜ `UsernameCollector` (ko'p saytda profil tekshirish)
-- ⬜ `/api/search/username` endpoint + SearchJob/Result modellar
-- ⬜ Frontend: qidiruv formasi + natijalar jadvali
-- ⬜ Natijalarni DB ga saqlash (tarix)
+## Bosqich 4 — Username qidiruv moduli ✅
+- ✅ `UsernameCollector` (13 saytda profil tekshirish, async)
+- ✅ `/api/search/username` endpoint + SearchJob/Result modellar
+- ✅ Frontend: qidiruv formasi + natijalar jadvali (status badge)
+- ✅ Natijalarni DB ga saqlash (tarix) + `/history`, `/jobs/{id}`
 
 ## Bosqich 5+ — Kengaytirish
 - ⬜ Email / telefon moduli

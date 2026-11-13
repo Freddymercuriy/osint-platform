@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { clearToken, getMe, getToken, type Me } from "@/lib/api";
@@ -48,8 +49,15 @@ export default function DashboardPage() {
         {/* Sidebar */}
         <aside className="hidden w-56 shrink-0 border-r border-slate-800 p-4 sm:block">
           <nav className="space-y-1 text-sm">
-            <div className="rounded-md bg-slate-800 px-3 py-2 font-medium">Umumiy</div>
-            <div className="px-3 py-2 text-slate-500">Username qidiruv (tez orada)</div>
+            <Link href="/dashboard" className="block rounded-md bg-slate-800 px-3 py-2 font-medium">
+              Umumiy
+            </Link>
+            <Link
+              href="/dashboard/username"
+              className="block rounded-md px-3 py-2 hover:bg-slate-800"
+            >
+              Username qidiruv
+            </Link>
             <div className="px-3 py-2 text-slate-500">Email / telefon (tez orada)</div>
             <div className="px-3 py-2 text-slate-500">Domen / WHOIS (tez orada)</div>
           </nav>
@@ -69,21 +77,38 @@ export default function DashboardPage() {
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
                 {[
-                  { title: "Username qidiruv", desc: "Profilarni ko'p saytda izlash" },
-                  { title: "Email / telefon", desc: "Identifikator tekshiruvi" },
-                  { title: "Domen / WHOIS", desc: "Domen va IP razvedka" },
-                ].map((c) => (
-                  <div
-                    key={c.title}
-                    className="rounded-xl border border-slate-800 bg-slate-900 p-5"
-                  >
-                    <h3 className="font-semibold">{c.title}</h3>
-                    <p className="mt-1 text-sm text-slate-500">{c.desc}</p>
-                    <span className="mt-3 inline-block rounded bg-slate-800 px-2 py-0.5 text-xs text-slate-400">
-                      Tez orada
-                    </span>
-                  </div>
-                ))}
+                  {
+                    title: "Username qidiruv",
+                    desc: "Profilarni ko'p saytda izlash",
+                    href: "/dashboard/username",
+                    ready: true,
+                  },
+                  { title: "Email / telefon", desc: "Identifikator tekshiruvi", ready: false },
+                  { title: "Domen / WHOIS", desc: "Domen va IP razvedka", ready: false },
+                ].map((c) => {
+                  const card = (
+                    <div className="h-full rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700">
+                      <h3 className="font-semibold">{c.title}</h3>
+                      <p className="mt-1 text-sm text-slate-500">{c.desc}</p>
+                      <span
+                        className={`mt-3 inline-block rounded px-2 py-0.5 text-xs ${
+                          c.ready
+                            ? "bg-emerald-950 text-emerald-300"
+                            : "bg-slate-800 text-slate-400"
+                        }`}
+                      >
+                        {c.ready ? "Ishga tayyor" : "Tez orada"}
+                      </span>
+                    </div>
+                  );
+                  return c.ready && c.href ? (
+                    <Link key={c.title} href={c.href}>
+                      {card}
+                    </Link>
+                  ) : (
+                    <div key={c.title}>{card}</div>
+                  );
+                })}
               </div>
             </div>
           )}
