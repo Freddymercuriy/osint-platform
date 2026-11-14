@@ -1,0 +1,2435 @@
+<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"
+	xmlns:content="http://purl.org/rss/1.0/modules/content/"
+	xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+	xmlns:dc="http://purl.org/dc/elements/1.1/"
+	xmlns:atom="http://www.w3.org/2005/Atom"
+	xmlns:sy="http://purl.org/rss/1.0/modules/syndication/"
+	xmlns:slash="http://purl.org/rss/1.0/modules/slash/"
+	>
+
+<channel>
+	<title>UZCERT xizmati</title>
+	<atom:link href="https://uzcert.uz/feed/" rel="self" type="application/rss+xml" />
+	<link>https://uzcert.uz/</link>
+	<description></description>
+	<lastBuildDate>Thu, 12 Nov 2026 13:46:50 +0000</lastBuildDate>
+	<language>uz-UZ</language>
+	<sy:updatePeriod>
+	hourly	</sy:updatePeriod>
+	<sy:updateFrequency>
+	1	</sy:updateFrequency>
+	<generator>https://wordpress.org/?v=7.1.4</generator>
+
+<image>
+	<url>https://uzcert.uz/wp-content/uploads/2025/05/Artboard-1-150x150.png</url>
+	<title>UZCERT xizmati</title>
+	<link>https://uzcert.uz/</link>
+	<width>32</width>
+	<height>32</height>
+</image> 
+	<item>
+		<title>Apache HTTP Server dasturida kritik zaiflik aniqlandi: HTTP/2 orqali serverlarda masofadan kod bajarilişi mumkin!</title>
+		<link>https://uzcert.uz/apache-http-server-dasturida-kritik-zaiflik-aniqlandi-http-2-orqali-serverlarda-masofadan-kod-bajarilisi-mumkin/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Thu, 12 Nov 2026 13:46:50 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42576</guid>
+
+					<description><![CDATA[<p>Apache HTTP Server dasturida tajovuzkorlarga serverda masofadan turib zararli kodlarni bajariş imkonini berişi mumkin bölgan kritik zaiflik aniqlandi. CVE-2026-119618 identifikatori bilan röyxatga olingan uşbu zaiflik HTTP/2 protokoli bilan boğliq bölib, undan muvaffaqiyatli foydalaniş server faoliyatiga jiddiy xavf tuğdirişi mumkin. Mazkur muammo Apaçe HTTP Serverʼning HTTP/2 sörovlarini qayta işlaş uçun möljallangan mod_http2 modulida aniqlangan. Zaiflik qanday işlaydi? HTTP/2 protokoli bir vaqtning özida bir neçta sörovni qayta işlaş imkonini beradi. Bu veb-saytlarning tezroq işlaşiga yordam beradi. Biroq aniqlangan zaiflik sababli server bir neçta parallel sörovni qayta işlayotgan vaqtda maʼlumotlar bilan işlaş jarayonida xatolik yuzaga kelişi mumkin. Xususan, mod_http2 modulidagi assign_headers() funksiyasi sörov sarlavhalarini qayta işlaş jarayonida umumiy xotira resurslaridan foydalaniş bilan boğliq muammoga ega. Bir vaqtning özida bajarilayotgan jarayonlar örtasidagi muvofiqlaştiriş yetarli darajada taʼminlanmagani sababli xotira yaxlitligi buzilişi mumkin. Natijada tajovuzkor uşbu xatolikdan foydalanib, server xotirasiga zarar yetkazişi va ayrim holatlarda masofadan turib zararli kodni bajarişga erişişi mumkin. Zaiflikning asosiy xavfi şundaki, undan foydalaniş uçun tajovuzkorga serverda oldindan hisob qaydnomasi yoki tizimga kiriş huquqi talab etilmasligi mumkin. Qaysi versiyalar zaiflikka moyil? Apaçe HTTP Server işlab çiquvçilari maʼlumotlariga köra, quyidagi versiyalar mazkur muammodan taʼsirlangan: Zaiflik Apache HTTP Server 2.4.71 versiyasida bartaraf etilgan. Muhim jihat: mazkur zaiflik HTTP/2 protokoli yoqilgan serverlarga taalluqli. HTTP/2 işlatilmaydigan va faqat HTTP/1.1 protokoli orqali işlaydigan serverlar uşbu zaiflikdan taʼsirlanmaydi. Apaçe HTTP Serverʼning 2.4.71 versiyasida boşqa zaifliklar ham tuzatildi Yangi versiyada CVE-2026-119618 bilan bir qatorda yana ikkita xavfsizlik muammosi bartaraf etilgan: Şu sababli Apaçe HTTP Server dasturidan foydalanayotgan taşkilotlar faqat asosiy kritik zaiflikni emas, balki yangi versiyada tuzatilgan boşqa muammolarni ham hisobga olişi lozim. Tizim administratorlariga tavsiyalar Mazkur zaiflikdan kelib çiqişi mumkin bölgan xavflarni kamaytiriş uçun quyidagi çoralarni köriş tavsiya etiladi: Xulosa: Apache HTTP Server keng qöllaniladigan veb-server dasturlaridan biri bölgani sababli, undagi uşbu kritik zaiflik köplab veb-resurslar va server infratuzilmasi uçun xavf tuğdirişi mumkin. Taşkilotlarga foydalanilayotgan Apaçe HTTP Server versiyalarini zudlik bilan tekşiriş, zarur yangilanişlarni örnatiş hamda server xavfsizligini muntazam nazorat qilib boriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/apache-http-server-dasturida-kritik-zaiflik-aniqlandi-http-2-orqali-serverlarda-masofadan-kod-bajarilisi-mumkin/">Apache HTTP Server dasturida kritik zaiflik aniqlandi: HTTP/2 orqali serverlarda masofadan kod bajarilişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Apache HTTP Server dasturida tajovuzkorlarga serverda masofadan turib zararli kodlarni bajariş imkonini berişi mumkin bölgan kritik zaiflik aniqlandi. CVE-2026-119618 identifikatori bilan röyxatga olingan uşbu zaiflik HTTP/2 protokoli bilan boğliq bölib, undan muvaffaqiyatli foydalaniş server faoliyatiga jiddiy xavf tuğdirişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur muammo Apaçe HTTP Serverʼning HTTP/2 sörovlarini qayta işlaş uçun möljallangan mod_http2 modulida aniqlangan.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">Zaiflik qanday işlaydi?</h3>
+
+
+
+<p class="wp-block-paragraph">HTTP/2 protokoli bir vaqtning özida bir neçta sörovni qayta işlaş imkonini beradi. Bu veb-saytlarning tezroq işlaşiga yordam beradi. Biroq aniqlangan zaiflik sababli server bir neçta parallel sörovni qayta işlayotgan vaqtda maʼlumotlar bilan işlaş jarayonida xatolik yuzaga kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan, mod_http2 modulidagi assign_headers() funksiyasi sörov sarlavhalarini qayta işlaş jarayonida umumiy xotira resurslaridan foydalaniş bilan boğliq muammoga ega. Bir vaqtning özida bajarilayotgan jarayonlar örtasidagi muvofiqlaştiriş yetarli darajada taʼminlanmagani sababli xotira yaxlitligi buzilişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Natijada tajovuzkor uşbu xatolikdan foydalanib, server xotirasiga zarar yetkazişi va ayrim holatlarda masofadan turib zararli kodni bajarişga erişişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikning asosiy xavfi şundaki, undan foydalaniş uçun tajovuzkorga serverda oldindan hisob qaydnomasi yoki tizimga kiriş huquqi talab etilmasligi mumkin.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">Qaysi versiyalar zaiflikka moyil?</h3>
+
+
+
+<p class="wp-block-paragraph">Apaçe HTTP Server işlab çiquvçilari maʼlumotlariga köra, quyidagi versiyalar mazkur muammodan taʼsirlangan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Apache HTTP Server 2.4.55 dan 2.4.70 gacha bölgan versiyalar;</li>
+
+
+
+<li>mustaqil <code>mod_h2</code> modulining 2.0.8 dan 2.0.42 gacha bölgan versiyalari.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Zaiflik Apache HTTP Server 2.4.71 versiyasida bartaraf etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Muhim jihat: mazkur zaiflik HTTP/2 protokoli yoqilgan serverlarga taalluqli. HTTP/2 işlatilmaydigan va faqat HTTP/1.1 protokoli orqali işlaydigan serverlar uşbu zaiflikdan taʼsirlanmaydi.</p>
+
+
+
+<p class="wp-block-paragraph">Apaçe HTTP Serverʼning 2.4.71 versiyasida boşqa zaifliklar ham tuzatildi</p>
+
+
+
+<p class="wp-block-paragraph">Yangi versiyada CVE-2026-119618 bilan bir qatorda yana ikkita xavfsizlik muammosi bartaraf etilgan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>CVE-2026-106023 — mod_md modulida yuzaga keladigan xotira bilan boğliq xatolik. Uşbu zaiflik serverning yordamçi jarayoni töxtab qolişiga olib kelişi mumkin.</li>
+
+
+
+<li>CVE-2026-109163 — mod_vhost_alias modulida xotira çegarasidan taşqariga bir bayt maʼlumot yozilişi bilan boğliq zaiflik.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şu sababli Apaçe HTTP Server dasturidan foydalanayotgan taşkilotlar faqat asosiy kritik zaiflikni emas, balki yangi versiyada tuzatilgan boşqa muammolarni ham hisobga olişi lozim.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">Tizim administratorlariga tavsiyalar</h3>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan kelib çiqişi mumkin bölgan xavflarni kamaytiriş uçun quyidagi çoralarni köriş tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Apache HTTP Server dasturini yangilaş. Imkon qadar tezroq 2.4.71 yoki undan keyingi xavfsiz versiyaga ötiş.</li>
+
+
+
+<li>HTTP/2 sozlamalarini tekşiriş. Serverda HTTP/2 protokoli yoqilgan yoki yoqilmaganini aniqlaş.</li>
+
+
+
+<li>Yangilaş imkoni bölmagan holatda, vaqtinçalik çora sifatida HTTP/2 protokolini öçirib turiş. Biroq bu usul dasturiy yangilanişning örnini bosmaydi.</li>
+
+
+
+<li>Server jurnallarini (log-fayllarni) tahlil qiliş. Şubhali HTTP/2 sörovlari, noodatiy ulanişlar va server jarayonlarining kutilmagan töxtaş holatlarini tekşiriş.</li>
+
+
+
+<li>Qöşimça modullarni tekşiriş. Serverda işlatilayotgan mod_http2 va boşqa modullarning versiyalarini aniqlaş.</li>
+
+
+
+<li>Linux distributivlari uçun yangilanişlarni tekşiriş. Ayrim distributivlar xavfsizlik tuzatişlarini mavjud paketlarga alohida kiritişi mumkin. Şu sababli faqat versiya raqamiga emas, balki distributiv işlab çiquvçisining xavfsizlik tavsiyalariga ham eʼtibor qaratiş zarur.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Xulosa: Apache HTTP Server keng qöllaniladigan veb-server dasturlaridan biri bölgani sababli, undagi uşbu kritik zaiflik köplab veb-resurslar va server infratuzilmasi uçun xavf tuğdirişi mumkin. Taşkilotlarga foydalanilayotgan Apaçe HTTP Server versiyalarini zudlik bilan tekşiriş, zarur yangilanişlarni örnatiş hamda server xavfsizligini muntazam nazorat qilib boriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/apache-http-server-dasturida-kritik-zaiflik-aniqlandi-http-2-orqali-serverlarda-masofadan-kod-bajarilisi-mumkin/">Apache HTTP Server dasturida kritik zaiflik aniqlandi: HTTP/2 orqali serverlarda masofadan kod bajarilişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Google Chrome brauzeridagi 83 ta zaiflik bartaraf etildi: ulardan 5 tasi kritik darajada bölib, masofadan kod bajarilişiga olib kelişi mumkin!</title>
+		<link>https://uzcert.uz/google-chrome-brauzeridagi-83-ta-zaiflik-bartaraf-etildi-ulardan-5-tasi-kritik-darajada-bolib-masofadan-kod-bajarilisiga-olib-kelisi-mumkin/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Thu, 12 Nov 2026 13:29:53 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42573</guid>
+
+					<description><![CDATA[<p>Google kompaniyasi Chrome brauzerining Windows, macOS va Linux operatsion tizimlari uçun navbatdagi xavfsizlik yangilanişini taqdim etdi. Mazkur yangilaniş orqali brauzerning turli tarkibiy qismlarida aniqlangan jami 83 ta xavfsizlik zaifligi, jumladan, 5 ta kritik va 78 ta yuqori xavf darajasidagi zaiflik bartaraf etildi. Ayniqsa, kritik zaifliklarning barçasi Use-After-Free (CWE-416) turidagi xotirani boşqariş xatolari bilan boğliq. Uşbu zaifliklardan muvaffaqiyatli foydalaniş brauzerning işdan çiqişi, xotira yaxlitligining buzilişi va muayyan şaroitlarda masofadan turib zararli kod bajarilişiga olib kelişi mumkin. Google tomonidan 2026-yil 11-noyabr kuni eʼlon qilingan rasmiy xabarga köra, yangilaniş Chrome brauzerining barqaror (Stable) kanaliga tegişli bölib, foydalanuvçilarga bosqiçma-bosqiç yetkazilmoqda. Chrome brauzeridagi 5 ta kritik zaiflik Aniqlangan kritik zaifliklar brauzerning veb-sahifalarni qayta işlaş, grafik elementlarni aks ettiriş, sahifa tuzilişini şakllantiriş, fon rejimida vazifalarni bajariş va maxsus imkoniyatlarni taʼminlaş kabi muhim funksiyalariga taalluqli. Uşbu zaifliklar quyidagi CVE identifikatorlari bilan röyxatga olingan: CVE identifikatori Komponent Zaiflik turi CVE-2026-126885 ServiceWorker Use-After-Free CVE-2026-126895 CSS Use-After-Free CVE-2026-126879 Layout Use-After-Free CVE-2026-126846 Skia Use-After-Free CVE-2026-126911 Accessibility Use-After-Free Mazkur zaifliklarning mohiyatini töğri anglaş uçun brauzerning uşbu komponentlari qanday vazifalarni bajarişini körib çiqiş lozim. Mazkur komponentlardagi xotirani boşqariş xatolari brauzerning içki jarayonlariga salbiy taʼsir körsatişi va xavfsizlik çegaralarining buzilişiga zamin yaratişi mumkin. Use-After-Free zaifligi qanday xavf tuğdiradi? Use-After-Free — dastur tomonidan foydalanilayotgan xotira maydoni böşatilganidan keyin ham unga qayta murojaat qiliş natijasida yuzaga keladigan xotira xavfsizligi zaifligidir. Oddiy qilib aytganda, brauzer muayyan vazifani bajariş uçun kompyuter xotirasidan joy ajratadi. Vazifa yakunlangaç, uşbu xotira böşatilişi va boşqa jarayonlar uçun qayta foydalanişga topşirilişi kerak. Biroq dastur avvalgi xotira manziliga murojaat qilişda davom etsa, xotira yaxlitligi buzilişi mumkin. Tajovuzkor uşbu holatni nazorat qila olgan taqdirda, quyidagi oqibatlarga erişişi ehtimoli mavjud: Bunday hujumlar odatda maxsus şakllantirilgan veb-sahifalar yoki brauzer tomonidan qayta işlanadigan zararli maʼlumotlardan foydalanişni nazarda tutadi. Foydalanuvçi bunday sahifaga kirganida, brauzerning zaif komponentida xatolik yuzaga kelişi mumkin. Şuni alohida taʼkidlaş lozimki, Google eʼlon qilgan maʼlumotlarda uşbu beşta zaiflikning har biri orqali töliq qurilmani egallab oliş imkoniyati mavjudligi tasdiqlanmagan. Şuningdek, aynan mazkur yangilanişda bartaraf etilgan zaifliklardan real hujumlarda foydalanilayotgani haqida ham maʼlumot berilmagan. Qolgan 78 ta yuqori xavfli zaiflik Yangilaniş faqat kritik xatolarni bartaraf etiş bilan çeklanmaydi. Unda brauzerning turli içki komponentlari, jumladan, V8 JavaScript mexanizmi, ANGLE grafik interfeysi, Skia, FileSystem, Extensions, MediaStream, PDF va SiteIsolation bilan boğliq 78 ta yuqori xavfli zaiflik ham tuzatildi. Uşbu zaifliklar quyidagi texnik xatolarni öz içiga oladi: Ayniqsa, V8 JavaScript mexanizmi bilan boğliq zaifliklar eʼtiborga loyiq. Çunki V8 brauzerda JavaScript kodlarini bajariş, veb-ilovalar va interaktiv sahifalarning işlaşini taʼminlaydi. Uşbu komponentdagi xotira yoki maʼlumotlar turini boşqariş xatolari brauzer xavfsizligiga jiddiy tahdid tuğdirişi mumkin. Bundan taşqari, grafik maʼlumotlarni qayta işlovçi Skia va ANGLE komponentlaridagi xatolar ham brauzerning vizual elementlar bilan işlaş jarayoniga taʼsir körsatişi mumkin. Zaifliklarni aniqlaşda sunʼiy intellektdan ham foydalanilgan Google tomonidan eʼlon qilingan maʼlumotlarda uşbu yangilaniş doirasida aniqlangan ayrim zaifliklar Anthropic kompaniyasining Claude modeli va OpenAI Codex Security vositalari yordamida olib borilgan tadqiqotlar bilan ham boğliqligi qayd etilgan. Bu holat dasturiy taʼminot xavfsizligini tekşiriş, xotira bilan işlaşdagi xatolarni aniqlaş va koddagi zaifliklarni tahlil qiliş jarayonlarida sunʼiy intellekt vositalarining ahamiyati ortib borayotganini körsatadi. Şu bilan birga, Google xavfsizlik tadqiqotçilariga ayrim zaifliklar böyiça batafsil texnik maʼlumotlarni foydalanuvçilarning asosiy qismi yangilanişni örnatib olguniga qadar çeklab turişi mumkinligini bildirgan. Bu tajovuzkorlarning mavjud texnik maʼlumotlardan foydalanib, zaifliklarni mustaqil ravişda ekspluatatsiya qiliş xavfini kamaytirişga qaratilgan yondaşuvdir. Qaysi Chrome versiyasiga yangilaş kerak? Google taqdim etgan yangilaniş quyidagi versiyalarni öz içiga oladi: Operatsion tizim Yangi barqaror versiya Windows 157.0.8103.78 / 157.0.8103.79 macOS 157.0.8103.78 / 157.0.8103.79 Linux 157.0.8103.78 Yangilaniş foydalanuvçilarga bosqiçma-bosqiç yetkazilayotganligi sababli, ayrim qurilmalarda yangi versiya darhol mavjud bölmasligi mumkin. Foydalanuvçilar va administratorlar uçun xavfsizlik tavsiyalari Mazkur zaifliklar brauzerning asosiy komponentlariga taalluqli ekanligini inobatga olgan holda, barça foydalanuvçilar va taşkilotlarning IT hamda kiberxavfsizlik böyiça masʼul mutaxassislariga quyidagi çoralarni amalga oşiriş tavsiya etiladi: Google Chrome brauzeridagi 83 ta zaiflikning bartaraf etilişi, ayniqsa, beşta kritik xotira xavfsizligi xatosi foydalanuvçilar va taşkilotlar uçun dasturiy taʼminotni öz vaqtida yangilab boriş qançalik muhim ekanini yana bir bor namoyon etadi. Brauzerlar internet resurslari, elektron poçta, korporativ tizimlar va turli veb-ilovalarga kirişning asosiy vositasi hisoblanadi. Şu sababli ulardagi xavfsizlik zaifliklari nafaqat alohida foydalanuvçilar, balki butun taşkilotlarning axborot infratuzilmasiga ham xavf tuğdirişi mumkin. Hurmatli foydalanuvçilar va tizim administratorlari! Google Chrome brauzerining versiyasini zudlik bilan tekşiring, mavjud xavfsizlik yangilanişlarini örnating va brauzerning yangilangan holatda işlaşini taʼminlang. Kiberxavfsizlikni taʼminlaşda dasturiy taʼminotni öz vaqtida yangilaş eng muhim himoya çoralaridan biridir!</p>
+<p>The post <a href="https://uzcert.uz/google-chrome-brauzeridagi-83-ta-zaiflik-bartaraf-etildi-ulardan-5-tasi-kritik-darajada-bolib-masofadan-kod-bajarilisiga-olib-kelisi-mumkin/">Google Chrome brauzeridagi 83 ta zaiflik bartaraf etildi: ulardan 5 tasi kritik darajada bölib, masofadan kod bajarilişiga olib kelişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Google kompaniyasi Chrome brauzerining Windows, macOS va Linux operatsion tizimlari uçun navbatdagi xavfsizlik yangilanişini taqdim etdi. Mazkur yangilaniş orqali brauzerning turli tarkibiy qismlarida aniqlangan jami 83 ta xavfsizlik zaifligi, jumladan, 5 ta kritik va 78 ta yuqori xavf darajasidagi zaiflik bartaraf etildi.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, kritik zaifliklarning barçasi Use-After-Free (CWE-416) turidagi xotirani boşqariş xatolari bilan boğliq. Uşbu zaifliklardan muvaffaqiyatli foydalaniş brauzerning işdan çiqişi, xotira yaxlitligining buzilişi va muayyan şaroitlarda masofadan turib zararli kod bajarilişiga olib kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Google tomonidan 2026-yil 11-noyabr kuni eʼlon qilingan rasmiy xabarga köra, yangilaniş Chrome brauzerining barqaror (Stable) kanaliga tegişli bölib, foydalanuvçilarga bosqiçma-bosqiç yetkazilmoqda.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Chrome brauzeridagi 5 ta kritik zaiflik</h2>
+
+
+
+<p class="wp-block-paragraph">Aniqlangan kritik zaifliklar brauzerning veb-sahifalarni qayta işlaş, grafik elementlarni aks ettiriş, sahifa tuzilişini şakllantiriş, fon rejimida vazifalarni bajariş va maxsus imkoniyatlarni taʼminlaş kabi muhim funksiyalariga taalluqli.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaifliklar quyidagi CVE identifikatorlari bilan röyxatga olingan:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>CVE identifikatori</th><th>Komponent</th><th>Zaiflik turi</th></tr><tr><td>CVE-2026-126885</td><td>ServiceWorker</td><td>Use-After-Free</td></tr><tr><td>CVE-2026-126895</td><td>CSS</td><td>Use-After-Free</td></tr><tr><td>CVE-2026-126879</td><td>Layout</td><td>Use-After-Free</td></tr><tr><td>CVE-2026-126846</td><td>Skia</td><td>Use-After-Free</td></tr><tr><td>CVE-2026-126911</td><td>Accessibility</td><td>Use-After-Free</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklarning mohiyatini töğri anglaş uçun brauzerning uşbu komponentlari qanday vazifalarni bajarişini körib çiqiş lozim.</p>
+
+
+
+<ul class="wp-block-list">
+<li>ServiceWorker — veb-saytlarning fon rejimida işlaşini, tarmoq sörovlarini boşqarişini va ayrim hollarda internet aloqasi mavjud bölmaganda ham xizmat körsatişini taʼminlaydi.</li>
+
+
+
+<li>CSS (Cascading Style Şeets) — veb-sahifalarning taşqi körinişi, ranglari, şriftlari, joylaşuvi va boşqa vizual xususiyatlarini boşqaradi.</li>
+
+
+
+<li>Layout — veb-sahifadagi matnlar, rasmlar, tugmalar va boşqa elementlarning joylaşuvi hamda ölçamlarini hisoblaydi.</li>
+
+
+
+<li>Skia — Chrome brauzerida grafik tasvirlar, matnlar va boşqa vizual elementlarni qayta işlaş hamda ekranga çiqariş uçun foydalaniladigan grafik kutubxonadir.</li>
+
+
+
+<li>Accessibility — brauzerning maxsus imkoniyatlarini, jumladan, ekran öquvçi dasturlar va yordamçi texnologiyalar bilan işlaşini taʼminlaydi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Mazkur komponentlardagi xotirani boşqariş xatolari brauzerning içki jarayonlariga salbiy taʼsir körsatişi va xavfsizlik çegaralarining buzilişiga zamin yaratişi mumkin.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Use-After-Free zaifligi qanday xavf tuğdiradi?</h2>
+
+
+
+<p class="wp-block-paragraph">Use-After-Free — dastur tomonidan foydalanilayotgan xotira maydoni böşatilganidan keyin ham unga qayta murojaat qiliş natijasida yuzaga keladigan xotira xavfsizligi zaifligidir.</p>
+
+
+
+<p class="wp-block-paragraph">Oddiy qilib aytganda, brauzer muayyan vazifani bajariş uçun kompyuter xotirasidan joy ajratadi. Vazifa yakunlangaç, uşbu xotira böşatilişi va boşqa jarayonlar uçun qayta foydalanişga topşirilişi kerak. Biroq dastur avvalgi xotira manziliga murojaat qilişda davom etsa, xotira yaxlitligi buzilişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Tajovuzkor uşbu holatni nazorat qila olgan taqdirda, quyidagi oqibatlarga erişişi ehtimoli mavjud:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Brauzerning işdan çiqişi: notöğri xotira maydoniga murojaat qiliş natijasida Çrome jarayoni kutilmaganda töxtaşi mumkin.</li>
+
+
+
+<li>Xotira yaxlitligining buzilişi: dastur xotirasidagi maʼlumotlar özgartirilişi yoki notöğri qayta işlanişi mumkin.</li>
+
+
+
+<li>Masofadan kod bajarilişi (RCE): muayyan şaroitlarda tajovuzkor brauzer jarayoni doirasida zararli kodni bajartiriş imkoniyatiga ega bölişi mumkin.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Bunday hujumlar odatda maxsus şakllantirilgan veb-sahifalar yoki brauzer tomonidan qayta işlanadigan zararli maʼlumotlardan foydalanişni nazarda tutadi. Foydalanuvçi bunday sahifaga kirganida, brauzerning zaif komponentida xatolik yuzaga kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şuni alohida taʼkidlaş lozimki, Google eʼlon qilgan maʼlumotlarda uşbu beşta zaiflikning har biri orqali töliq qurilmani egallab oliş imkoniyati mavjudligi tasdiqlanmagan. Şuningdek, aynan mazkur yangilanişda bartaraf etilgan zaifliklardan real hujumlarda foydalanilayotgani haqida ham maʼlumot berilmagan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qolgan 78 ta yuqori xavfli zaiflik</h2>
+
+
+
+<p class="wp-block-paragraph">Yangilaniş faqat kritik xatolarni bartaraf etiş bilan çeklanmaydi. Unda brauzerning turli içki komponentlari, jumladan, V8 JavaScript mexanizmi, ANGLE grafik interfeysi, Skia, FileSystem, Extensions, MediaStream, PDF va SiteIsolation bilan boğliq 78 ta yuqori xavfli zaiflik ham tuzatildi.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaifliklar quyidagi texnik xatolarni öz içiga oladi:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Type Confusion — maʼlumotlar turini notöğri talqin qiliş natijasida xotira bilan işlaşda xatolik yuzaga kelişi;</li>
+
+
+
+<li>Buffer Overflow — ajratilgan xotira çegarasidan taşqariga maʼlumot yozilişi;</li>
+
+
+
+<li>Out-of-Bounds Read/Write — xotiraning belgilangan çegarasidan taşqaridagi maʼlumotlarni öqiş yoki ularga yoziş;</li>
+
+
+
+<li>Integer Overflow — butun sonlar bilan işlaşda qiymat çegarasining oşib ketişi;</li>
+
+
+
+<li>Information Leak — maxfiy yoki xizmat maʼlumotlarining ruxsatsiz oşkor bölişi;</li>
+
+
+
+<li>Race Condition — bir vaqtning özida bajarilayotgan jarayonlar örtasidagi notöğri muvofiqlaştiriş natijasida yuzaga keladigan xatolik;</li>
+
+
+
+<li>Incorrect Authorization — foydalanuvçi yoki jarayon huquqlarining notöğri tekşirilişi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, V8 JavaScript mexanizmi bilan boğliq zaifliklar eʼtiborga loyiq. Çunki V8 brauzerda JavaScript kodlarini bajariş, veb-ilovalar va interaktiv sahifalarning işlaşini taʼminlaydi. Uşbu komponentdagi xotira yoki maʼlumotlar turini boşqariş xatolari brauzer xavfsizligiga jiddiy tahdid tuğdirişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Bundan taşqari, grafik maʼlumotlarni qayta işlovçi Skia va ANGLE komponentlaridagi xatolar ham brauzerning vizual elementlar bilan işlaş jarayoniga taʼsir körsatişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaifliklarni aniqlaşda sunʼiy intellektdan ham foydalanilgan</p>
+
+
+
+<p class="wp-block-paragraph">Google tomonidan eʼlon qilingan maʼlumotlarda uşbu yangilaniş doirasida aniqlangan ayrim zaifliklar Anthropic kompaniyasining Claude modeli va OpenAI Codex Security vositalari yordamida olib borilgan tadqiqotlar bilan ham boğliqligi qayd etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Bu holat dasturiy taʼminot xavfsizligini tekşiriş, xotira bilan işlaşdagi xatolarni aniqlaş va koddagi zaifliklarni tahlil qiliş jarayonlarida sunʼiy intellekt vositalarining ahamiyati ortib borayotganini körsatadi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu bilan birga, Google xavfsizlik tadqiqotçilariga ayrim zaifliklar böyiça batafsil texnik maʼlumotlarni foydalanuvçilarning asosiy qismi yangilanişni örnatib olguniga qadar çeklab turişi mumkinligini bildirgan. Bu tajovuzkorlarning mavjud texnik maʼlumotlardan foydalanib, zaifliklarni mustaqil ravişda ekspluatatsiya qiliş xavfini kamaytirişga qaratilgan yondaşuvdir.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Qaysi Chrome versiyasiga yangilaş kerak?</strong></p>
+
+
+
+<p class="wp-block-paragraph">Google taqdim etgan yangilaniş quyidagi versiyalarni öz içiga oladi:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>Operatsion tizim</th><th>Yangi barqaror versiya</th></tr><tr><td>Windows</td><td>157.0.8103.78 / 157.0.8103.79</td></tr><tr><td>macOS</td><td>157.0.8103.78 / 157.0.8103.79</td></tr><tr><td>Linux</td><td>157.0.8103.78</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Yangilaniş foydalanuvçilarga bosqiçma-bosqiç yetkazilayotganligi sababli, ayrim qurilmalarda yangi versiya darhol mavjud bölmasligi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Foydalanuvçilar va administratorlar uçun xavfsizlik tavsiyalari</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklar brauzerning asosiy komponentlariga taalluqli ekanligini inobatga olgan holda, barça foydalanuvçilar va taşkilotlarning IT hamda kiberxavfsizlik böyiça masʼul mutaxassislariga quyidagi çoralarni amalga oşiriş tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Google Chrome brauzerini yangilaş. Brauzerning joriy versiyasini tekşirib, imkon qadar tezroq 157.0.8103.78/.79 versiyasiga yangilaş.</li>
+
+
+
+<li>Yangilanişni qölda tekşiriş. Chrome brauzerini oçib, yuqori öng burçakdagi uç nuqtali menyudan Yordam (Help) → Google Chrome haqida (About Google Chrome) bölimiga ötiş. Tizim mavjud yangilanişlarni avtomatik tekşiradi va zarur bölsa, ularni yuklab oladi.</li>
+
+
+
+<li>Brauzerni qayta işga tuşiriş. Yangilaniş yuklab olingaç, uning kuçga kirişi uçun Relaunç tugmasini bosiş. Aks holda, yangi xavfsizlik tuzatişlari brauzer faoliyatiga töliq tatbiq etilmasligi mumkin.</li>
+
+
+
+<li>Nomaʼlum havolalardan ehtiyot böliş. Elektron poçta, messenjerlar va ijtimoiy tarmoqlar orqali yuborilgan şubhali havolalarni oçmaslik, nomaʼlum manbalardan kelgan fayllarni yuklab olmaslik.</li>
+
+
+
+<li>Korporativ qurilmalarni nazorat qiliş. Taşkilot administratorlari markazlaştirilgan boşqaruv vositalari orqali barça işçi stansiyalar, serverlar va boşqa qurilmalarda Chrome brauzerining yangilanganligini tekşirişi lozim.</li>
+
+
+
+<li>Kengaytmalarni nazorat qiliş. Brauzerga faqat işonçli manbalardan olingan kengaytmalarni örnatiş va foydalanilmayotgan yoki şubhali kengaytmalarni öçirib taşlaş.</li>
+
+
+
+<li>Xavfsizlik monitoringini kuçaytiriş. Korporativ tarmoqlarda brauzerlarning kutilmaganda işdan çiqişi, şubhali jarayonlar va noodatiy faolliklarni muntazam kuzatib boriş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Google Chrome brauzeridagi 83 ta zaiflikning bartaraf etilişi, ayniqsa, beşta kritik xotira xavfsizligi xatosi foydalanuvçilar va taşkilotlar uçun dasturiy taʼminotni öz vaqtida yangilab boriş qançalik muhim ekanini yana bir bor namoyon etadi.</p>
+
+
+
+<p class="wp-block-paragraph">Brauzerlar internet resurslari, elektron poçta, korporativ tizimlar va turli veb-ilovalarga kirişning asosiy vositasi hisoblanadi. Şu sababli ulardagi xavfsizlik zaifliklari nafaqat alohida foydalanuvçilar, balki butun taşkilotlarning axborot infratuzilmasiga ham xavf tuğdirişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Hurmatli foydalanuvçilar va tizim administratorlari! Google Chrome brauzerining versiyasini zudlik bilan tekşiring, mavjud xavfsizlik yangilanişlarini örnating va brauzerning yangilangan holatda işlaşini taʼminlang. Kiberxavfsizlikni taʼminlaşda dasturiy taʼminotni öz vaqtida yangilaş eng muhim himoya çoralaridan biridir!</p>
+<p>The post <a href="https://uzcert.uz/google-chrome-brauzeridagi-83-ta-zaiflik-bartaraf-etildi-ulardan-5-tasi-kritik-darajada-bolib-masofadan-kod-bajarilisiga-olib-kelisi-mumkin/">Google Chrome brauzeridagi 83 ta zaiflik bartaraf etildi: ulardan 5 tasi kritik darajada bölib, masofadan kod bajarilişiga olib kelişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>MongoDB maʼlumotlar bazasida kritik zaiflik aniqlandi: atigi ikkita Ping sörovi serverni işdan çiqarişi mumkin!</title>
+		<link>https://uzcert.uz/mongodb-ma%ca%bclumotlar-bazasida-kritik-zaiflik-aniqlandi-atigi-ikkita-ping-sorovi-serverni-isdan-ciqarisi-mumkin/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Thu, 12 Nov 2026 13:12:38 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42570</guid>
+
+					<description><![CDATA[<p>Dunyoda keng qöllaniladigan MongoDB maʼlumotlar bazasini boşqariş tizimida autentifikatsiyani talab qilmaydigan kritik zaiflik aniqlandi. CVE-2026-118383 identifikatori bilan röyxatga olingan mazkur zaiflik masofaviy tajovuzkorga tizimga kirmasdan, atigi ikkita maxsus şakllantirilgan Ping sörovi yordamida maʼlumotlar bazasi serverini işdan çiqariş imkonini berişi mumkin. Zaiflikka CVSS v4.0 baholaş tizimi böyiça 9,5 ball berilgan. Uning muvaffaqiyatli ekspluatatsiyasi serverning kutilmaganda töxtab qolişiga, ayrim şaroitlarda esa server jarayoni doirasida ixtiyoriy kod bajarilişiga olib kelişi mumkin. Bu, ayniqsa, yuqori darajadagi uzluksiz işlaşni talab qiladigan va bir neçta serverdan taşkil topgan maʼlumotlar bazasi infratuzilmalari uçun jiddiy xavf tuğdiradi. MongoDB işlab çiquvçilari 2026-yil 10-noyabr kuni xavfsizlik yangilanişi haqida xabar berib, muammoni bartaraf etuvçi versiyalarni taqdim etdi. Kompaniya hozirça uşbu zaiflikdan real hujumlarda foydalanilganiga oid maʼlumotlarga ega emasligini bildirgan. Zaiflikning texnik mohiyati: xotiradan notöğri foydalaniş Mazkur muammo MongoDB Server dasturining replikatsiya (replication) mexanizmida aniqlangan. Texnik jihatdan u Use-After-Free (CWE-416) turidagi xotirani boşqariş xatosi hisoblanadi. Use-After-Free — dastur tomonidan foydalanilayotgan xotira maydoni avvalroq böşatilganidan keyin ham unga murojaat qiliş holatidir. Bunday vaziyatda dastur xotiraning notöğri yoki boşqa jarayon uçun ajratilgan qismidan foydalanişga urinişi mumkin. Natijada xotira yaxlitligi buziladi, dastur kutilmaganda töxtaydi yoki ayrim şaroitlarda tajovuzkor uçun ixtiyoriy kod bajariş imkoniyati yuzaga keladi. MongoDBʼdagi uşbu zaiflik maʼlumotlar bazasi klasterida yangi asosiy server (Primary) saylangandan keyin işga tuşadigan catch-up jarayonining yakuniy bosqiçida yuzaga keladi. MongoDBʼda Replica Set deb ataluvçi arxitektura bir neçta serverdan taşkil topadi. Ulardan biri Primary vazifasini bajarib, maʼlumotlarni yoziş operatsiyalarini qabul qiladi. Qolgan serverlar esa Secondary sifatida işlaydi va Primary serverdagi özgarişlarning nusxasini saqlab boradi. Agar amaldagi Primary server işdan çiqsa yoki boşqa sababga köra öz vazifasini bajara olmasa, klasterdagi boşqa aʼzolar örtasida saylov jarayoni boşlanadi. Natijada Secondary serverlardan biri yangi Primary etib tayinlanadi. Yangi Primary yoziş operatsiyalarini qabul qilişdan oldin boşqa serverlarda bajarilgan, ammo öziga hali yetib kelmagan özgarişlarni sinxronlaştirişi kerak. Aynan şu jarayon catch-up deb ataladi. Tadqiqotçilar aniqlaşiça, zaiflik mazkur sinxronlaştiriş jarayoni yakunlanib, vaqtinçalik xotira obyektlarini tozalaş vaqtida yuzaga keladi. Dastur ayrim kutiş mexanizmlariga (waiter) tegişli xotirani ikki marta böşatişga urinadi. Natijada avval böşatilgan xotiraga qayta murojaat qilinib, serverning işdan çiqişiga sabab böladi. Ikki dona Ping sörovi orqali hujum qanday amalga oşiriladi? Datadog Security Labs tadqiqotçilari CVE-2026-118383 zaifligini laboratoriya şaroitida tekşirib, uning qanday işlaş mexanizmini namoyiş etgan. Aniqlanişiça, tajovuzkor MongoDB serveriga autentifikatsiyadan ötmasdan ham Ping buyruğini yuborişi mumkin. U uşbu imkoniyatdan foydalanib, readConcern.afterOpTime parametrini öz içiga olgan ikkita maxsus şakllantirilgan sörovni yuboradi. Mazkur sörovlar MongoDB içida waiter deb ataluvçi kutiş obyektlarini hosil qiladi. Ular maʼlum bir replikatsiya holatiga erişilişini kutiş uçun möljallangan bölib, sörov bajarilgandan keyin ham xotirada saqlanib qolişi mumkin. Muhim jihati şundaki, ikkita sörovning yuborilişi serverni darhol işdan çiqarmaydi. Hujum muvaffaqiyatli yakunlanişi uçun qöşimça şartlar ham bajarilişi kerak: Şu sababli hujumning yakuniy bosqiçi tajovuzkor tomonidan töliq boşqarilmaydi. Replikatsiya keçikişi va serverning qayta saylovda ğolib bölişi texnik xizmat körsatiş, uziliş yoki boşqa infratuzilmaviy hodisalar vaqtida yuz berişi mumkin. Tadqiqotçilar tört aʼzodan iborat Replica Set klasterini yaratib, uşbu holatni laboratoriya şaroitida qayta tiklaşga muvaffaq bölgan. MongoDB 8.0.34 versiyasida ikkita sörov yuborilgaç, yangi Primary serverida Segmentation fault xatosi qayd etilgan va mongod jarayoni töxtab qolgan. Nazorat sinovida esa xuddi şu jarayon sörovlarsiz bajarilganda server normal işlaşda davom etgan. Tuzatilgan MongoDB 8.0.37 versiyasida esa ikkala sörov ham Unauthorized xatosi bilan rad etilgan va server faoliyatini davom ettirgan. Tadqiqotçilar laboratoriya sinovlarida masofadan turib ixtiyoriy kod bajarilişiga erişmagan. Biroq işlab çiquvçilar zaiflik ayrim şaroitlarda bunday oqibatga ham olib kelişi mumkinligini tasdiqlagan. Qaysi MongoDB versiyalari zaiflikdan taʼsirlangan? Aniqlangan zaiflik MongoDBʼning Replica Set arxitekturasidan foydalanadigan serverlariga taalluqli. Bunga şarded klasterlar tarkibidagi şard serverlari hamda konfiguratsiya serverlari ham kiradi. Biroq mustaqil, yaʼni Replica Set tarkibida işlamaydigan mongod serverlari uşbu zaiflikdan taʼsirlanmaydi. Çunki ularda yangi Primary serverni saylaş va uning maʼlumotlarni sinxronlaştiriş jarayoni mavjud emas. MongoDB işlab çiquvçilari quyidagi versiyalarda zaiflikni bartaraf etgan: MongoDB tarmoği Tuzatilgan versiya 9.0.x 9.0.7 8.3.x 8.3.16 8.0.x 8.0.37 7.0.x 7.0.48 6.0.x 6.0.30 5.0.x 5.0.35 4.4.x 4.4.32 Mazkur versiyalardan oldingi tegişli relizlarda zaiflik mavjud bölişi mumkin. Şu sababli taşkilotlar foydalanayotgan MongoDB versiyalarini tekşirişi va tegişli tuzatilgan versiyalarga yangilaşi zarur. Zaiflikdan foydalanişga urinişlarni qanday aniqlaş mumkin? Datadog Security Labs mutaxassislari administratorlarga MongoDB serverining tizim jurnallarini (log-fayllarini) batafsil tahlil qilişni tavsiya etmoqda. Xususan, quyidagi belgilar şubhali faollikdan dalolat berişi mumkin: Ayniqsa, bir serverda Primary sinxronlaştiriş jarayonining ikki marta yakunlangani va undan keyin SIGSEGV xatosi qayd etilişi alohida tekşirilişi lozim. Şuningdek, administratorlar faqat server işdan çiqqan vaqtdagi yozuvlarni emas, balki undan oldingi davrga tegişli log-fayllarni ham örganişi kerak. Sababi, tajovuzkor tomonidan yuborilgan dastlabki sörovlar serverning işdan çiqişidan ança oldin amalga oşirilgan bölişi mumkin. Bunda loglaş sozlamalariga ham eʼtibor qaratiş zarur. Ayrim sörovlar faqat bajariliş vaqti belgilangan çegaradan oşganda yoki buyruqlarni qayd etiş darajasi oşirilganda jurnalga yoziladi. Şu bois barça kerakli maʼlumotlar saqlanayotganini tekşiriş muhim. Taşkilotlar uçun xavfsizlik tavsiyalari MongoDB maʼlumotlar bazasidan foydalanadigan taşkilotlar mazkur zaiflik bilan boğliq xavflarni kamaytiriş va infratuzilmaning uzluksiz işlaşini taʼminlaş maqsadida quyidagi çoralarni amalga oşirişi tavsiya etiladi: MongoDB Atlas bulutli xizmatidan foydalanuvçi taşkilotlarning klasterlari belgilangan texnik xizmat körsatiş jarayonida avtomatik ravişda tuzatilgan versiyalarga yangilanadi. Biroq texnik xizmat körsatişni keçiktirgan mijozlarga yangilanişni imkon qadar tezroq amalga oşiriş tavsiya etiladi. CVE-2026-118383 zaifligi maʼlumotlar bazasi infratuzilmasida autentifikatsiya mexanizmlarining özi barça xavfsizlik xatarlarini bartaraf eta olmasligini yana bir bor körsatmoqda. Ayniqsa, taşqi tarmoqdan kiriş imkoniyati mavjud bölgan va bir neçta serverdan taşkil topgan maʼlumotlar bazasi klasterlari bunday zaifliklar uçun jiddiy nişonga aylanişi mumkin. Garçi mazkur zaiflikdan foydalaniş uçun qöşimça texnik şartlar talab etilsa-da, uning server faoliyatini töxtatib qöyişi va ayrim şaroitlarda ixtiyoriy kod bajarilişiga olib kelişi mumkinligi xavf darajasini yanada oşiradi. Şu bois MongoDB administratorlari va taşkilotlarning kiberxavfsizlik böyiça masʼul mutaxassislariga server versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş, maʼlumotlar bazasi portlarini taşqi tarmoqlardan himoyalaş hamda tizim jurnallarini muntazam tahlil qilib boriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/mongodb-ma%ca%bclumotlar-bazasida-kritik-zaiflik-aniqlandi-atigi-ikkita-ping-sorovi-serverni-isdan-ciqarisi-mumkin/">MongoDB maʼlumotlar bazasida kritik zaiflik aniqlandi: atigi ikkita Ping sörovi serverni işdan çiqarişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Dunyoda keng qöllaniladigan MongoDB maʼlumotlar bazasini boşqariş tizimida autentifikatsiyani talab qilmaydigan kritik zaiflik aniqlandi. CVE-2026-118383 identifikatori bilan röyxatga olingan mazkur zaiflik masofaviy tajovuzkorga tizimga kirmasdan, atigi ikkita maxsus şakllantirilgan Ping sörovi yordamida maʼlumotlar bazasi serverini işdan çiqariş imkonini berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikka CVSS v4.0 baholaş tizimi böyiça 9,5 ball berilgan. Uning muvaffaqiyatli ekspluatatsiyasi serverning kutilmaganda töxtab qolişiga, ayrim şaroitlarda esa server jarayoni doirasida ixtiyoriy kod bajarilişiga olib kelişi mumkin. Bu, ayniqsa, yuqori darajadagi uzluksiz işlaşni talab qiladigan va bir neçta serverdan taşkil topgan maʼlumotlar bazasi infratuzilmalari uçun jiddiy xavf tuğdiradi.</p>
+
+
+
+<p class="wp-block-paragraph">MongoDB işlab çiquvçilari 2026-yil 10-noyabr kuni xavfsizlik yangilanişi haqida xabar berib, muammoni bartaraf etuvçi versiyalarni taqdim etdi. Kompaniya hozirça uşbu zaiflikdan real hujumlarda foydalanilganiga oid maʼlumotlarga ega emasligini bildirgan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikning texnik mohiyati: xotiradan notöğri foydalaniş</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur muammo MongoDB Server dasturining replikatsiya (replication) mexanizmida aniqlangan. Texnik jihatdan u Use-After-Free (CWE-416) turidagi xotirani boşqariş xatosi hisoblanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Use-After-Free — dastur tomonidan foydalanilayotgan xotira maydoni avvalroq böşatilganidan keyin ham unga murojaat qiliş holatidir. Bunday vaziyatda dastur xotiraning notöğri yoki boşqa jarayon uçun ajratilgan qismidan foydalanişga urinişi mumkin. Natijada xotira yaxlitligi buziladi, dastur kutilmaganda töxtaydi yoki ayrim şaroitlarda tajovuzkor uçun ixtiyoriy kod bajariş imkoniyati yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">MongoDBʼdagi uşbu zaiflik maʼlumotlar bazasi klasterida yangi asosiy server (Primary) saylangandan keyin işga tuşadigan catch-up jarayonining yakuniy bosqiçida yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">MongoDBʼda Replica Set deb ataluvçi arxitektura bir neçta serverdan taşkil topadi. Ulardan biri Primary vazifasini bajarib, maʼlumotlarni yoziş operatsiyalarini qabul qiladi. Qolgan serverlar esa Secondary sifatida işlaydi va Primary serverdagi özgarişlarning nusxasini saqlab boradi.</p>
+
+
+
+<p class="wp-block-paragraph">Agar amaldagi Primary server işdan çiqsa yoki boşqa sababga köra öz vazifasini bajara olmasa, klasterdagi boşqa aʼzolar örtasida saylov jarayoni boşlanadi. Natijada Secondary serverlardan biri yangi Primary etib tayinlanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Yangi Primary yoziş operatsiyalarini qabul qilişdan oldin boşqa serverlarda bajarilgan, ammo öziga hali yetib kelmagan özgarişlarni sinxronlaştirişi kerak. Aynan şu jarayon catch-up deb ataladi.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqotçilar aniqlaşiça, zaiflik mazkur sinxronlaştiriş jarayoni yakunlanib, vaqtinçalik xotira obyektlarini tozalaş vaqtida yuzaga keladi. Dastur ayrim kutiş mexanizmlariga (waiter) tegişli xotirani ikki marta böşatişga urinadi. Natijada avval böşatilgan xotiraga qayta murojaat qilinib, serverning işdan çiqişiga sabab böladi. </p>
+
+
+
+<p class="wp-block-paragraph">Ikki dona Ping sörovi orqali hujum qanday amalga oşiriladi?</p>
+
+
+
+<p class="wp-block-paragraph">Datadog Security Labs tadqiqotçilari CVE-2026-118383 zaifligini laboratoriya şaroitida tekşirib, uning qanday işlaş mexanizmini namoyiş etgan.</p>
+
+
+
+<p class="wp-block-paragraph">Aniqlanişiça, tajovuzkor MongoDB serveriga autentifikatsiyadan ötmasdan ham Ping buyruğini yuborişi mumkin. U uşbu imkoniyatdan foydalanib, readConcern.afterOpTime parametrini öz içiga olgan ikkita maxsus şakllantirilgan sörovni yuboradi.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur sörovlar MongoDB içida waiter deb ataluvçi kutiş obyektlarini hosil qiladi. Ular maʼlum bir replikatsiya holatiga erişilişini kutiş uçun möljallangan bölib, sörov bajarilgandan keyin ham xotirada saqlanib qolişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Muhim jihati şundaki, ikkita sörovning yuborilişi serverni darhol işdan çiqarmaydi. Hujum muvaffaqiyatli yakunlanişi uçun qöşimça şartlar ham bajarilişi kerak:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Dastlabki sörovlarni yuboriş: tajovuzkor autentifikatsiyasiz ikkita maxsus Ping sörovini yuborib, serverda muayyan kutiş obyektlarini hosil qiladi.</li>
+
+
+
+<li>Replikatsiya keçikişi: klasterdagi mazkur server boşqa aʼzolardan ortda qolişi, yaʼni ayrim maʼlumotlarni öz vaqtida qabul qilmasligi kerak.</li>
+
+
+
+<li>Yangi Primary etib saylaniş: ortda qolgan server keyingi saylov jarayonida Primary vazifasiga tayinlanişi lozim.</li>
+
+
+
+<li>Xotira xatosining yuzaga kelişi: sinxronlaştiriş jarayoni yakunlangaç, kutiş obyektlarini tozalaş mexanizmi xotiradan notöğri foydalanadi va serverning işdan çiqişiga olib keladi.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Şu sababli hujumning yakuniy bosqiçi tajovuzkor tomonidan töliq boşqarilmaydi. Replikatsiya keçikişi va serverning qayta saylovda ğolib bölişi texnik xizmat körsatiş, uziliş yoki boşqa infratuzilmaviy hodisalar vaqtida yuz berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqotçilar tört aʼzodan iborat Replica Set klasterini yaratib, uşbu holatni laboratoriya şaroitida qayta tiklaşga muvaffaq bölgan. MongoDB 8.0.34 versiyasida ikkita sörov yuborilgaç, yangi Primary serverida Segmentation fault xatosi qayd etilgan va mongod jarayoni töxtab qolgan.</p>
+
+
+
+<p class="wp-block-paragraph">Nazorat sinovida esa xuddi şu jarayon sörovlarsiz bajarilganda server normal işlaşda davom etgan. Tuzatilgan MongoDB 8.0.37 versiyasida esa ikkala sörov ham Unauthorized xatosi bilan rad etilgan va server faoliyatini davom ettirgan.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqotçilar laboratoriya sinovlarida masofadan turib ixtiyoriy kod bajarilişiga erişmagan. Biroq işlab çiquvçilar zaiflik ayrim şaroitlarda bunday oqibatga ham olib kelişi mumkinligini tasdiqlagan.</p>
+
+
+
+<p class="wp-block-paragraph">Qaysi MongoDB versiyalari zaiflikdan taʼsirlangan?</p>
+
+
+
+<p class="wp-block-paragraph">Aniqlangan zaiflik MongoDBʼning Replica Set arxitekturasidan foydalanadigan serverlariga taalluqli. Bunga şarded klasterlar tarkibidagi şard serverlari hamda konfiguratsiya serverlari ham kiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Biroq mustaqil, yaʼni Replica Set tarkibida işlamaydigan mongod serverlari uşbu zaiflikdan taʼsirlanmaydi. Çunki ularda yangi Primary serverni saylaş va uning maʼlumotlarni sinxronlaştiriş jarayoni mavjud emas.</p>
+
+
+
+<p class="wp-block-paragraph">MongoDB işlab çiquvçilari quyidagi versiyalarda zaiflikni bartaraf etgan:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>MongoDB tarmoği</th><th>Tuzatilgan versiya</th></tr><tr><td>9.0.x</td><td>9.0.7</td></tr><tr><td>8.3.x</td><td>8.3.16</td></tr><tr><td>8.0.x</td><td>8.0.37</td></tr><tr><td>7.0.x</td><td>7.0.48</td></tr><tr><td>6.0.x</td><td>6.0.30</td></tr><tr><td>5.0.x</td><td>5.0.35</td></tr><tr><td>4.4.x</td><td>4.4.32</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Mazkur versiyalardan oldingi tegişli relizlarda zaiflik mavjud bölişi mumkin. Şu sababli taşkilotlar foydalanayotgan MongoDB versiyalarini tekşirişi va tegişli tuzatilgan versiyalarga yangilaşi zarur.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikdan foydalanişga urinişlarni qanday aniqlaş mumkin?</h2>
+
+
+
+<p class="wp-block-paragraph">Datadog Security Labs mutaxassislari administratorlarga MongoDB serverining tizim jurnallarini (log-fayllarini) batafsil tahlil qilişni tavsiya etmoqda.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan, quyidagi belgilar şubhali faollikdan dalolat berişi mumkin:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Autentifikatsiyadan ötmagan manbalardan yuborilgan Ping buyruqlari;</li>
+
+
+
+<li>Sörovlar tarkibidagi readConcern.afterOpTime parametri;</li>
+
+
+
+<li>MaxTimeMSExpired xatosi bilan yakunlangan noodatiy kutiş operatsiyalari;</li>
+
+
+
+<li>Bir xil serverda Primary sinxronlaştiriş jarayonining qisqa vaqt içida ikki marta yakunlangani haqidagi qaydlar;</li>
+
+
+
+<li>SIGSEGV yoki Segmentation fault xatolari;</li>
+
+
+
+<li>Xatoliklar jurnalida CatchupState::abort_inlock() funksiyasiga tegişli yozuvlarning mavjudligi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, bir serverda Primary sinxronlaştiriş jarayonining ikki marta yakunlangani va undan keyin SIGSEGV xatosi qayd etilişi alohida tekşirilişi lozim.</p>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, administratorlar faqat server işdan çiqqan vaqtdagi yozuvlarni emas, balki undan oldingi davrga tegişli log-fayllarni ham örganişi kerak. Sababi, tajovuzkor tomonidan yuborilgan dastlabki sörovlar serverning işdan çiqişidan ança oldin amalga oşirilgan bölişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Bunda loglaş sozlamalariga ham eʼtibor qaratiş zarur. Ayrim sörovlar faqat bajariliş vaqti belgilangan çegaradan oşganda yoki buyruqlarni qayd etiş darajasi oşirilganda jurnalga yoziladi. Şu bois barça kerakli maʼlumotlar saqlanayotganini tekşiriş muhim.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Taşkilotlar uçun xavfsizlik tavsiyalari</h2>
+
+
+
+<p class="wp-block-paragraph">MongoDB maʼlumotlar bazasidan foydalanadigan taşkilotlar mazkur zaiflik bilan boğliq xavflarni kamaytiriş va infratuzilmaning uzluksiz işlaşini taʼminlaş maqsadida quyidagi çoralarni amalga oşirişi tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Dasturiy taʼminotni yangilaş. Barça MongoDB serverlarini işlab çiquvçi tomonidan taqdim etilgan zaiflik bartaraf etilgan versiyalarga yangilaş. Yangilaniş faqat Primary serverda emas, balki Replica Set tarkibidagi barça aʼzolarda amalga oşirilişi kerak.</li>
+
+
+
+<li>Barça serverlar versiyasini tekşiriş. Konteynerlarda işlayotgan, vaqtinça öçirilgan yoki texnik xizmat körsatiş vaqtida tarmoqdan uzilgan serverlarni ham inventarizatsiyadan ötkaziş va ularning versiyalarini tekşiriş.</li>
+
+
+
+<li>Tarmoq orqali kirişni çeklaş. MongoDB serverlariga kiriş imkoniyatini faqat zarur bölgan işonçli IP-manzillar va xizmatlar bilan çeklaş. Maʼlumotlar bazasi portlarini oçiq internet orqali töğridan-töğri foydalaniş imkoniyatidan himoyalaş.</li>
+
+
+
+<li>Autentifikatsiya va ruxsatlarni nazorat qiliş. Kuçli autentifikatsiya mexanizmlarini joriy etiş, foydalanuvçilarga faqat xizmat vazifalarini bajariş uçun zarur bölgan huquqlarni beriş. Biroq mazkur zaiflikning dastlabki bosqiçi autentifikatsiyasiz amalga oşişi mumkinligi sababli, uşbu çora dasturiy yangilaniş örnini bosa olmaydi.</li>
+
+
+
+<li>Log-fayllarni muntazam tahlil qiliş. Noodatiy Ping sörovlari, readConcern.afterOpTime parametri, replikatsiya jarayonidagi takroriy xatoliklar va serverning kutilmaganda töxtab qoliş holatlarini kuzatiş.</li>
+
+
+
+<li>Monitoring va zaxira mexanizmlarini kuçaytiriş. Replica Set aʼzolarining holati, Primary server almaşinuvi va replikatsiya keçikişlarini doimiy nazorat qiliş. Maʼlumotlar yöqolişining oldini oliş uçun zaxira nusxalarini yaratiş va ularni tiklaş imkoniyatini muntazam sinovdan ötkaziş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">MongoDB Atlas bulutli xizmatidan foydalanuvçi taşkilotlarning klasterlari belgilangan texnik xizmat körsatiş jarayonida avtomatik ravişda tuzatilgan versiyalarga yangilanadi. Biroq texnik xizmat körsatişni keçiktirgan mijozlarga yangilanişni imkon qadar tezroq amalga oşiriş tavsiya etiladi. </p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-118383 zaifligi maʼlumotlar bazasi infratuzilmasida autentifikatsiya mexanizmlarining özi barça xavfsizlik xatarlarini bartaraf eta olmasligini yana bir bor körsatmoqda. Ayniqsa, taşqi tarmoqdan kiriş imkoniyati mavjud bölgan va bir neçta serverdan taşkil topgan maʼlumotlar bazasi klasterlari bunday zaifliklar uçun jiddiy nişonga aylanişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Garçi mazkur zaiflikdan foydalaniş uçun qöşimça texnik şartlar talab etilsa-da, uning server faoliyatini töxtatib qöyişi va ayrim şaroitlarda ixtiyoriy kod bajarilişiga olib kelişi mumkinligi xavf darajasini yanada oşiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu bois MongoDB administratorlari va taşkilotlarning kiberxavfsizlik böyiça masʼul mutaxassislariga server versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş, maʼlumotlar bazasi portlarini taşqi tarmoqlardan himoyalaş hamda tizim jurnallarini muntazam tahlil qilib boriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/mongodb-ma%ca%bclumotlar-bazasida-kritik-zaiflik-aniqlandi-atigi-ikkita-ping-sorovi-serverni-isdan-ciqarisi-mumkin/">MongoDB maʼlumotlar bazasida kritik zaiflik aniqlandi: atigi ikkita Ping sörovi serverni işdan çiqarişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Windows Active Directory tizimida masofadan kod bajariş imkonini beruvçi yuqori xavfli zaiflik aniqlandi!</title>
+		<link>https://uzcert.uz/windows-active-directory-tizimida-masofadan-kod-bajaris-imkonini-beruvci-yuqori-xavfli-zaiflik-aniqlandi/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Wed, 11 Nov 2026 07:44:46 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42567</guid>
+
+					<description><![CDATA[<p>Microsoft kompaniyasi Windows operatsion tizimining Active Directory xizmatida masofadan turib zararli kodlarni bajariş imkonini beruvçi jiddiy xavfsizlik zaifligini aniqladi. CVE-2026-119948 identifikatori bilan röyxatga olingan mazkur zaiflik 2026-yil 10-noyabr kuni eʼlon qilingan xavfsizlik yangilanişlari doirasida bartaraf etildi. CVE-2026-119948 identifikatori bilan röyxatga olingan mazkur zaiflik 2026-yil 10-noyabr kuni eʼlon qilindi. Uning xavflilik darajasi CVSS tizimi böyiça 7.5 ball bilan baholangan. Mazkur zaiflikdan foydalaniş orqali tarmoqqa ulangan tajovuzkor maʼlum şartlar bajarilgan taqdirda, Windows tizimida masofadan turib zararli kodlarni bajarişi mumkin. Buning uçun tizimga oldindan maʼlum darajadagi kiriş huquqi talab etiladi. Yaʼni, uşbu zaiflikdan foydalaniş uçun login va parolsiz istalgan tizimga hujum qiliş imkoniyati mavjud emas. Zaiflikning texnik mohiyati CVE-2026-119948 zaifligi Windows Active Directory xizmatida aniqlangan bölib, u stek xotirasining tölib ketişi (Stack-based Buffer Overflow) bilan boğliq. Uşbu turdagi xatolik dastur tomonidan xotiraning ajratilgan qismiga siğmaydigan hajmdagi maʼlumotlar yozilişi natijasida yuzaga keladi. Bunda maʼlumotlar xotiraning çegarasidan çiqib, qöşni xotira sohalaridagi maʼlumotlarni buzişi mumkin. Ayrim holatlarda bunday xatolikdan foydalanib, dastur bajariliş jarayonini özgartiriş va zararli kodlarni işga tuşiriş imkoniyati yuzaga keladi. Mazkur zaiflikdan muvaffaqiyatli foydalanilgan taqdirda, tajovuzkor tarmoq orqali masofadan turib tizimda kod bajarişi mumkin. Bu esa tizimdagi maxfiy maʼlumotlarning oşkor bölişi, mavjud maʼlumotlarning özgartirilişi yoki xizmatlar faoliyatining buzilişiga olib kelişi ehtimoli mavjud. Microsoft baholaşiga köra, zaiflikdan foydalaniş uçun quyidagi şartlar talab etiladi: Şu sababli mazkur zaiflikni barça Windows tizimlariga login va parolsiz hujum qiliş imkonini beruvçi zaiflik sifatida baholaş notöğri. Microsoft hozirça uşbu zaiflikdan amaliy hujumlarda foydalanilganini tasdiqlamagan. Şuningdek, ommaga maʼlum ekspluatatsiya kodi mavjudligi haqida ham maʼlumot berilmagan. Qaysi Windows versiyalari zaiflikdan taʼsirlangan? Microsoft maʼlumotlariga köra, CVE-2026-119948 zaifligi Windows operatsion tizimining bir neçta versiyalari, jumladan, mijoz kompyuterlari va server platformalariga taalluqli. Taʼsirlangan versiyalar qatoriga quyidagilar kiradi: Şuningdek, Windows Server tizimlarining Standard hamda Server Core örnatiş variantlari ham zaiflikdan taʼsirlangan. Taşkilotlar öz infratuzilmasidagi Windows qurilmalarining versiyalarini aniqlaşi va quyidagi xavfsizlik yangilanişlari örnatilganligini tekşirişi lozim. Zaiflikni bartaraf etiş uçun çiqarilgan yangilanişlar Microsoft 2026-yil 10-noyabr kuni mazkur zaiflikni bartaraf etişga qaratilgan xavfsizlik yangilanişlarini taqdim etdi. Quyidagi jadvalda taʼsirlangan operatsion tizimlar va ular uçun möljallangan yangilanişlar keltirilgan: Operatsion tizim Yangilanish (KB) Tuzatilgan versiya (OS Build) Windows Server 2025 KB5131080 / KB5131077 26100.33822 / 26100.33730 Windows Server 2022 KB5131090 20348.5870 Windows Server 2019 KB5131085 17763.9487 Windows Server 2016 KB5131291 14393.9688 Windows 11 26H2 KB5132061 / KB5132043 26300.9974 / 26300.9911 Windows 11 26H1 KB5132059 28000.3501 Windows 11 25H2 KB5132061 / KB5132043 26200.9974 / 26200.9911 Windows 11 24H2 KB5132061 / KB5132043 26100.9974 / 26100.9911 Windows 11 23H2 KB5131087 22631.7711 Windows 10 22H2 KB5131096 19045.7846 Windows 10 21H2 KB5131096 19044.7846 Windows 10 1809 KB5131085 17763.9487 Windows 10 1607 KB5131291 14393.9688 Eslatma: Windows 11 va Windows Server 2025 uçun ayrim yangilanişlar turli örnatiş usullari va qurilma konfiguratsiyalariga möljallangan. Şu sababli yangilanişni tanlaşda Microsoft tomonidan körsatilgan tegişli paket va OS Build raqamiga amal qiliş kerak. Yana bir Active Directory zaifligi aniqlandi Microsoft 2026-yil noyabr oyidagi xavfsizlik yangilanişlari doirasida Active Directory xizmatida CVE-2026-105559 identifikatorli yana bir zaiflik haqida maʼlumot eʼlon qildi. Uşbu zaiflik tarmoq orqali xizmat körsatişni rad etiş (Denial of Service — DoS) holatini yuzaga keltirişi mumkin. Uning xavflilik darajasi CVSS 3.1 tizimi böyiça 6.5 ball bilan baholangan. Mazkur zaiflikdan foydalaniş uçun tajovuzkor tizimga maʼlum darajadagi kiriş huquqiga ega bölişi kerak. Muvaffaqiyatli hujum natijasida Active Directory xizmatining işlaşi buzilişi yoki uning vaqtinça foydalaniş imkoniyati çeklanişi mumkin. Şuni taʼkidlaş kerakki, CVE-2026-105559 va CVE-2026-119948 bir-biridan mustaqil zaifliklar hisoblanadi. Ularni yagona hujum zanjiri sifatida talqin qiliş uçun hozirça asos mavjud emas. Himoyalaniş böyiça tavsiyalar Active Directory xizmatidan foydalanadigan taşkilotlar uçun mazkur zaifliklar alohida ahamiyatga ega. Çunki uşbu xizmat foydalanuvçi hisoblari, autentifikatsiya jarayonlari, kompyuterlar va tarmoq resurslariga kiriş huquqlarini markazlaşgan holda boşqarişda muhim örin tutadi. Şu munosabat bilan taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi: Windows Active Directory xizmatida aniqlangan CVE-2026-119948 zaifligi tarmoq orqali masofadan kod bajariş imkoniyatini yuzaga keltirişi sababli taşkilotlarning axborot infratuzilmasi uçun jiddiy xavf hisoblanadi. Ayniqsa, Active Directory domen kontrollerlari taşkilotning foydalanuvçi hisoblari va tarmoq resurslarini boşqarişda muhim vazifani bajarişini hisobga olsak, uşbu tizimlarning öz vaqtida yangilanmaganligi kiberhujumlar uçun qöşimça imkoniyat yaratişi mumkin. Şu sababli Windows operatsion tizimidan foydalanuvçi taşkilotlarga mavjud qurilmalarni xatlovdan ötkaziş, tegişli xavfsizlik yangilanişlarini örnatiş, domen kontrollerlarining himoyasini kuçaytiriş va tarmoqdagi şubhali faollikni muntazam nazorat qiliş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/windows-active-directory-tizimida-masofadan-kod-bajaris-imkonini-beruvci-yuqori-xavfli-zaiflik-aniqlandi/">Windows Active Directory tizimida masofadan kod bajariş imkonini beruvçi yuqori xavfli zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Microsoft kompaniyasi Windows operatsion tizimining Active Directory xizmatida masofadan turib zararli kodlarni bajariş imkonini beruvçi jiddiy xavfsizlik zaifligini aniqladi. CVE-2026-119948 identifikatori bilan röyxatga olingan mazkur zaiflik 2026-yil 10-noyabr kuni eʼlon qilingan xavfsizlik yangilanişlari doirasida bartaraf etildi.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-119948 identifikatori bilan röyxatga olingan mazkur zaiflik 2026-yil 10-noyabr kuni eʼlon qilindi. Uning xavflilik darajasi CVSS tizimi böyiça 7.5 ball bilan baholangan.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş orqali tarmoqqa ulangan tajovuzkor maʼlum şartlar bajarilgan taqdirda, Windows tizimida masofadan turib zararli kodlarni bajarişi mumkin. Buning uçun tizimga oldindan maʼlum darajadagi kiriş huquqi talab etiladi. Yaʼni, uşbu zaiflikdan foydalaniş uçun login va parolsiz istalgan tizimga hujum qiliş imkoniyati mavjud emas.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikning texnik mohiyati</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-119948 zaifligi Windows Active Directory xizmatida aniqlangan bölib, u stek xotirasining tölib ketişi (Stack-based Buffer Overflow) bilan boğliq.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu turdagi xatolik dastur tomonidan xotiraning ajratilgan qismiga siğmaydigan hajmdagi maʼlumotlar yozilişi natijasida yuzaga keladi. Bunda maʼlumotlar xotiraning çegarasidan çiqib, qöşni xotira sohalaridagi maʼlumotlarni buzişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Ayrim holatlarda bunday xatolikdan foydalanib, dastur bajariliş jarayonini özgartiriş va zararli kodlarni işga tuşiriş imkoniyati yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan muvaffaqiyatli foydalanilgan taqdirda, tajovuzkor tarmoq orqali masofadan turib tizimda kod bajarişi mumkin. Bu esa tizimdagi maxfiy maʼlumotlarning oşkor bölişi, mavjud maʼlumotlarning özgartirilişi yoki xizmatlar faoliyatining buzilişiga olib kelişi ehtimoli mavjud.</p>
+
+
+
+<p class="wp-block-paragraph">Microsoft baholaşiga köra, zaiflikdan foydalaniş uçun quyidagi şartlar talab etiladi:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Tarmoq orqali foydalaniş: hujumni tarmoq orqali amalga oşiriş mumkin.</li>
+
+
+
+<li>Past darajadagi huquqlar: tajovuzkorda tizimga kiriş uçun maʼlum darajadagi foydalanuvçi huquqlari bölişi kerak.</li>
+
+
+
+<li>Yuqori murakkablik: hujum muvaffaqiyatli amalga oşişi uçun muayyan texnik şartlar yoki konfiguratsiyalar mavjud bölişi talab etiladi.</li>
+
+
+
+<li>Foydalanuvçi aralaşuvi talab etilmaydi: hujum jarayonida foydalanuvçining qöşimça harakati talab qilinmaydi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şu sababli mazkur zaiflikni barça Windows tizimlariga login va parolsiz hujum qiliş imkonini beruvçi zaiflik sifatida baholaş notöğri.</p>
+
+
+
+<p class="wp-block-paragraph">Microsoft hozirça uşbu zaiflikdan amaliy hujumlarda foydalanilganini tasdiqlamagan. Şuningdek, ommaga maʼlum ekspluatatsiya kodi mavjudligi haqida ham maʼlumot berilmagan.</p>
+
+
+
+<p class="wp-block-paragraph">Qaysi Windows versiyalari zaiflikdan taʼsirlangan?</p>
+
+
+
+<p class="wp-block-paragraph">Microsoft maʼlumotlariga köra, CVE-2026-119948 zaifligi Windows operatsion tizimining bir neçta versiyalari, jumladan, mijoz kompyuterlari va server platformalariga taalluqli.</p>
+
+
+
+<p class="wp-block-paragraph">Taʼsirlangan versiyalar qatoriga quyidagilar kiradi:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Windows Server 2016, 2019, 2022 va 2025;</li>
+
+
+
+<li>Windows 10 — 1607, 1809, 21H2 va 22H2;</li>
+
+
+
+<li>Windows 11 — 23H2, 24H2, 25H2, 26H1 va 26H2.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, Windows Server tizimlarining Standard hamda Server Core örnatiş variantlari ham zaiflikdan taʼsirlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Taşkilotlar öz infratuzilmasidagi Windows qurilmalarining versiyalarini aniqlaşi va quyidagi xavfsizlik yangilanişlari örnatilganligini tekşirişi lozim.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikni bartaraf etiş uçun çiqarilgan yangilanişlar</p>
+
+
+
+<p class="wp-block-paragraph">Microsoft 2026-yil 10-noyabr kuni mazkur zaiflikni bartaraf etişga qaratilgan xavfsizlik yangilanişlarini taqdim etdi.</p>
+
+
+
+<p class="wp-block-paragraph">Quyidagi jadvalda taʼsirlangan operatsion tizimlar va ular uçun möljallangan yangilanişlar keltirilgan:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>Operatsion tizim</th><th>Yangilanish (KB)</th><th>Tuzatilgan versiya (OS Build)</th></tr><tr><td>Windows Server 2025</td><td>KB5131080 / KB5131077</td><td>26100.33822 / 26100.33730</td></tr><tr><td>Windows Server 2022</td><td>KB5131090</td><td>20348.5870</td></tr><tr><td>Windows Server 2019</td><td>KB5131085</td><td>17763.9487</td></tr><tr><td>Windows Server 2016</td><td>KB5131291</td><td>14393.9688</td></tr><tr><td>Windows 11 26H2</td><td>KB5132061 / KB5132043</td><td>26300.9974 / 26300.9911</td></tr><tr><td>Windows 11 26H1</td><td>KB5132059</td><td>28000.3501</td></tr><tr><td>Windows 11 25H2</td><td>KB5132061 / KB5132043</td><td>26200.9974 / 26200.9911</td></tr><tr><td>Windows 11 24H2</td><td>KB5132061 / KB5132043</td><td>26100.9974 / 26100.9911</td></tr><tr><td>Windows 11 23H2</td><td>KB5131087</td><td>22631.7711</td></tr><tr><td>Windows 10 22H2</td><td>KB5131096</td><td>19045.7846</td></tr><tr><td>Windows 10 21H2</td><td>KB5131096</td><td>19044.7846</td></tr><tr><td>Windows 10 1809</td><td>KB5131085</td><td>17763.9487</td></tr><tr><td>Windows 10 1607</td><td>KB5131291</td><td>14393.9688</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Eslatma: Windows 11 va Windows Server 2025 uçun ayrim yangilanişlar turli örnatiş usullari va qurilma konfiguratsiyalariga möljallangan. Şu sababli yangilanişni tanlaşda Microsoft tomonidan körsatilgan tegişli paket va OS Build raqamiga amal qiliş kerak.</p>
+
+
+
+<p class="wp-block-paragraph">Yana bir Active Directory zaifligi aniqlandi</p>
+
+
+
+<p class="wp-block-paragraph">Microsoft 2026-yil noyabr oyidagi xavfsizlik yangilanişlari doirasida Active Directory xizmatida CVE-2026-105559 identifikatorli yana bir zaiflik haqida maʼlumot eʼlon qildi.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflik tarmoq orqali xizmat körsatişni rad etiş (Denial of Service — DoS) holatini yuzaga keltirişi mumkin. Uning xavflilik darajasi CVSS 3.1 tizimi böyiça 6.5 ball bilan baholangan.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş uçun tajovuzkor tizimga maʼlum darajadagi kiriş huquqiga ega bölişi kerak. Muvaffaqiyatli hujum natijasida Active Directory xizmatining işlaşi buzilişi yoki uning vaqtinça foydalaniş imkoniyati çeklanişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şuni taʼkidlaş kerakki, CVE-2026-105559 va CVE-2026-119948 bir-biridan mustaqil zaifliklar hisoblanadi. Ularni yagona hujum zanjiri sifatida talqin qiliş uçun hozirça asos mavjud emas.</p>
+
+
+
+<p class="wp-block-paragraph">Himoyalaniş böyiça tavsiyalar</p>
+
+
+
+<p class="wp-block-paragraph">Active Directory xizmatidan foydalanadigan taşkilotlar uçun mazkur zaifliklar alohida ahamiyatga ega. Çunki uşbu xizmat foydalanuvçi hisoblari, autentifikatsiya jarayonlari, kompyuterlar va tarmoq resurslariga kiriş huquqlarini markazlaşgan holda boşqarişda muhim örin tutadi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu munosabat bilan taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi:</p>
+
+
+
+<ol start="1" class="wp-block-list">
+<li>Xavfsizlik yangilanişlarini örnatiş. Windows Server va Windows operatsion tizimlarining foydalanilayotgan versiyalarini aniqlaş hamda Microsoft tomonidan taqdim etilgan tegişli KB yangilanişlarini örnatiş.</li>
+
+
+
+<li>Domen kontrollerlarini tekşiriş. Active Directory xizmatini boşqaruvçi Domain Controller serverlarida yangilanişlar örnatilganligini birinçi navbatda tekşiriş.</li>
+
+
+
+<li>Tarmoqdan foydalaniş imkoniyatlarini çeklaş. Active Directory xizmatlariga faqat zarur va işonçli tarmoq qurilmalaridan murojaat qilişga ruxsat beriş. Keraksiz tarmoq ulanişlarini çeklaş.</li>
+
+
+
+<li>Foydalanuvçi huquqlarini nazorat qiliş. Domen foydalanuvçilarining ruxsatlarini qayta körib çiqiş, ortiqça vakolatlarni bekor qiliş va administrator hisoblaridan foydalanişni qatʼiy nazorat qiliş.</li>
+
+
+
+<li>Tizim jurnallarini tahlil qiliş. Active Directory va Windows Server jurnallarini muntazam tekşiriş, noodatiy tarmoq sörovlari, şubhali autentifikatsiya urinişlari va xizmatlar faoliyatidagi özgarişlarni kuzatiş.</li>
+
+
+
+<li>Yangilanişlar örnatilganligini tasdiqlaş. Faqat yangilaniş yuklab olinganligi bilan çeklanmasdan, uning muvaffaqiyatli örnatilganligini va tizimda tegişli OS Build raqami mavjudligini tekşiriş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Windows Active Directory xizmatida aniqlangan CVE-2026-119948 zaifligi tarmoq orqali masofadan kod bajariş imkoniyatini yuzaga keltirişi sababli taşkilotlarning axborot infratuzilmasi uçun jiddiy xavf hisoblanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, Active Directory domen kontrollerlari taşkilotning foydalanuvçi hisoblari va tarmoq resurslarini boşqarişda muhim vazifani bajarişini hisobga olsak, uşbu tizimlarning öz vaqtida yangilanmaganligi kiberhujumlar uçun qöşimça imkoniyat yaratişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şu sababli Windows operatsion tizimidan foydalanuvçi taşkilotlarga mavjud qurilmalarni xatlovdan ötkaziş, tegişli xavfsizlik yangilanişlarini örnatiş, domen kontrollerlarining himoyasini kuçaytiriş va tarmoqdagi şubhali faollikni muntazam nazorat qiliş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph"></p>
+<p>The post <a href="https://uzcert.uz/windows-active-directory-tizimida-masofadan-kod-bajaris-imkonini-beruvci-yuqori-xavfli-zaiflik-aniqlandi/">Windows Active Directory tizimida masofadan kod bajariş imkonini beruvçi yuqori xavfli zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Barracuda Email Security Gateway tizimida kritik zaifliklar aniqlandi: tajovuzkorlar qurilmani töliq nazoratga olişi mumkin!</title>
+		<link>https://uzcert.uz/barracuda-email-security-gateway-tizimida-kritik-zaifliklar-aniqlandi-tajovuzkorlar-qurilmani-toliq-nazoratga-olisi-mumkin/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Wed, 11 Nov 2026 07:08:25 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42564</guid>
+
+					<description><![CDATA[<p>Barracuda kompaniyasi özining Email Security Gateway (ESG) mahsulotida ikkita jiddiy xavfsizlik zaifligi aniqlangani va ulardan amaliy hujumlarda foydalanilayotgani haqida maʼlum qildi. 2026-yil 9-noyabr kuni kompaniya xavfsizlik ogohlantirişini yangilab, aniqlangan zaifliklardan foydalaniş holatlari ayrim taşkilotlarda kuzatilganini tasdiqladi. Mazkur zaifliklardan birgalikda foydalaniş orqali tajovuzkorlar tizimga login va parol kiritmasdan kirişi hamda qurilmada eng yuqori — root huquqlari bilan buyruqlarni bajarişi mumkin. Zaifliklar CVE-2026-116606 va CVE-2026-111560 identifikatorlari bilan röyxatga olingan. Ularning xavflilik darajasi CVSS tizimi böyiça mos ravişda 9.3 va 8.6 ball bilan baholangan. Barracuda maʼlumotlariga köra, uşbu hujumlarni amalga oşiriş uçun qurilmaning administrator boşqaruv interfeysiga tarmoq orqali kiriş imkoniyati mavjud bölişi kerak. Şu sababli boşqaruv interfeysi internet tarmoğiga oçiq bölgan qurilmalar alohida xavf ostida hisoblanadi. Aniqlangan zaifliklar va ularning xavfi Mazkur zaiflik Barracuda Email Security Gateway mahsulotining avtorizatsiya mexanizmida aniqlangan. Uşbu zaiflik orqali tajovuzkor tizimga login va parol kiritmasdan, administrator interfeysining ayrim funksiyalaridan foydalanişi mumkin. Buning uçun qurilmaning boşqaruv interfeysiga tarmoq orqali ulaniş imkoniyati bölişi talab etiladi. Natijada tajovuzkor administrator tomonidan bajarilişi kerak bölgan ayrim amallarni ruxsatsiz amalga oşirişi va qurilma konfiguratsiyasiga özgartiriş kiritişi mumkin. Muhim jihati şundaki, Barracuda dastlabki ogohlantirişida uşbu zaiflikdan foydalaniş uçun administrator huquqlari talab etilişini körsatgan. Biroq 2026-yil 5-noyabr kuni ogohlantirişga tuzatiş kiritilib, login va parol talab qilinmasligi, faqat administrator boşqaruv interfeysiga kiriş imkoniyati zarurligi aniqlaştirilgan. Ikkinçi zaiflik tizim tomonidan qayta işlanadigan maʼlumotlar orqali operatsion tizim buyruqlarini ruxsatsiz kiritiş imkoniyati bilan boğliq. Mazkur zaiflikdan mustaqil foydalaniş uçun administrator huquqlari talab etiladi. Agar tajovuzkor uşbu imkoniyatga ega bölsa, maxsus şakllantirilgan maʼlumotlar orqali qurilmada operatsion tizim buyruqlarini bajarişi mumkin. Zaiflikning eng xavfli jihati şundaki, buyruqlar yuqori darajadagi — root huquqlari bilan bajarilişi mumkin. Root Linux va Unix turidagi operatsion tizimlarda tizim ustidan deyarli töliq boşqaruv vakolatini beruvçi eng yuqori huquq hisoblanadi. Ikkita zaiflikdan birgalikda foydalaniş qanday xavf tuğdiradi? Mazkur zaifliklarning asosiy xavfi şundaki, ulardan birgalikda foydalaniş orqali administrator autentifikatsiyasini çetlab ötiş va qurilmani töliq nazoratga oliş mumkin. Birinçi zaiflik (CVE-2026-116606) orqali tajovuzkor login va parolsiz administrator interfeysining himoyalangan funksiyalaridan foydalaniş imkoniyatiga ega böladi. Ikkinçi zaiflik (CVE-2026-111560) esa qurilmada operatsion tizim buyruqlarini root huquqlari bilan bajariş imkonini beradi. Şunday qilib, uşbu ikki zaiflikdan birgalikda foydalaniş natijasida tajovuzkor qurilmani yuqori darajadagi huquqlar bilan boşqarişi mumkin. Buning oqibatida: Şuni taʼkidlaş kerakki, Barracuda hozirça kuzatilgan hujumlarda aynan qaysi zaiflikdan foydalanilgani, hujumçilar kimligi va zararlangan taşkilotlar soni haqida batafsil maʼlumot bermagan. Qaysi Barracuda mahsulotlari zaiflikdan taʼsirlangan? Barracuda eʼlon qilgan maʼlumotlarga köra, CVE-2026-116606 zaifligi faqat Email Security Gateway (ESG) mahsulotiga taalluqli. CVE-2026-111560 zaifligi esa quyidagi mahsulotlarda aniqlangan: Bunda ikkala zaiflik birgalikda faqat Email Security Gateway mahsulotida mavjud. Qolgan mahsulotlarda esa CVE-2026-111560 zaifligi alohida xavf tuğdiradi. Demak, boşqa Barracuda mahsulotlaridan foydalanayotgan taşkilotlar ham tegişli xavfsizlik yangilanişlarini örnatişi lozim. Zaifliklarni bartaraf etiş böyiça tavsiyalar Barracuda kompaniyasi aniqlangan zaifliklarni bartaraf etiş uçun xavfsizlik yangilanişlarini taqdim etgan. Taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi: Foydalanilayotgan Barracuda mahsulotining turini va dasturiy taʼminot versiyasini aniqlaş hamda quyidagi xavfsizlik yangilanişlarini örnatiş lozim: Mahsulot Örnatilişi lozim bölgan yangilaniş Email Security Gateway (ESG), 9.4.017 va undan keyingi versiyalar BNSF-40425 Email Security Gateway (ESG), 9.4.017 dan oldingi versiyalar BNSF-40430 Load Balancer ADC BNADC-16586 Message Archiver BNMA-32468 WAF Control Center BNWF-60060 Web Application Firewall BNADC-16586 Web Security Gateway BNYF-24789 Administrator interfeysiga kirişni çeklaş. Barracuda qurilmalarining administrator boşqaruv interfeysini internet tarmoğidan töğridan-töğri foydalaniş imkoniyatini çeklaş lozim. Unga faqat işonçli içki tarmoq yoki himoyalangan VPN orqali ulanişga ruxsat beriş tavsiya etiladi. Qurilmalarda avtomatik xavfsizlik yangilanişlari öçirilgan bölsa, uşbu funksiyani qayta yoqiş kerak. Avtomatik tarzda örnatilmagan yangilanişlarni esa qölda örnatiş lozim. Administrator boşqaruv interfeysiga amalga oşirilgan ulanişlar, konfiguratsiyadagi özgarişlar va tizim jurnallarini tekşiriş zarur. Ayniqsa, nomaʼlum manzillardan amalga oşirilgan ulanişlar hamda ruxsatsiz boşqaruv amallariga eʼtibor qaratiş lozim. Agar boşqaruv interfeysi internet tarmoğidan oçiq bölgan va qurilmada zaifliklar mavjud bölgan bölsa, xavfsizlik yangilanişlarini örnatiş bilan çeklanmasdan, qurilmada ruxsatsiz kiriş yoki konfiguratsiya özgarişlari kuzatilgan-kuzatilmaganini ham tekşiriş tavsiya etiladi. Barracuda Email Security Gateway mahsulotida aniqlangan mazkur zaifliklar elektron poçta infratuzilmasi xavfsizligi uçun jiddiy tahdid hisoblanadi. Ayniqsa, ikki zaiflikdan birgalikda foydalaniş orqali autentifikatsiyani çetlab ötiş va qurilmani root huquqlari bilan töliq nazoratga oliş imkoniyati mavjudligi ularning xavfliligini yanada oşiradi. Barracuda kompaniyasi uşbu zaifliklardan foydalanişga qaratilgan hujumlar ayrim taşkilotlarda kuzatilganini tasdiqlagan. Şu sababli Barracuda mahsulotlaridan foydalanuvçi taşkilotlarga qurilmalarning dasturiy taʼminot versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş va administrator interfeyslariga taşqi tarmoqdan kiriş imkoniyatini çeklaş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/barracuda-email-security-gateway-tizimida-kritik-zaifliklar-aniqlandi-tajovuzkorlar-qurilmani-toliq-nazoratga-olisi-mumkin/">Barracuda Email Security Gateway tizimida kritik zaifliklar aniqlandi: tajovuzkorlar qurilmani töliq nazoratga olişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Barracuda kompaniyasi özining Email Security Gateway (ESG) mahsulotida ikkita jiddiy xavfsizlik zaifligi aniqlangani va ulardan amaliy hujumlarda foydalanilayotgani haqida maʼlum qildi.</p>
+
+
+
+<p class="wp-block-paragraph">2026-yil 9-noyabr kuni kompaniya xavfsizlik ogohlantirişini yangilab, aniqlangan zaifliklardan foydalaniş holatlari ayrim taşkilotlarda kuzatilganini tasdiqladi. Mazkur zaifliklardan birgalikda foydalaniş orqali tajovuzkorlar tizimga login va parol kiritmasdan kirişi hamda qurilmada eng yuqori — root huquqlari bilan buyruqlarni bajarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaifliklar CVE-2026-116606 va CVE-2026-111560 identifikatorlari bilan röyxatga olingan. Ularning xavflilik darajasi CVSS tizimi böyiça mos ravişda 9.3 va 8.6 ball bilan baholangan.</p>
+
+
+
+<p class="wp-block-paragraph">Barracuda maʼlumotlariga köra, uşbu hujumlarni amalga oşiriş uçun qurilmaning administrator boşqaruv interfeysiga tarmoq orqali kiriş imkoniyati mavjud bölişi kerak. Şu sababli boşqaruv interfeysi internet tarmoğiga oçiq bölgan qurilmalar alohida xavf ostida hisoblanadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Aniqlangan zaifliklar va ularning xavfi</h2>
+
+
+
+<ol class="wp-block-list">
+<li>CVE-2026-116606 — Autentifikatsiyani çetlab ötiş (CVSS: 9.3)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflik Barracuda Email Security Gateway mahsulotining avtorizatsiya mexanizmida aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflik orqali tajovuzkor tizimga login va parol kiritmasdan, administrator interfeysining ayrim funksiyalaridan foydalanişi mumkin. Buning uçun qurilmaning boşqaruv interfeysiga tarmoq orqali ulaniş imkoniyati bölişi talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Natijada tajovuzkor administrator tomonidan bajarilişi kerak bölgan ayrim amallarni ruxsatsiz amalga oşirişi va qurilma konfiguratsiyasiga özgartiriş kiritişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Muhim jihati şundaki, Barracuda dastlabki ogohlantirişida uşbu zaiflikdan foydalaniş uçun administrator huquqlari talab etilişini körsatgan. Biroq 2026-yil 5-noyabr kuni ogohlantirişga tuzatiş kiritilib, login va parol talab qilinmasligi, faqat administrator boşqaruv interfeysiga kiriş imkoniyati zarurligi aniqlaştirilgan.</p>
+
+
+
+<ol start="2" class="wp-block-list">
+<li>CVE-2026-111560 — Buyruqlarni kiritiş (Command Injection) (CVSS: 8.6)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Ikkinçi zaiflik tizim tomonidan qayta işlanadigan maʼlumotlar orqali operatsion tizim buyruqlarini ruxsatsiz kiritiş imkoniyati bilan boğliq.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan mustaqil foydalaniş uçun administrator huquqlari talab etiladi. Agar tajovuzkor uşbu imkoniyatga ega bölsa, maxsus şakllantirilgan maʼlumotlar orqali qurilmada operatsion tizim buyruqlarini bajarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikning eng xavfli jihati şundaki, buyruqlar yuqori darajadagi — root huquqlari bilan bajarilişi mumkin. Root Linux va Unix turidagi operatsion tizimlarda tizim ustidan deyarli töliq boşqaruv vakolatini beruvçi eng yuqori huquq hisoblanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Ikkita zaiflikdan birgalikda foydalaniş qanday xavf tuğdiradi?</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklarning asosiy xavfi şundaki, ulardan birgalikda foydalaniş orqali administrator autentifikatsiyasini çetlab ötiş va qurilmani töliq nazoratga oliş mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Birinçi zaiflik (CVE-2026-116606) orqali tajovuzkor login va parolsiz administrator interfeysining himoyalangan funksiyalaridan foydalaniş imkoniyatiga ega böladi.</p>
+
+
+
+<p class="wp-block-paragraph">Ikkinçi zaiflik (CVE-2026-111560) esa qurilmada operatsion tizim buyruqlarini root huquqlari bilan bajariş imkonini beradi.</p>
+
+
+
+<p class="wp-block-paragraph">Şunday qilib, uşbu ikki zaiflikdan birgalikda foydalaniş natijasida tajovuzkor qurilmani yuqori darajadagi huquqlar bilan boşqarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Buning oqibatida:</p>
+
+
+
+<ul class="wp-block-list">
+<li>qurilma konfiguratsiyasiga ruxsatsiz özgartirişlar kiritilişi;</li>
+
+
+
+<li>elektron poçta xabarlari va ularga tegişli maʼlumotlarga noqonuniy kirilişi;</li>
+
+
+
+<li>qurilmada zararli dasturlar yoki qöşimça vositalar işga tuşirilişi;</li>
+
+
+
+<li>tizim faoliyati buzilişi yoki uning işlaşi töxtatilişi;</li>
+
+
+
+<li>qurilma orqali qayta işlanadigan maʼlumotlar xavfsizligiga tahdid yuzaga kelişi mumkin.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şuni taʼkidlaş kerakki, Barracuda hozirça kuzatilgan hujumlarda aynan qaysi zaiflikdan foydalanilgani, hujumçilar kimligi va zararlangan taşkilotlar soni haqida batafsil maʼlumot bermagan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qaysi Barracuda mahsulotlari zaiflikdan taʼsirlangan?</h2>
+
+
+
+<p class="wp-block-paragraph">Barracuda eʼlon qilgan maʼlumotlarga köra, CVE-2026-116606 zaifligi faqat Email Security Gateway (ESG) mahsulotiga taalluqli.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-111560 zaifligi esa quyidagi mahsulotlarda aniqlangan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Email Security Gateway (ESG);</li>
+
+
+
+<li>Load Balancer Application Delivery Controller (ADC);</li>
+
+
+
+<li>Message Archiver (BMA);</li>
+
+
+
+<li>WAF Control Center (WCC);</li>
+
+
+
+<li>Web Application Firewall (WAF);</li>
+
+
+
+<li>Web Security Gateway (WSG).</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Bunda ikkala zaiflik birgalikda faqat Email Security Gateway mahsulotida mavjud. Qolgan mahsulotlarda esa CVE-2026-111560 zaifligi alohida xavf tuğdiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Demak, boşqa Barracuda mahsulotlaridan foydalanayotgan taşkilotlar ham tegişli xavfsizlik yangilanişlarini örnatişi lozim.</p>
+
+
+
+<p class="wp-block-paragraph">Zaifliklarni bartaraf etiş böyiça tavsiyalar</p>
+
+
+
+<p class="wp-block-paragraph">Barracuda kompaniyasi aniqlangan zaifliklarni bartaraf etiş uçun xavfsizlik yangilanişlarini taqdim etgan.</p>
+
+
+
+<p class="wp-block-paragraph">Taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li>Xavfsizlik yangilanişlarini örnatiş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Foydalanilayotgan Barracuda mahsulotining turini va dasturiy taʼminot versiyasini aniqlaş hamda quyidagi xavfsizlik yangilanişlarini örnatiş lozim:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>Mahsulot</th><th>Örnatilişi lozim bölgan yangilaniş</th></tr><tr><td>Email Security Gateway (ESG), 9.4.017 va undan keyingi versiyalar</td><td>BNSF-40425</td></tr><tr><td>Email Security Gateway (ESG), 9.4.017 dan oldingi versiyalar</td><td>BNSF-40430</td></tr><tr><td>Load Balancer ADC</td><td>BNADC-16586</td></tr><tr><td>Message Archiver</td><td>BNMA-32468</td></tr><tr><td>WAF Control Center</td><td>BNWF-60060</td></tr><tr><td>Web Application Firewall</td><td>BNADC-16586</td></tr><tr><td>Web Security Gateway</td><td>BNYF-24789</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Administrator interfeysiga kirişni çeklaş.</p>
+
+
+
+<p class="wp-block-paragraph">Barracuda qurilmalarining administrator boşqaruv interfeysini internet tarmoğidan töğridan-töğri foydalaniş imkoniyatini çeklaş lozim. Unga faqat işonçli içki tarmoq yoki himoyalangan VPN orqali ulanişga ruxsat beriş tavsiya etiladi.</p>
+
+
+
+<ol start="3" class="wp-block-list">
+<li>Avtomatik yangilanişlarni yoqiş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Qurilmalarda avtomatik xavfsizlik yangilanişlari öçirilgan bölsa, uşbu funksiyani qayta yoqiş kerak. Avtomatik tarzda örnatilmagan yangilanişlarni esa qölda örnatiş lozim.</p>
+
+
+
+<ol start="4" class="wp-block-list">
+<li>Qurilmalardagi şubhali faoliyatni tekşiriş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Administrator boşqaruv interfeysiga amalga oşirilgan ulanişlar, konfiguratsiyadagi özgarişlar va tizim jurnallarini tekşiriş zarur. Ayniqsa, nomaʼlum manzillardan amalga oşirilgan ulanişlar hamda ruxsatsiz boşqaruv amallariga eʼtibor qaratiş lozim.</p>
+
+
+
+<ol start="5" class="wp-block-list">
+<li>Qurilma xavfsizligini qayta baholaş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Agar boşqaruv interfeysi internet tarmoğidan oçiq bölgan va qurilmada zaifliklar mavjud bölgan bölsa, xavfsizlik yangilanişlarini örnatiş bilan çeklanmasdan, qurilmada ruxsatsiz kiriş yoki konfiguratsiya özgarişlari kuzatilgan-kuzatilmaganini ham tekşiriş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Barracuda Email Security Gateway mahsulotida aniqlangan mazkur zaifliklar elektron poçta infratuzilmasi xavfsizligi uçun jiddiy tahdid hisoblanadi. Ayniqsa, ikki zaiflikdan birgalikda foydalaniş orqali autentifikatsiyani çetlab ötiş va qurilmani root huquqlari bilan töliq nazoratga oliş imkoniyati mavjudligi ularning xavfliligini yanada oşiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Barracuda kompaniyasi uşbu zaifliklardan foydalanişga qaratilgan hujumlar ayrim taşkilotlarda kuzatilganini tasdiqlagan. Şu sababli Barracuda mahsulotlaridan foydalanuvçi taşkilotlarga qurilmalarning dasturiy taʼminot versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş va administrator interfeyslariga taşqi tarmoqdan kiriş imkoniyatini çeklaş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/barracuda-email-security-gateway-tizimida-kritik-zaifliklar-aniqlandi-tajovuzkorlar-qurilmani-toliq-nazoratga-olisi-mumkin/">Barracuda Email Security Gateway tizimida kritik zaifliklar aniqlandi: tajovuzkorlar qurilmani töliq nazoratga olişi mumkin!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Fortinet mahsulotlarida kritik zaifliklar aniqlandi: tizimlarga masofadan turib ruxsatsiz kirish va buyruqlarni bajarish xavfi mavjud!</title>
+		<link>https://uzcert.uz/fortinet-mahsulotlarida-kritik-zaifliklar-aniqlandi-tizimlarga-masofadan-turib-ruxsatsiz-kirish-va-buyruqlarni-bajarish-xavfi-mavjud/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Wed, 11 Nov 2026 06:41:22 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42561</guid>
+
+					<description><![CDATA[<p>Fortinet kompaniyasi tomonidan FortiManager, FortiAnalyzer va FortiOS mahsulotlarida bir qator jiddiy xavfsizlik zaifliklari aniqlangani haqida 2026-yil 10-noyabr kuni maʼlumot eʼlon qilindi. Aniqlangan zaifliklarning ayrimlaridan foydalaniş orqali tajovuzkorlar tizimga login va parol kiritmasdan, masofadan turib zararli buyruqlarni bajarişi yoki tizim faoliyatiga aralaşişi mumkin. Mazkur zaifliklar asosan qurilmalarni markazlaşgan holda boşqariş, maʼlumot almaşiş, API xizmatlari hamda tarmoq marşrutlaş mexanizmlari bilan boğliq. Ularning xavflilik darajasi CVSS tizimi böyiça 9.8 ballgaça baholangan. Aniqlangan asosiy zaifliklar Mazkur zaiflik FortiManager va FortiAnalyzer mahsulotlaridagi JSON-RPC API xizmatida aniqlangan. Agar uşbu API xizmati yoqilgan bölsa, tajovuzkor maxsus şakllantirilgan sörovlarni yuboriş orqali tizimga kirmasdan turib, unda zararli buyruqlarni bajarişi mumkin. Buning natijasida tizim boşqaruvi qölga kiritilişi, muhim maʼlumotlarga ruxsatsiz kirilişi yoki boşqa zararli harakatlar amalga oşirilişi ehtimoli mavjud. FortiManager mahsulotidagi FGFM xizmatining himoya mexanizmida zaiflik aniqlangan. Tajovuzkor TCP 541-port orqali uşbu xizmatga ulana olsa, maxsus maʼlumotlar yuboriş orqali autentifikatsiyadan ötmasdan tizimda zararli buyruqlarni bajarişi mumkin. Zaiflikning asosiy xavfi şundaki, himoya mexanizmidagi xatolik qurilmani röyxatdan ötkaziş paroli tekşirilişidan oldin yuzaga keladi. Şu sababli administrator parolini kuçaytirişning özi uşbu muammoni bartaraf etmaydi. FortiAnalyzer funksiyalari yoqilgan FortiAnalyzer va FortiManager qurilmalarida OFTP xizmati orqali SQL Injection zaifligi aniqlangan. Uşbu zaiflikdan foydalanib, tajovuzkor maxsus şakllantirilgan sörovlar yordamida maʼlumotlar bazasiga zararli SQL buyruqlarini kiritişi mumkin. Ayrim holatlarda bu tizimda masofadan buyruqlar bajarilişiga ham olib kelişi mumkin. Mazkur hujumni amalga oşiriş uçun tizimga login va parol orqali kiriş talab etilmaydi. CVE-2026-126260 — FortiAnalyzer va FortiManager tizimlarida SSRF (CVSS: 9.0) Uşbu zaiflik ham OFTP xizmati bilan boğliq bölib, serverning taşqi yoki içki manzillarga özi sörov yuborişiga sabab bölişi mumkin. Tajovuzkor maxsus sörovlar orqali serverni özi belgilagan manzillarga murojaat qilişga majbur etişi mumkin. Natijada taşkilotning içki tarmoğidagi boşqa xizmatlar va resurslar haqida maʼlumot oliş xavfi yuzaga keladi. FortiOS tizimida BGP tarmoq marşrutlaş protokolining maʼlumotlarni qayta işlaş mexanizmida xatolik aniqlangan. Uşbu zaiflikdan foydalaniş uçun tajovuzkor tizim bilan oldindan sozlangan iBGP qöşni qurilmasidan maxsus şakllantirilgan trafik yuboriş imkoniyatiga ega bölişi kerak. Natijada tarmoq xizmatlari faoliyati buzilişi va ularning işlaşida uzilişlar yuzaga kelişi mumkin. FortiOS va FortiSASE mahsulotlarida OSPF marşrutlaş protokolining autentifikatsiya mexanizmida zaiflik aniqlangan. Uşbu zaiflikdan foydalaniş orqali tajovuzkor tarmoqqa soxta marşrutlaş maʼlumotlarini yuborişi mumkin. Natijada tarmoq qurilmalari notöğri yönalişlarni tanlaşi, maʼlumotlar oqimi boşqa manzilga yönaltirilişi yoki tarmoq faoliyatida uzilişlar yuzaga kelişi ehtimoli mavjud. Fortinet mahsulotlarida virtual domenlar (VDOM) örtasidagi kiriş huquqlarini boşqariş mexanizmida zaiflik aniqlangan. Mazkur zaiflikdan foydalaniş uçun tajovuzkor administrator hisobiga ega bölişi kerak. Şundan söng maxsus sörovlar orqali öziga ruxsat etilmagan boşqa virtual domenlarga ham kiriş imkoniyatini qölga kiritişi mumkin. Bu esa taşkilot tarmoğining alohida segmentlari va ulardagi xavfsizlik sozlamalariga ruxsatsiz kiriş xavfini oşiradi. FortiOS mahsulotining ayrim yuqori mavjudlikni taʼminlaş (HA) konfiguratsiyalarida zaiflik aniqlangan. Muayyan konfiguratsiyalarda uşbu zaiflikdan foydalaniş orqali tajovuzkor super-administrator huquqlari bilan buyruqlarni bajarişi mumkin. Zaiflik barça FortiOS qurilmalariga taalluqli emas. U asosan FGSP va mustaqil konfiguratsiyalarni sinxronlaştiriş funksiyalari birgalikda işlatiladigan yoki ayrim autoscale sozlamalariga ega tizimlarda yuzaga keladi. Qaysi qurilmalarga alohida eʼtibor beriş kerak? Mazkur zaifliklar FortiManager va FortiAnalyzer qurilmalarida alohida xavf tuğdiradi. Çunki ular taşkilotlarning tarmoq qurilmalarini markazlaşgan holda boşqariş, ularning holatini nazorat qiliş va xavfsizlik hodisalarini tahlil qiliş uçun işlatiladi. Agar tajovuzkor bunday boşqaruv tizimlaridan birini nazoratiga olsa, u orqali boşqariladigan boşqa tarmoq qurilmalariga ham tahdid yuzaga kelişi mumkin. Şuningdek, quyidagi xizmat va portlarga eʼtibor qaratiş lozim: TCP 541 — FortiManager va FortiGate qurilmalari örtasidagi FGFM aloqa xizmati; TCP 514 — OFTP orqali maʼlumot almaşiş xizmati; JSON-RPC API — tizimlarni masofadan boşqariş va avtomatlaştiriş uçun işlatiladigan interfeys. Uşbu xizmatlarning internet tarmoğidan töğridan-töğri foydalaniş imkoniyatiga ega bölişi hujum xavfini oşirişi mumkin. Zaifliklardan himoyalaniş uçun nima qiliş kerak? Fortinet mahsulotlaridan foydalanuvçi taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi: Fortinet mahsulotlarida aniqlangan uşbu zaifliklar taşkilotlarning tarmoq infratuzilmasi va axborot tizimlari xavfsizligiga jiddiy tahdid soladi. Ayniqsa, ayrim zaifliklardan foydalaniş uçun tizimga login va parol orqali kiriş talab etilmasligi ularning xavflilik darajasini yanada oşiradi. Şu sababli Fortinet mahsulotlaridan foydalanuvçi taşkilotlarga qurilmalarning dasturiy taʼminot versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş, oçiq tarmoq portlarini çeklaş va tizimlarda şubhali faollik mavjudligini tekşiriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/fortinet-mahsulotlarida-kritik-zaifliklar-aniqlandi-tizimlarga-masofadan-turib-ruxsatsiz-kirish-va-buyruqlarni-bajarish-xavfi-mavjud/">Fortinet mahsulotlarida kritik zaifliklar aniqlandi: tizimlarga masofadan turib ruxsatsiz kirish va buyruqlarni bajarish xavfi mavjud!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Fortinet kompaniyasi tomonidan FortiManager, FortiAnalyzer va FortiOS mahsulotlarida bir qator jiddiy xavfsizlik zaifliklari aniqlangani haqida 2026-yil 10-noyabr kuni maʼlumot eʼlon qilindi.</p>
+
+
+
+<p class="wp-block-paragraph">Aniqlangan zaifliklarning ayrimlaridan foydalaniş orqali tajovuzkorlar tizimga login va parol kiritmasdan, masofadan turib zararli buyruqlarni bajarişi yoki tizim faoliyatiga aralaşişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklar asosan qurilmalarni markazlaşgan holda boşqariş, maʼlumot almaşiş, API xizmatlari hamda tarmoq marşrutlaş mexanizmlari bilan boğliq. Ularning xavflilik darajasi CVSS tizimi böyiça 9.8 ballgaça baholangan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Aniqlangan asosiy zaifliklar</h2>
+
+
+
+<ol class="wp-block-list">
+<li>CVE-2026-126170 — FortiManager va FortiAnalyzer tizimlarida masofadan kod bajariş (CVSS: 9.8)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflik FortiManager va FortiAnalyzer mahsulotlaridagi JSON-RPC API xizmatida aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Agar uşbu API xizmati yoqilgan bölsa, tajovuzkor maxsus şakllantirilgan sörovlarni yuboriş orqali tizimga kirmasdan turib, unda zararli buyruqlarni bajarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Buning natijasida tizim boşqaruvi qölga kiritilişi, muhim maʼlumotlarga ruxsatsiz kirilişi yoki boşqa zararli harakatlar amalga oşirilişi ehtimoli mavjud.</p>
+
+
+
+<ol start="2" class="wp-block-list">
+<li>CVE-2026-126261 — FortiManager tizimida masofadan buyruqlar bajariş (CVSS: 9.0)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">FortiManager mahsulotidagi FGFM xizmatining himoya mexanizmida zaiflik aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Tajovuzkor TCP 541-port orqali uşbu xizmatga ulana olsa, maxsus maʼlumotlar yuboriş orqali autentifikatsiyadan ötmasdan tizimda zararli buyruqlarni bajarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikning asosiy xavfi şundaki, himoya mexanizmidagi xatolik qurilmani röyxatdan ötkaziş paroli tekşirilişidan oldin yuzaga keladi. Şu sababli administrator parolini kuçaytirişning özi uşbu muammoni bartaraf etmaydi.</p>
+
+
+
+<ol start="3" class="wp-block-list">
+<li>CVE-2026-126262 — FortiAnalyzer va FortiManager tizimlarida SQL Injection (CVSS: 9.3)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">FortiAnalyzer funksiyalari yoqilgan FortiAnalyzer va FortiManager qurilmalarida OFTP xizmati orqali SQL Injection zaifligi aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflikdan foydalanib, tajovuzkor maxsus şakllantirilgan sörovlar yordamida maʼlumotlar bazasiga zararli SQL buyruqlarini kiritişi mumkin. Ayrim holatlarda bu tizimda masofadan buyruqlar bajarilişiga ham olib kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur hujumni amalga oşiriş uçun tizimga login va parol orqali kiriş talab etilmaydi.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-126260 — FortiAnalyzer va FortiManager tizimlarida SSRF (CVSS: 9.0)</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflik ham OFTP xizmati bilan boğliq bölib, serverning taşqi yoki içki manzillarga özi sörov yuborişiga sabab bölişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Tajovuzkor maxsus sörovlar orqali serverni özi belgilagan manzillarga murojaat qilişga majbur etişi mumkin. Natijada taşkilotning içki tarmoğidagi boşqa xizmatlar va resurslar haqida maʼlumot oliş xavfi yuzaga keladi.</p>
+
+
+
+<ol start="5" class="wp-block-list">
+<li>CVE-2026-126254 — FortiOS tizimida BGP protokoli bilan boğliq zaiflik (CVSS: 9.6)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">FortiOS tizimida BGP tarmoq marşrutlaş protokolining maʼlumotlarni qayta işlaş mexanizmida xatolik aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflikdan foydalaniş uçun tajovuzkor tizim bilan oldindan sozlangan iBGP qöşni qurilmasidan maxsus şakllantirilgan trafik yuboriş imkoniyatiga ega bölişi kerak. Natijada tarmoq xizmatlari faoliyati buzilişi va ularning işlaşida uzilişlar yuzaga kelişi mumkin.</p>
+
+
+
+<ol start="6" class="wp-block-list">
+<li>CVE-2026-126253 — OSPF protokolida autentifikatsiyani çetlab ötiş (CVSS: 9.3)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">FortiOS va FortiSASE mahsulotlarida OSPF marşrutlaş protokolining autentifikatsiya mexanizmida zaiflik aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaiflikdan foydalaniş orqali tajovuzkor tarmoqqa soxta marşrutlaş maʼlumotlarini yuborişi mumkin. Natijada tarmoq qurilmalari notöğri yönalişlarni tanlaşi, maʼlumotlar oqimi boşqa manzilga yönaltirilişi yoki tarmoq faoliyatida uzilişlar yuzaga kelişi ehtimoli mavjud.</p>
+
+
+
+<ol start="7" class="wp-block-list">
+<li>CVE-2026-126229 — Virtual domenlarga ruxsatsiz kiriş (CVSS: 9.1)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Fortinet mahsulotlarida virtual domenlar (VDOM) örtasidagi kiriş huquqlarini boşqariş mexanizmida zaiflik aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş uçun tajovuzkor administrator hisobiga ega bölişi kerak. Şundan söng maxsus sörovlar orqali öziga ruxsat etilmagan boşqa virtual domenlarga ham kiriş imkoniyatini qölga kiritişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Bu esa taşkilot tarmoğining alohida segmentlari va ulardagi xavfsizlik sozlamalariga ruxsatsiz kiriş xavfini oşiradi.</p>
+
+
+
+<ol start="8" class="wp-block-list">
+<li>CVE-2026-126259 — FortiOS tizimida yuqori administrator huquqlari bilan buyruqlar bajariş (CVSS: 9.0)</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">FortiOS mahsulotining ayrim yuqori mavjudlikni taʼminlaş (HA) konfiguratsiyalarida zaiflik aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Muayyan konfiguratsiyalarda uşbu zaiflikdan foydalaniş orqali tajovuzkor super-administrator huquqlari bilan buyruqlarni bajarişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflik barça FortiOS qurilmalariga taalluqli emas. U asosan FGSP va mustaqil konfiguratsiyalarni sinxronlaştiriş funksiyalari birgalikda işlatiladigan yoki ayrim autoscale sozlamalariga ega tizimlarda yuzaga keladi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qaysi qurilmalarga alohida eʼtibor beriş kerak?</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklar FortiManager va FortiAnalyzer qurilmalarida alohida xavf tuğdiradi. Çunki ular taşkilotlarning tarmoq qurilmalarini markazlaşgan holda boşqariş, ularning holatini nazorat qiliş va xavfsizlik hodisalarini tahlil qiliş uçun işlatiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Agar tajovuzkor bunday boşqaruv tizimlaridan birini nazoratiga olsa, u orqali boşqariladigan boşqa tarmoq qurilmalariga ham tahdid yuzaga kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, quyidagi xizmat va portlarga eʼtibor qaratiş lozim:</p>
+
+
+
+<p class="wp-block-paragraph">TCP 541 — FortiManager va FortiGate qurilmalari örtasidagi FGFM aloqa xizmati;</p>
+
+
+
+<p class="wp-block-paragraph">TCP 514 — OFTP orqali maʼlumot almaşiş xizmati;</p>
+
+
+
+<p class="wp-block-paragraph">JSON-RPC API — tizimlarni masofadan boşqariş va avtomatlaştiriş uçun işlatiladigan interfeys.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu xizmatlarning internet tarmoğidan töğridan-töğri foydalaniş imkoniyatiga ega bölişi hujum xavfini oşirişi mumkin.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaifliklardan himoyalaniş uçun nima qiliş kerak?</h2>
+
+
+
+<p class="wp-block-paragraph">Fortinet mahsulotlaridan foydalanuvçi taşkilotlar va tizim administratorlariga quyidagi çoralarni köriş tavsiya etiladi:</p>
+
+
+
+<ol start="1" class="wp-block-list">
+<li>Dasturiy taʼminotni yangilaş. FortiManager, FortiAnalyzer va FortiOS mahsulotlarining joriy versiyalarini tekşiriş hamda işlab çiqaruvçi tomonidan taqdim etilgan zaifliklar bartaraf etilgan versiyalarga yangilaş.</li>
+
+
+
+<li>Tarmoq portlarini çeklaş. TCP 541 va TCP 514 portlariga internet tarmoğidan töğridan-töğri ulaniş imkoniyatini çeklaş. Uşbu xizmatlardan faqat zarur va işonçli qurilmalar örtasida foydalaniş.</li>
+
+
+
+<li>Keraksiz xizmatlarni öçiriş. Agar JSON-RPC API xizmatidan foydalanilmasa, uni öçirib qöyiş. Fortinet tavsiyasiga muvofiq, tegişli konfiguratsiyada set rpc-permit none parametrini qöllaş orqali API orqali murojaat qiliş imkoniyatini çeklaş.</li>
+
+
+
+<li>Administrator huquqlarini tekşiriş. Administrator hisoblarini, ularning vakolatlarini va virtual domenlarga kiriş huquqlarini qayta körib çiqiş. Har bir foydalanuvçiga faqat zarur vakolatlarni beriş.</li>
+
+
+
+<li>Tarmoq sozlamalarini nazorat qiliş. BGP, OSPF, FGSP va HA konfiguratsiyalarini tekşiriş, foydalanilmayotgan funksiyalarni öçiriş hamda tarmoq qurilmalari örtasidagi aloqalarni çeklaş.</li>
+
+
+
+<li>Tizim jurnallarini tahlil qiliş. Nomaʼlum IP-manzillardan kelgan ulanişlar, şubhali API sörovlari, administrator faoliyati va konfiguratsiyadagi ruxsatsiz özgarişlarni muntazam tekşiriş.</li>
+
+
+
+<li>Ruxsatsiz kiriş holatlarini tekşiriş. Agar qurilmada şubhali faollik aniqlansa, tegişli jurnallarni saqlab qoliş, qurilmaga kiriş imkoniyatlarini çeklaş va axborot xavfsizligi hodisasiga javob beriş çoralarini köriş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Fortinet mahsulotlarida aniqlangan uşbu zaifliklar taşkilotlarning tarmoq infratuzilmasi va axborot tizimlari xavfsizligiga jiddiy tahdid soladi. Ayniqsa, ayrim zaifliklardan foydalaniş uçun tizimga login va parol orqali kiriş talab etilmasligi ularning xavflilik darajasini yanada oşiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu sababli Fortinet mahsulotlaridan foydalanuvçi taşkilotlarga qurilmalarning dasturiy taʼminot versiyalarini zudlik bilan tekşiriş, tegişli xavfsizlik yangilanişlarini örnatiş, oçiq tarmoq portlarini çeklaş va tizimlarda şubhali faollik mavjudligini tekşiriş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/fortinet-mahsulotlarida-kritik-zaifliklar-aniqlandi-tizimlarga-masofadan-turib-ruxsatsiz-kirish-va-buyruqlarni-bajarish-xavfi-mavjud/">Fortinet mahsulotlarida kritik zaifliklar aniqlandi: tizimlarga masofadan turib ruxsatsiz kirish va buyruqlarni bajarish xavfi mavjud!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>OpenSSH tizimida autentifikatsiyani çetlab ötiş imkonini beruvçi kritik zaiflikdan faol foydalanilmoqda!</title>
+		<link>https://uzcert.uz/openssh-tizimida-autentifikatsiyani-cetlab-otis-imkonini-beruvci-kritik-zaiflikdan-faol-foydalanilmoqda/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Tue, 10 Nov 2026 14:49:50 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42556</guid>
+
+					<description><![CDATA[<p>Linux serverlariga masofadan xavfsiz ulaniş va ularni boşqariş uçun keng qöllaniladigan OpenSSH dasturiy taʼminotida SSHole nomli CVE-2026-123158 zaifligi aniqlandi. Uşbu zaiflik ayrim Linux tizimlarida tajovuzkorlarga foydalanuvçining haqiqiy paroli yoki SSH kalitiga ega bölmagan holda, uning hisobiga ruxsatsiz kiriş imkonini berişi mumkin. Mazkur zaiflikning asosiy xavfi şundaki, undan foydalaniş uçun foydalanuvçi parolini qölga kiritiş yoki serverga oldindan zararli dastur örnatiş talab etilmaydi. Agar serverda zaiflikdan foydalaniş uçun zarur şartlar mavjud bölsa, tajovuzkor SSH orqali maxsus şakllantirilgan sörov yuboriş orqali autentifikatsiya tekşiruvini çetlab ötib, tizimga ruxsatsiz kirişga urinişi mumkin. AQSH Kiberxavfsizlik va infratuzilma xavfsizligi agentligi (CISA) 2026-yil 9-noyabr kuni mazkur zaiflikni amalda foydalanilayotgani tasdiqlangan zaifliklar katalogi — Known Exploited Vulnerabilities (KEV) röyxatiga kiritdi. Bu esa muammoni şunçaki nazariy xavf sifatida emas, balki real kiberhujumlar bilan boğliq tahdid sifatida baholaş zarurligini körsatadi. Zaiflikning mohiyati va texnik işlaş mexanizmi SSHole zaifligi OpenSSH xizmatining Linux muhitida işlaşi, xususan, autentifikatsiya jarayonida parollarni tekşiriş mexanizmidagi xatolik bilan boğliq. Muammo Linux tizimlarida qöllaniladigan musl libc standart C kutubxonasining crypt() funksiyasi hamda OpenSŞ tomonidan parol xeşlarini qayta işlaş jarayonidagi özaro nomuvofiqlik natijasida yuzaga keladi. Odatda, foydalanuvçi SŞ orqali serverga ulanayotganda kiritilgan parol tizimdagi tegişli xeş bilan soliştiriladi. Agar parol notöğri bölsa, autentifikatsiya rad etilişi kerak. Biroq musl libc kutubxonasida 256 baytdan ortiq uzunlikdagi ayrim parollarni qayta işlaş jarayonida crypt() funksiyasi xatolik belgisi sifatida «» qiymatini qaytarişi mumkin. OpenSSH esa ayrim şaroitlarda uşbu qiymatni foydalanuvçining /etc/shadow faylida saqlangan parol maydonidagi «» belgisi bilan soliştiradi. Natijada, xatolik belgisi haqiqiy parol xeşi sifatida notöğri talqin qilinib, autentifikatsiya muvaffaqiyatli yakunlangandek qabul qilinişi mumkin. Tajovuzkor uşbu holatdan foydalaniş uçun SSH orqali ulaniş vaqtida maxsus uzunlikdagi parol yuboradi. Aniqlangan mexanizmda parol uzunligi 257 baytdan 1 024 baytgaça bölişi mumkin. Şu tariqa, tizimning muayyan konfiguratsiyasida parolni bilmagan holda ham ayrim foydalanuvçi hisoblariga kiriş imkoniyati yuzaga keladi. Qaysi tizimlar va konfiguratsiyalar xavf ostida? Mazkur zaiflik barcha Linux distributivlari yoki OpenSSH örnatilgan serverlarga birdek taalluqli emas. Undan foydalaniş uçun bir neçta texnik şartlar bir vaqtning özida mavjud bölişi talab etiladi. Xususan, quyidagi holatlar xavf tuğdiradi: Mazkur shartlarning barchasi bajarilgandagina zaiflikdan foydalanish imkoniyati yuzaga keladi. Zaiflik taʼsir qilişi mumkin bölgan platformalardan biri Alpine Linux hisoblanadi. Uşbu distributivda OpenSSH ayrim konfiguratsiyalarda musl libc bilan va PAM mexanizmisiz işlaydi. Şuni alohida taʼkidlaş kerakki, serverda Alpine Linux yoki Docker konteynerining mavjudligi öz-özidan tizim zaif ekanligini anglatmaydi. Masalan, konteyner içida SSH serveri işga tuşirilmagan bölsa yoki PasswordAuthentication öçirilgan bölsa, mazkur hujum yöli mavjud bölmaydi. Şuningdek, Red Hat kompaniyasining rasmiy maʼlumotlariga köra, uning mahsulotlari uşbu zaiflikdan taʼsirlanmaydi. Bunga OpenSSH’ning glibc kutubxonasi va standart holatda PAM mexanizmi bilan işlaşi sabab böladi. CISA tomonidan faol ekspluatatsiya holatlari tasdiqlandi 2026-yil 9-noyabr kuni CISA CVE-2026-123158 zaifligini Known Exploited Vulnerabilities (KEV) katalogiga kiritdi. Mazkur katalogga faqat amalda ekspluatatsiya qilinayotgani haqida tegişli dalillar mavjud bölgan zaifliklar kiritiladi. CISA maʼlumotlariga köra, AQSH federal fuqarolik ijroiya organlari uşbu zaiflikni bartaraf etiş çoralarini 2026-yil 12-noyabrga qadar amalga oşirişi lozim. Şuningdek, Binding Operational Directive 26-04 talablari doirasida tizimlarda buzib kiriş alomatlarini aniqlaş va zarur raqamli kriminalistik tekşiruvlarni amalga oşiriş talab etiladi. Mazkur muddat AQSH federal fuqarolik ijroiya organlari uçun belgilangan bölib, boşqa taşkilotlar uçun bevosita majburiy muddat hisoblanmaydi. Biroq CISA barça taşkilotlarga KEV katalogidagi zaifliklarni ustuvor tartibda bartaraf etişni tavsiya qiladi. Zaiflikning xavflilik darajasi CVSS v3.1 mezonlari böyiça 8,1 ball bilan baholangan. Bu yuqori xavflilik darajasini anglatadi. Bunda muhim jihat şundaki, CISA tomonidan zaiflikdan faol foydalanilayotgani qayd etilgan bölsa-da, uning tölov talab qiluvçi zararli dasturlar (ransomware) kampaniyalarida qöllanilayotgani hozirça tasdiqlanmagan. Hujum urinişlari va kuzatilgan şubhali faollik SANS Internet Storm Center tadqiqotçisi Johannes Ullriç tomonidan olib borilgan kuzatuvlar SSHole zaifligidan foydalanişga qaratilgan şubhali sörovlar mavjudligini körsatdi. Tadqiqot davomida SSH xizmatlariga yuborilgan, takrorlanuvçi «A» belgilaridan taşkil topgan noodatiy uzun parollar qayd etilgan. Xususan: 2026-yil 5-noyabr kuni 232 ta; 2026-yil 6-noyabr kuni esa 713 ta şubhali uzun parol yuboriş sörovi aniqlangan. Uşbu körsatkiçlar zaiflikdan foydalanişga qaratilgan urinişlar yoki şubhali sörovlarni anglatadi. Ularning barçasi muvaffaqiyatli buzib kiriş holati yoki alohida tajovuzkorlar sonini bildirmaydi. Tadqiqotda yana bir muhim jihat aniqlangan: Cowrie honeypot tizimlari parolning faqat dastlabki 255 ta belgisini qayd etişi mumkin. Şu sababli, uzun parol orqali amalga oşirilgan hujumlarning töliq körinişini aniqlaş va ularni tahlil qiliş murakkablaşadi. Bu holat xavfsizlik monitoringi vositalarini sozlaşda faqat qayd etilgan parol uzunligiga tayanib qolmaslik, balki SŞ ulanishlarining boshqa parametrlarini va autentifikatsiya natijalarini ham tekshirish zarurligini ko‘rsatadi. Zaiflikdan muvaffaqiyatli foydalanilgan taqdirda yuzaga kelişi mumkin bölgan oqibatlar SŞole zaifligidan foydalaniş orqali tajovuzkorlar tizimga ruxsatsiz kiriş imkoniyatiga ega bölişi mumkin. Buning natijasida quyidagi xavflar yuzaga keladi: Şuni hisobga oliş kerakki, autentifikatsiyani çetlab ötiş avtomatik ravişda administrator huquqlarini qölga kiritiş degani emas. Tajovuzkor dastlab qaysi foydalanuvçi hisobiga kirgan bölsa, uning vakolatlari doirasida harakat qiladi. Biroq uşbu hisob orqali imtiyozlarni oşiriş yoki boşqa tizimlarga kiriş imkoniyatlarini izlaşga urinişi mumkin. Zaiflikni bartaraf etiş va himoyalaniş böyiça tavsiyalar Mazkur zaiflikdan foydalaniş xavfini kamaytiriş maqsadida OpenSSH xizmatidan foydalanayotgan taşkilotlarga quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi. OpenSŞʼning 10.6p2 versiyasida mazkur zaiflikni bartaraf etişga qaratilgan tuzatiş kiritilgan. Şu sababli, tegişli tizimlarni uşbu yoki undan keyingi xavfsiz versiyaga yangilaş lozim. Alpine Linux foydalanuvçilari distributivning rasmiy xavfsizlik yangilanişlarini örnatişlari kerak. Çunki ayrim distributivlarda tuzatilgan paketlar eski versiya raqami bilan ham taqdim etilişi mumkin. Masalan, Alpine Linuxʼning quyidagi relizlarida tuzatilgan OpenSSH paketlari mavjud: Boşqa distributivlarda ham işlab çiqaruvçi tomonidan taqdim etilgan xavfsizlik yangilanişlarini tekşiriş tavsiya etiladi. 2. SSH orqali parol bilan autentifikatsiyani vaqtinça öçiriş. Agar xavfsizlik yangilanişlarini zudlik bilan örnatiş imkoni bölmasa, vaqtinçalik himoya çorasi sifatida SSH orqali parol yordamida autentifikatsiya qilişni öçiriş mumkin. Buning uçun SSH serverining konfiguratsiya faylida quyidagi parametrni belgilaş lozim: PasswordAuthentication no Şundan söng SSH xizmatini qayta işga tuşiriş talab etiladi. Muhim: uşbu sozlamani özgartirişdan oldin SŞ kaliti orqali ulaniş işlayotganini tekşiriş zarur. Aks holda, serverga masofadan kiriş imkoniyatini yöqotiş mumkin. SŞ xizmatining 22-portiga internet tarmoğidan töğridan-töğri ulaniş imkoniyatini qayta körib çiqiş lozim. Xizmatga faqat işonçli IP-manzillar, VPN yoki maxsus boşqaruv tarmoqlari orqali ulanişga ruxsat beriş tavsiya etiladi. Serverdagi /etc/shadow faylida «*» belgisi bilan ifodalangan hisoblarni aniqlaş, ularning vazifasi va SSH orqali ulaniş huquqlarini qayta körib çiqiş zarur. Şuningdek, foydalanilmayotgan yoki keraksiz hisoblarni öçirib qöyiş tavsiya etiladi. SŞ xizmatining autentifikatsiya jurnallarini tekşiriş orqali şubhali ulanişlarni aniqlaş lozim. Xususan: Bunda faqat muvaffaqiyatsiz autentifikatsiya urinişlarini emas, balki muvaffaqiyatli kirişlar va ulardan</p>
+<p>The post <a href="https://uzcert.uz/openssh-tizimida-autentifikatsiyani-cetlab-otis-imkonini-beruvci-kritik-zaiflikdan-faol-foydalanilmoqda/">OpenSSH tizimida autentifikatsiyani çetlab ötiş imkonini beruvçi kritik zaiflikdan faol foydalanilmoqda!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Linux serverlariga masofadan xavfsiz ulaniş va ularni boşqariş uçun keng qöllaniladigan OpenSSH dasturiy taʼminotida SSHole nomli CVE-2026-123158 zaifligi aniqlandi. Uşbu zaiflik ayrim Linux tizimlarida tajovuzkorlarga foydalanuvçining haqiqiy paroli yoki SSH kalitiga ega bölmagan holda, uning hisobiga ruxsatsiz kiriş imkonini berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikning asosiy xavfi şundaki, undan foydalaniş uçun foydalanuvçi parolini qölga kiritiş yoki serverga oldindan zararli dastur örnatiş talab etilmaydi. Agar serverda zaiflikdan foydalaniş uçun zarur şartlar mavjud bölsa, tajovuzkor SSH orqali maxsus şakllantirilgan sörov yuboriş orqali autentifikatsiya tekşiruvini çetlab ötib, tizimga ruxsatsiz kirişga urinişi mumkin. </p>
+
+
+
+<p class="wp-block-paragraph">AQSH Kiberxavfsizlik va infratuzilma xavfsizligi agentligi (CISA) 2026-yil 9-noyabr kuni mazkur zaiflikni amalda foydalanilayotgani tasdiqlangan zaifliklar katalogi — Known Exploited Vulnerabilities (KEV) röyxatiga kiritdi. Bu esa muammoni şunçaki nazariy xavf sifatida emas, balki real kiberhujumlar bilan boğliq tahdid sifatida baholaş zarurligini körsatadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikning mohiyati va texnik işlaş mexanizmi</h2>
+
+
+
+<p class="wp-block-paragraph">SSHole zaifligi OpenSSH xizmatining Linux muhitida işlaşi, xususan, autentifikatsiya jarayonida parollarni tekşiriş mexanizmidagi xatolik bilan boğliq.</p>
+
+
+
+<p class="wp-block-paragraph">Muammo Linux tizimlarida qöllaniladigan musl libc standart C kutubxonasining crypt() funksiyasi hamda OpenSŞ tomonidan parol xeşlarini qayta işlaş jarayonidagi özaro nomuvofiqlik natijasida yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">Odatda, foydalanuvçi SŞ orqali serverga ulanayotganda kiritilgan parol tizimdagi tegişli xeş bilan soliştiriladi. Agar parol notöğri bölsa, autentifikatsiya rad etilişi kerak.</p>
+
+
+
+<p class="wp-block-paragraph">Biroq musl libc kutubxonasida 256 baytdan ortiq uzunlikdagi ayrim parollarni qayta işlaş jarayonida crypt() funksiyasi xatolik belgisi sifatida «» qiymatini qaytarişi mumkin.<em> OpenSSH </em>esa ayrim şaroitlarda uşbu qiymatni foydalanuvçining /etc/shadow faylida saqlangan parol maydonidagi «» belgisi bilan soliştiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Natijada, xatolik belgisi haqiqiy parol xeşi sifatida notöğri talqin qilinib, autentifikatsiya muvaffaqiyatli yakunlangandek qabul qilinişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Tajovuzkor uşbu holatdan foydalaniş uçun SSH orqali ulaniş vaqtida maxsus uzunlikdagi parol yuboradi. Aniqlangan mexanizmda parol uzunligi 257 baytdan 1 024 baytgaça bölişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şu tariqa, tizimning muayyan konfiguratsiyasida parolni bilmagan holda ham ayrim foydalanuvçi hisoblariga kiriş imkoniyati yuzaga keladi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qaysi tizimlar va konfiguratsiyalar xavf ostida?</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflik barcha Linux distributivlari yoki OpenSSH örnatilgan serverlarga birdek taalluqli emas. Undan foydalaniş uçun bir neçta texnik şartlar bir vaqtning özida mavjud bölişi talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan, quyidagi holatlar xavf tuğdiradi:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Linux operatsion tizimida OpenSSH musl libc kutubxonasi bilan ishlayotgan bölishi;</li>
+
+
+
+<li>SSH xizmatida PAM (Pluggable Authentication Modules) autentifikatsiya mexanizmi işlatilmasligi;</li>
+
+
+
+<li>SSH orqali parol yordamida autentifikatsiya qiliş imkoniyati yoqilgan bölişi (PasswordAuthentication yes);</li>
+
+
+
+<li>tizimdagi maqsadli foydalanuvçi hisobining /etc/shadow faylidagi parol maydonida «*» belgisi mavjud bölişi;</li>
+
+
+
+<li>tizimda boşqa kamida bitta mahalliy foydalanuvçining ŞA-crypt algoritmi asosidagi haqiqiy parol xeşi, yaʼni $5$ yoki $6$ bilan boşlanuvçi xeş mavjud bölişi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Mazkur shartlarning barchasi bajarilgandagina zaiflikdan foydalanish imkoniyati yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflik taʼsir qilişi mumkin bölgan platformalardan biri Alpine Linux hisoblanadi. Uşbu distributivda OpenSSH ayrim konfiguratsiyalarda musl libc bilan va PAM mexanizmisiz işlaydi.</p>
+
+
+
+<p class="wp-block-paragraph">Şuni alohida taʼkidlaş kerakki, serverda Alpine Linux yoki Docker konteynerining mavjudligi öz-özidan tizim zaif ekanligini anglatmaydi. Masalan, konteyner içida SSH serveri işga tuşirilmagan bölsa yoki PasswordAuthentication öçirilgan bölsa, mazkur hujum yöli mavjud bölmaydi.</p>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, Red Hat kompaniyasining rasmiy maʼlumotlariga köra, uning mahsulotlari uşbu zaiflikdan taʼsirlanmaydi. Bunga OpenSSH’ning glibc kutubxonasi va standart holatda PAM mexanizmi bilan işlaşi sabab böladi.</p>
+
+
+
+<p class="wp-block-paragraph">CISA tomonidan faol ekspluatatsiya holatlari tasdiqlandi</p>
+
+
+
+<p class="wp-block-paragraph">2026-yil 9-noyabr kuni CISA CVE-2026-123158 zaifligini Known Exploited Vulnerabilities (KEV) katalogiga kiritdi. Mazkur katalogga faqat amalda ekspluatatsiya qilinayotgani haqida tegişli dalillar mavjud bölgan zaifliklar kiritiladi.</p>
+
+
+
+<p class="wp-block-paragraph">CISA maʼlumotlariga köra, AQSH federal fuqarolik ijroiya organlari uşbu zaiflikni bartaraf etiş çoralarini 2026-yil 12-noyabrga qadar amalga oşirişi lozim. Şuningdek, Binding Operational Directive 26-04 talablari doirasida tizimlarda buzib kiriş alomatlarini aniqlaş va zarur raqamli kriminalistik tekşiruvlarni amalga oşiriş talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur muddat AQSH federal fuqarolik ijroiya organlari uçun belgilangan bölib, boşqa taşkilotlar uçun bevosita majburiy muddat hisoblanmaydi. Biroq CISA barça taşkilotlarga KEV katalogidagi zaifliklarni ustuvor tartibda bartaraf etişni tavsiya qiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikning xavflilik darajasi CVSS v3.1 mezonlari böyiça 8,1 ball bilan baholangan. Bu yuqori xavflilik darajasini anglatadi.</p>
+
+
+
+<p class="wp-block-paragraph">Bunda muhim jihat şundaki, CISA tomonidan zaiflikdan faol foydalanilayotgani qayd etilgan bölsa-da, uning tölov talab qiluvçi zararli dasturlar (ransomware) kampaniyalarida qöllanilayotgani hozirça tasdiqlanmagan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Hujum urinişlari va kuzatilgan şubhali faollik</h2>
+
+
+
+<p class="wp-block-paragraph">SANS Internet Storm Center tadqiqotçisi Johannes Ullriç tomonidan olib borilgan kuzatuvlar SSHole zaifligidan foydalanişga qaratilgan şubhali sörovlar mavjudligini körsatdi.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqot davomida SSH xizmatlariga yuborilgan, takrorlanuvçi «A» belgilaridan taşkil topgan noodatiy uzun parollar qayd etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan:</p>
+
+
+
+<p class="wp-block-paragraph">2026-yil 5-noyabr kuni 232 ta;</p>
+
+
+
+<p class="wp-block-paragraph">2026-yil 6-noyabr kuni esa 713 ta şubhali uzun parol yuboriş sörovi aniqlangan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu körsatkiçlar zaiflikdan foydalanişga qaratilgan urinişlar yoki şubhali sörovlarni anglatadi. Ularning barçasi muvaffaqiyatli buzib kiriş holati yoki alohida tajovuzkorlar sonini bildirmaydi.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqotda yana bir muhim jihat aniqlangan: Cowrie honeypot tizimlari parolning faqat dastlabki 255 ta belgisini qayd etişi mumkin. Şu sababli, uzun parol orqali amalga oşirilgan hujumlarning töliq körinişini aniqlaş va ularni tahlil qiliş murakkablaşadi.</p>
+
+
+
+<p class="wp-block-paragraph">Bu holat xavfsizlik monitoringi vositalarini sozlaşda faqat qayd etilgan parol uzunligiga tayanib qolmaslik, balki SŞ ulanishlarining boshqa parametrlarini va autentifikatsiya natijalarini ham tekshirish zarurligini ko‘rsatadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikdan muvaffaqiyatli foydalanilgan taqdirda yuzaga kelişi mumkin bölgan oqibatlar</h2>
+
+
+
+<p class="wp-block-paragraph">SŞole zaifligidan foydalaniş orqali tajovuzkorlar tizimga ruxsatsiz kiriş imkoniyatiga ega bölişi mumkin. Buning natijasida quyidagi xavflar yuzaga keladi:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Ruxsatsiz kiriş: foydalanuvçining haqiqiy parolini bilmagan holda ayrim hisoblar orqali serverga ulaniş;</li>
+
+
+
+<li>Maxfiy maʼlumotlarning oşkor etilişi: serverda saqlanayotgan fayllar, konfiguratsiyalar, maʼlumotlar bazasi maʼlumotlari va xizmat hisoblariga tegişli axborotlarni qölga kiritiş;</li>
+
+
+
+<li>Tizim ustidan nazoratni kengaytiriş: foydalanuvçi hisobining vakolatlariga qarab, boşqa hisoblar yoki yuqori huquqli foydalanuvçilar vakolatlarini qölga kiritişga uriniş;</li>
+
+
+
+<li>Zararli dasturlarni joylaştiriş: serverga zararli fayllar, masofadan boşqariş vositalari yoki boşqa şubhali dasturlarni örnatiş;</li>
+
+
+
+<li>Tizim faoliyatiga zarar yetkaziş: muhim fayllarni özgartiriş yoki öçiriş, xizmatlarni töxtatiş va axborot tizimlari faoliyatini izdan çiqariş;</li>
+
+
+
+<li>Keyingi hujumlar uçun foydalaniş: buzib kirilgan serverni taşkilotning boşqa içki axborot tizimlariga hujum qiliş uçun vositaga aylantiriş.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şuni hisobga oliş kerakki, autentifikatsiyani çetlab ötiş avtomatik ravişda administrator huquqlarini qölga kiritiş degani emas. Tajovuzkor dastlab qaysi foydalanuvçi hisobiga kirgan bölsa, uning vakolatlari doirasida harakat qiladi. Biroq uşbu hisob orqali imtiyozlarni oşiriş yoki boşqa tizimlarga kiriş imkoniyatlarini izlaşga urinişi mumkin.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikni bartaraf etiş va himoyalaniş böyiça tavsiyalar</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş xavfini kamaytiriş maqsadida OpenSSH xizmatidan foydalanayotgan taşkilotlarga quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi.</p>
+
+
+
+<ol class="wp-block-list">
+<li>OpenSSH dasturiy taʼminotini yangilaş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">OpenSŞʼning 10.6p2 versiyasida mazkur zaiflikni bartaraf etişga qaratilgan tuzatiş kiritilgan. Şu sababli, tegişli tizimlarni uşbu yoki undan keyingi xavfsiz versiyaga yangilaş lozim.</p>
+
+
+
+<p class="wp-block-paragraph">Alpine Linux foydalanuvçilari distributivning rasmiy xavfsizlik yangilanişlarini örnatişlari kerak. Çunki ayrim distributivlarda tuzatilgan paketlar eski versiya raqami bilan ham taqdim etilişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Masalan, Alpine Linuxʼning quyidagi relizlarida tuzatilgan OpenSSH paketlari mavjud:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Alpine 3.21.10;</li>
+
+
+
+<li>Alpine 3.22.8;</li>
+
+
+
+<li>Alpine 3.23.8;</li>
+
+
+
+<li>Alpine 3.24.4.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Boşqa distributivlarda ham işlab çiqaruvçi tomonidan taqdim etilgan xavfsizlik yangilanişlarini tekşiriş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>2. SSH orqali parol bilan autentifikatsiyani vaqtinça öçiriş.</strong></p>
+
+
+
+<p class="wp-block-paragraph">Agar xavfsizlik yangilanişlarini zudlik bilan örnatiş imkoni bölmasa, vaqtinçalik himoya çorasi sifatida SSH orqali parol yordamida autentifikatsiya qilişni öçiriş mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Buning uçun SSH serverining konfiguratsiya faylida quyidagi parametrni belgilaş lozim:</p>
+
+
+
+<p class="wp-block-paragraph">PasswordAuthentication no</p>
+
+
+
+<p class="wp-block-paragraph">Şundan söng SSH xizmatini qayta işga tuşiriş talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Muhim: uşbu sozlamani özgartirişdan oldin SŞ kaliti orqali ulaniş işlayotganini tekşiriş zarur. Aks holda, serverga masofadan kiriş imkoniyatini yöqotiş mumkin.</p>
+
+
+
+<ol start="3" class="wp-block-list">
+<li>SSH xizmatiga kirişni çeklaş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">SŞ xizmatining 22-portiga internet tarmoğidan töğridan-töğri ulaniş imkoniyatini qayta körib çiqiş lozim. Xizmatga faqat işonçli IP-manzillar, VPN yoki maxsus boşqaruv tarmoqlari orqali ulanişga ruxsat beriş tavsiya etiladi.</p>
+
+
+
+<ol start="4" class="wp-block-list">
+<li>Foydalanuvçi hisoblarini tekşiriş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Serverdagi /etc/shadow faylida «*» belgisi bilan ifodalangan hisoblarni aniqlaş, ularning vazifasi va SSH orqali ulaniş huquqlarini qayta körib çiqiş zarur. Şuningdek, foydalanilmayotgan yoki keraksiz hisoblarni öçirib qöyiş tavsiya etiladi.</p>
+
+
+
+<ol start="5" class="wp-block-list">
+<li>Tizim jurnallarini tahlil qiliş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">SŞ xizmatining autentifikatsiya jurnallarini tekşiriş orqali şubhali ulanişlarni aniqlaş lozim. Xususan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>parol orqali muvaffaqiyatli amalga oshirilgan noodatiy SSH ulanişlari;</li>
+
+
+
+<li>parol bilan autentifikatsiya qiliş imkoniyati mavjud bölmagan hisoblar orqali muvaffaqiyatli kiriş holatlari;</li>
+
+
+
+<li>nomaʼlum IP-manzillardan amalga oşirilgan ulanişlar;</li>
+
+
+
+<li>foydalanuvçi vakolatlarining özgarişi;</li>
+
+
+
+<li>yangi SSH oçiq kalitlarining authorized_keys fayliga qöşilişi;</li>
+
+
+
+<li>SSH orqali kirilgandan söng bajarilgan noodatiy buyruqlar va işga tuşirilgan jarayonlar.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Bunda faqat muvaffaqiyatsiz autentifikatsiya urinişlarini emas, balki muvaffaqiyatli kirişlar va ulardan keyingi faoliyatni ham tekşiriş muhim.</p>
+
+
+
+<ol start="6" class="wp-block-list">
+<li>Serverda buzib kiriş alomatlarini aniqlaş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Agar tizim zaif bölgan davrda internet orqali SSH xizmatiga ulaniş imkoniyati mavjud bölgan bölsa, serverni faqat yangilaş bilan çeklanib qolmaslik kerak. Avvalgi hujumlar natijasida tizimga kirilgan yoki kirmaganini aniqlaş uçun raqamli kriminalistik tekşiruv ötkaziş lozim.</p>
+
+
+
+<p class="wp-block-paragraph">Bunda tizimdagi yangi foydalanuvçi hisoblari, özgartirilgan konfiguratsiya fayllari, nomaʼlum jarayonlar, rejalaştirilgan vazifalar, yangi SSH kalitlari va şubhali tarmoq ulanişlarini tekşiriş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Agar ruxsatsiz kiriş alomatlari aniqlansa, tegişli dalillarni saqlab qoliş, buzib kirilgan serverni tarmoqdan ajratiş va maxfiy maʼlumotlarni almaştiriş böyiça zarur çoralarni köriş lozim.</p>
+
+
+
+<p class="wp-block-paragraph">OpenSSH tizimida aniqlangan SSHole (CVE-2026-123158) zaifligi Linux serverlarining masofaviy boşqaruv xavfsizligiga jiddiy tahdid tuğdiradi. Ayniqsa, musl libc kutubxonasidan foydalanadigan, PAM mexanizmi öçirilgan va parol orqali autentifikatsiya qiliş imkoniyati yoqilgan serverlar alohida eʼtibor talab qiladi.</p>
+
+
+
+<p class="wp-block-paragraph">CISA tomonidan mazkur zaiflikning faol ekspluatatsiya qilinayotgani tasdiqlanib, KEV katalogiga kiritilgani taşkilotlar uçun xavfsizlik çoralarini keçiktirmasdan amalga oşiriş zarurligini anglatadi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu munosabat bilan, OpenSSH xizmatidan foydalanayotgan taşkilotlarga öz serverlari va konteyner muhitlarini inventarizatsiyadan ötkaziş, zaif konfiguratsiyalarni aniqlaş, tegişli xavfsizlik yangilanişlarini örnatiş hamda SSH ulanişlari va tizimdagi foydalanuvçi faoliyatini kuçaytirilgan tartibda monitoring qiliş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Unutmang: dasturiy taʼminotni yangilaş mavjud zaiflikni bartaraf etadi, biroq yangilaniş örnatilişidan oldin tizimga amalga oşirilgan ehtimoliy buzib kiriş holatlarini aniqlaş va ularning oqibatlarini bartaraf etiş ham axborot xavfsizligining muhim qismidir.</strong></p>
+
+
+
+<p class="wp-block-paragraph"></p>
+<p>The post <a href="https://uzcert.uz/openssh-tizimida-autentifikatsiyani-cetlab-otis-imkonini-beruvci-kritik-zaiflikdan-faol-foydalanilmoqda/">OpenSSH tizimida autentifikatsiyani çetlab ötiş imkonini beruvçi kritik zaiflikdan faol foydalanilmoqda!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Apaçe Airflow tizimida autentifikatsiyasiz masofadan turib kod bajariş imkonini beruvçi kritik zaiflik aniqlandi!</title>
+		<link>https://uzcert.uz/apace-airflow-tizimida-autentifikatsiyasiz-masofadan-turib-kod-bajaris-imkonini-beruvci-kritik-zaiflik-aniqlandi/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Tue, 10 Nov 2026 14:26:15 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42553</guid>
+
+					<description><![CDATA[<p>Apaçe Airflow maʼlumotlar oqimlarini boşqariş, rejalaştirilgan vazifalarni bajariş va turli axborot tizimlari örtasidagi jarayonlarni avtomatlaştiriş uçun keng qöllaniladigan oçiq kodli platforma hisoblanadi. Mazkur platformada aniqlangan CVE-2026-68982 identifikatorli kritik zaiflik esa tegişli xavfsizlik çoralari körilmagan taqdirda, tajovuzkorlarga tizimning işçi tugunlarida masofadan turib ixtiyoriy kodlarni bajariş imkonini berişi mumkin. Zaiflik Apaçe Airflow’ning CeleryExecutor mexanizmidan foydalanadigan va 3.4.0 dan oldingi versiyalariga taalluqli. Uning asosiy xavfi şundaki, tajovuzkor Celery xabarlar brokeriga yoziş imkoniyatiga ega bölgan taqdirda, Airflow tomonidan yuborilgan topşiriqlarni tekşiriş mexanizmidagi kamçilikdan foydalanib, işçi tugunlarda zararli buyruqlarni bajartirişi mumkin. Zaiflikning mohiyati va işlaş mexanizmi Apaçe Airflow tizimida vazifalarni bajariş jarayoni bir neçta tarkibiy qismlar orqali amalga oşiriladi. Xususan, CeleryExecutor mexanizmi topşiriqlarni işçi tugunlarga (worker) yetkaziş va ularning bajarilişini taşkil etişda Celery xabarlar brokeridan foydalanadi. Bunda Redis yoki RabbitMQ kabi xizmatlar xabarlarni uzatiş vositasi vazifasini bajaradi. Odatdagi iş jarayonida Airflow veb-interfeysi va REST API orqali topşiriqlarni boşqariş uçun autentifikatsiya talab etiladi. Şuningdek, broker orqali uzatiladigan ExecuteTask turidagi xabarlar maxsus raqamli imzo bilan himoyalangan JWT tokenini öz içiga oladi. Işçi tugun topşiriqni bajarişdan oldin uşbu tokenning haqiqiyligini Execution API orqali tekşiradi. Biroq tadqiqotçilar aniqlaşiça, ExecuteCallback turidagi xabarlarni qayta işlaş jarayonida xuddi şunday tekşiruv mexanizmi yetarli darajada joriy etilmagan. Natijada, brokerga yoziş imkoniyatiga ega bölgan tajovuzkor maxsus şakllantirilgan xabar yuboriş orqali uşbu kamçilikdan foydalanişi mumkin. Muammo xabar tarkibidagi maʼlumotlarni qayta işlaş va bajariladigan funksiyani aniqlaş mexanizmi bilan boğliq. Xususan, Airflow xabar tarkibidagi modul va funksiya nomlarini tekşirilgan manbadan kelganligini tasdiqlamasdan qayta işlaşi mumkin. Buning natijasida Python dasturlaş muhitidagi modullarni çaqiriş va ulardagi funksiyalarni işga tuşiriş imkoniyati yuzaga keladi. Masalan, tajovuzkor tegişli şaroitlarda operatsion tizim buyruqlarini bajaruvçi funksiyalarni çaqiriş orqali işçi tugunda zararli buyruqlarni işga tuşirişi mumkin. Bu esa oddiy topşiriqni bajariş jarayonidagi zaiflik butun server ustidan nazoratni qölga kiritiş xavfigaça olib kelişi mumkinligini anglatadi. Zaiflikning xavflilik darajasi va ehtimoliy oqibatlari Mazkur zaiflik CWE-306 — muhim funksiyadan foydalanişdan oldin autentifikatsiya talab qilinmasligi toifasiga kiritilgan. Apaçe tomonidan zaiflikning xavflilik darajasi Important sifatida baholangan bölsa-da, Reflectiz kompaniyasi tadqiqotçisi Or Sahar tomonidan CVSS v3.1 mezonlari asosida 9,8 ball bilan baholangan. Bu körsatkiç zaiflikning kritik darajada ekanligini anglatadi. Zaiflikdan muvaffaqiyatli foydalanilgan taqdirda, quyidagi oqibatlar yuzaga kelişi mumkin: Aniqlaniş jarayoni va hujumning yaşirin amalga oşirilişi Reflectiz tadqiqotçisi Or Sahar mazkur zaiflikni Apaçe Airflow’ning 3.2.1 va 3.3.0 versiyalarida, Redis brokeri hamda PostgreSQL maʼlumotlar bazasidan foydalangan Docker Compose sinov muhitlarida namoyiş etgan. Tadqiqot davomida hujumning yana bir jiddiy jihati aniqlangan: zararli xabarlar orqali işga tuşirilgan buyruqlar Airflow’ning odatiy vazifalar tarixi va boşqaruv interfeysida qayd etilmasligi mumkin. Xususan, tadqiqotçining sinovida zararli kod bajarilganiga qaramay, Airflow tizimida yangi DAG run yoki TaskInstance obyektlari yaratilmagan. Natijada, boşqaruv API orqali tekşirilganda ham bajarilgan zararli faoliyat haqida odatiy topşiriqlar tarixida maʼlumot topilmagan. Bu holat mazkur zaiflikdan foydalaniş orqali amalga oşirilgan hujumlarni aniqlaş va tekşirişni murakkablaştiradi. Şu sababli, faqat Airflow veb-interfeysi yoki topşiriqlar tarixini kuzatiş bilan çeklanib qoliş yetarli emas. Redis yoki RabbitMQ brokerlaridagi trafik, Celery işçi jarayonlari va server operatsion tizimi jurnallarini ham muntazam tahlil qiliş talab etiladi. Tadqiqotda yana bir eʼtiborga molik holat qayd etilgan: internet orqali ulaniş imkoniyati mavjud bölgan 211 ta Redis brokeridan 198 tasi autentifikatsiyasiz sörovlarni qabul qilgan. Bu körsatkiç xabarlar brokerlarini internet tarmoğida oçiq qoldiriş va ularga kirişni tegişli tartibda çeklamaslik qançalik jiddiy xavf tuğdirişini körsatadi. Qaysi versiyalar zaiflikdan ta’sirlangan? Aniqlangan kamçilik CeleryExecutor mexanizmidan foydalanadigan Apaçe Airflow’ning 3.4.0 dan oldingi versiyalariga taalluqli. Apaçe Airflow 3.4.0 versiyasi 2026-yil 6-noyabrda çiqarilgan bölib, unda mazkur zaiflik bartaraf etilgan. Yangi versiyada işçi tugunlar callback turidagi topşiriqlarni bajarişdan oldin Execution API orqali bir martalik tokenni tekşirişi va undan foydalanişi talab etiladi. Şu sababli, xavfsizlik nuqtayi nazaridan faqat Airflow boşqaruv serverini yangilaş yetarli emas. Execution API serveri bilan bir qatorda, CeleryExecutor’dan foydalanayotgan barça işçi tugunlar ham tuzatilgan 3.4.0 yoki undan keyingi xavfsiz versiyaga yangilanişi lozim. Himoyalaniş va xavfsizlik çoralarini köriş böyiça tavsiyalar Mazkur zaiflikdan foydalaniş xavfini kamaytiriş va axborot tizimlari xavfsizligini taʼminlaş maqsadida quyidagi çoralarni amalga oşiriş tavsiya etiladi: Apaçe Airflow tizimida aniqlangan CVE-2026-68982 zaifligi xabarlar brokerining xavfsizligi va topşiriqlarni bajariş mexanizmlarida autentifikatsiya hamda işonçlilikni tekşiriş çoralarining qançalik muhim ekanligini yana bir bor namoyon etadi. Ayniqsa, Redis yoki RabbitMQ xizmatlariga kiriş imkoniyati yetarli darajada çeklanmagan muhitlarda mazkur zaiflikdan foydalaniş serverlarda masofadan turib zararli kodlarni bajariş, maxfiy maʼlumotlarni qölga kiritiş va boşqa axborot tizimlariga hujumlarni davom ettiriş xavfini yuzaga keltirişi mumkin. Şu munosabat bilan, Apaçe Airflow platformasidan foydalanuvçi taşkilotlarga tizim versiyasini zudlik bilan tekşiriş, barça tegişli komponentlarni xavfsiz versiyaga yangilaş, xabarlar brokerlariga kirişni çeklaş hamda xavfsizlik jurnalini kuçaytirilgan tartibda monitoring qiliş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/apace-airflow-tizimida-autentifikatsiyasiz-masofadan-turib-kod-bajaris-imkonini-beruvci-kritik-zaiflik-aniqlandi/">Apaçe Airflow tizimida autentifikatsiyasiz masofadan turib kod bajariş imkonini beruvçi kritik zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph">Apaçe Airflow maʼlumotlar oqimlarini boşqariş, rejalaştirilgan vazifalarni bajariş va turli axborot tizimlari örtasidagi jarayonlarni avtomatlaştiriş uçun keng qöllaniladigan oçiq kodli platforma hisoblanadi. Mazkur platformada aniqlangan CVE-2026-68982 identifikatorli kritik zaiflik esa tegişli xavfsizlik çoralari körilmagan taqdirda, tajovuzkorlarga tizimning işçi tugunlarida masofadan turib ixtiyoriy kodlarni bajariş imkonini berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflik Apaçe Airflow’ning CeleryExecutor mexanizmidan foydalanadigan va 3.4.0 dan oldingi versiyalariga taalluqli. Uning asosiy xavfi şundaki, tajovuzkor Celery xabarlar brokeriga yoziş imkoniyatiga ega bölgan taqdirda, Airflow tomonidan yuborilgan topşiriqlarni tekşiriş mexanizmidagi kamçilikdan foydalanib, işçi tugunlarda zararli buyruqlarni bajartirişi mumkin.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikning mohiyati va işlaş mexanizmi</h2>
+
+
+
+<p class="wp-block-paragraph">Apaçe Airflow tizimida vazifalarni bajariş jarayoni bir neçta tarkibiy qismlar orqali amalga oşiriladi. Xususan, CeleryExecutor mexanizmi topşiriqlarni işçi tugunlarga (worker) yetkaziş va ularning bajarilişini taşkil etişda Celery xabarlar brokeridan foydalanadi. Bunda Redis yoki RabbitMQ kabi xizmatlar xabarlarni uzatiş vositasi vazifasini bajaradi.</p>
+
+
+
+<p class="wp-block-paragraph">Odatdagi iş jarayonida Airflow veb-interfeysi va REST API orqali topşiriqlarni boşqariş uçun autentifikatsiya talab etiladi. Şuningdek, broker orqali uzatiladigan ExecuteTask turidagi xabarlar maxsus raqamli imzo bilan himoyalangan JWT tokenini öz içiga oladi. Işçi tugun topşiriqni bajarişdan oldin uşbu tokenning haqiqiyligini Execution API orqali tekşiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Biroq tadqiqotçilar aniqlaşiça, ExecuteCallback turidagi xabarlarni qayta işlaş jarayonida xuddi şunday tekşiruv mexanizmi yetarli darajada joriy etilmagan. Natijada, brokerga yoziş imkoniyatiga ega bölgan tajovuzkor maxsus şakllantirilgan xabar yuboriş orqali uşbu kamçilikdan foydalanişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Muammo xabar tarkibidagi maʼlumotlarni qayta işlaş va bajariladigan funksiyani aniqlaş mexanizmi bilan boğliq. Xususan, Airflow xabar tarkibidagi modul va funksiya nomlarini tekşirilgan manbadan kelganligini tasdiqlamasdan qayta işlaşi mumkin. Buning natijasida Python dasturlaş muhitidagi modullarni çaqiriş va ulardagi funksiyalarni işga tuşiriş imkoniyati yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">Masalan, tajovuzkor tegişli şaroitlarda operatsion tizim buyruqlarini bajaruvçi funksiyalarni çaqiriş orqali işçi tugunda zararli buyruqlarni işga tuşirişi mumkin. Bu esa oddiy topşiriqni bajariş jarayonidagi zaiflik butun server ustidan nazoratni qölga kiritiş xavfigaça olib kelişi mumkinligini anglatadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikning xavflilik darajasi va ehtimoliy oqibatlari</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflik CWE-306 — muhim funksiyadan foydalanişdan oldin autentifikatsiya talab qilinmasligi toifasiga kiritilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Apaçe tomonidan zaiflikning xavflilik darajasi Important sifatida baholangan bölsa-da, Reflectiz kompaniyasi tadqiqotçisi Or Sahar tomonidan CVSS v3.1 mezonlari asosida 9,8 ball bilan baholangan. Bu körsatkiç zaiflikning kritik darajada ekanligini anglatadi.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflikdan muvaffaqiyatli foydalanilgan taqdirda, quyidagi oqibatlar yuzaga kelişi mumkin:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Serverda ixtiyoriy kodlarni bajariş: tajovuzkor Airflow işçi tugunida operatsion tizim buyruqlari va zararli dasturlarni işga tuşirişi mumkin.</li>
+
+
+
+<li>Maxfiy maʼlumotlarni qölga kiritiş: server muhitidagi özgaruvçilar, xizmat hisoblari maʼlumotlari, API kalitlari va boşqa maxfiy axborotlar oşkor etilişi mumkin.</li>
+
+
+
+<li>Şifrlaş kalitlarini egallaş: AIRFLOW__ prefiksi bilan boşlanuvçi muhit özgaruvçilari orasida saqlanişi mumkin bölgan maxfiy sozlamalar, jumladan Fernet kaliti xavf ostida qolişi mumkin.</li>
+
+
+
+<li>Maʼlumotlarni özgartiriş yoki yöq qiliş: tajovuzkor işçi tugun orqali foydalaniş imkoniga ega bölgan maʼlumotlar va xizmatlarga zarar yetkazişi mumkin.</li>
+
+
+
+<li>Tizim faoliyatini izdan çiqariş: zararli jarayonlarni işga tuşiriş, resurslarni band qiliş yoki xizmatlarni töxtatiş orqali Airflow platformasining işlaşiga xalaqit berilişi mumkin.</li>
+
+
+
+<li>Keyingi hujumlar uçun şaroit yaratiş: qölga kiritilgan hisob maʼlumotlari va maxfiy kalitlardan foydalanib, boşqa içki axborot tizimlariga ham hujum uyuştirilişi ehtimoli mavjud.</li>
+</ul>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Aniqlaniş jarayoni va hujumning yaşirin amalga oşirilişi</h2>
+
+
+
+<p class="wp-block-paragraph">Reflectiz tadqiqotçisi Or Sahar mazkur zaiflikni Apaçe Airflow’ning 3.2.1 va 3.3.0 versiyalarida, Redis brokeri hamda PostgreSQL maʼlumotlar bazasidan foydalangan Docker Compose sinov muhitlarida namoyiş etgan.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqot davomida hujumning yana bir jiddiy jihati aniqlangan: zararli xabarlar orqali işga tuşirilgan buyruqlar Airflow’ning odatiy vazifalar tarixi va boşqaruv interfeysida qayd etilmasligi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan, tadqiqotçining sinovida zararli kod bajarilganiga qaramay, Airflow tizimida yangi DAG run yoki TaskInstance obyektlari yaratilmagan. Natijada, boşqaruv API orqali tekşirilganda ham bajarilgan zararli faoliyat haqida odatiy topşiriqlar tarixida maʼlumot topilmagan.</p>
+
+
+
+<p class="wp-block-paragraph">Bu holat mazkur zaiflikdan foydalaniş orqali amalga oşirilgan hujumlarni aniqlaş va tekşirişni murakkablaştiradi. Şu sababli, faqat Airflow veb-interfeysi yoki topşiriqlar tarixini kuzatiş bilan çeklanib qoliş yetarli emas. Redis yoki RabbitMQ brokerlaridagi trafik, Celery işçi jarayonlari va server operatsion tizimi jurnallarini ham muntazam tahlil qiliş talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Tadqiqotda yana bir eʼtiborga molik holat qayd etilgan: internet orqali ulaniş imkoniyati mavjud bölgan 211 ta Redis brokeridan 198 tasi autentifikatsiyasiz sörovlarni qabul qilgan. Bu körsatkiç xabarlar brokerlarini internet tarmoğida oçiq qoldiriş va ularga kirişni tegişli tartibda çeklamaslik qançalik jiddiy xavf tuğdirişini körsatadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qaysi versiyalar zaiflikdan ta’sirlangan?</h2>
+
+
+
+<p class="wp-block-paragraph">Aniqlangan kamçilik CeleryExecutor mexanizmidan foydalanadigan Apaçe Airflow’ning 3.4.0 dan oldingi versiyalariga taalluqli.</p>
+
+
+
+<p class="wp-block-paragraph">Apaçe Airflow 3.4.0 versiyasi 2026-yil 6-noyabrda çiqarilgan bölib, unda mazkur zaiflik bartaraf etilgan. Yangi versiyada işçi tugunlar callback turidagi topşiriqlarni bajarişdan oldin Execution API orqali bir martalik tokenni tekşirişi va undan foydalanişi talab etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Şu sababli, xavfsizlik nuqtayi nazaridan faqat Airflow boşqaruv serverini yangilaş yetarli emas. Execution API serveri bilan bir qatorda, CeleryExecutor’dan foydalanayotgan barça işçi tugunlar ham tuzatilgan 3.4.0 yoki undan keyingi xavfsiz versiyaga yangilanişi lozim.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Himoyalaniş va xavfsizlik çoralarini köriş böyiça tavsiyalar</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş xavfini kamaytiriş va axborot tizimlari xavfsizligini taʼminlaş maqsadida quyidagi çoralarni amalga oşiriş tavsiya etiladi:</p>
+
+
+
+<ol start="1" class="wp-block-list">
+<li>Apaçe Airflow’ni yangilaş. Tizimning barça tegişli komponentlarini 3.4.0 yoki undan keyingi, mazkur zaiflik bartaraf etilgan versiyaga yangilaş. Yangilaş jarayonida Execution API serveri va barça CeleryExecutor işçi tugunlari qamrab olinganiga işonç hosil qiliş.</li>
+
+
+
+<li>Xabarlar brokerini autentifikatsiya bilan himoyalaş. Redis xizmatida AUTH mexanizmini, RabbitMQ xizmatida esa foydalanuvçi nomi va parol orqali autentifikatsiyani yoqiş. Zaif yoki standart hisob maʼlumotlaridan foydalanmaslik.</li>
+
+
+
+<li>Tarmoq orqali kirişni çeklaş. Redis (6379) va RabbitMQ (5672) portlariga internet tarmoğidan töğridan-töğri ulaniş imkoniyatini çeklaş. Brokerlarga faqat işonçli içki tarmoqdagi va zarur vakolatga ega tizimlardan ulanişga ruxsat beriş.</li>
+
+
+
+<li>Kiriş huquqlarini nazorat qiliş. Redis va RabbitMQ xizmatlarida foydalanuvçilarga faqat öz vazifalarini bajariş uçun zarur bölgan minimal huquqlarni taqdim etiş. Brokerga xabar yoziş imkoniyatini qatʼiy çeklaş.</li>
+
+
+
+<li>Jurnal maʼlumotlarini tahlil qiliş. Celery worker jarayonlari, Redis yoki RabbitMQ brokerlari, operatsion tizim va tarmoq xavfsizligi vositalarining jurnal maʼlumotlarini muntazam tekşiriş. Xususan, kutilmagan ExecuteCallback va execute_workload xabarlarini, nomaʼlum manbalardan yuborilgan sörovlarni hamda şubhali jarayonlarni aniqlaşga eʼtibor qaratiş.</li>
+
+
+
+<li>Maxfiy maʼlumotlarni himoyalaş. Airflow muhit özgaruvçilari, Fernet kaliti, API tokenlari va xizmat hisoblariga tegişli maʼlumotlarning saqlanişi hamda ulardan foydalaniş tartibini qayta körib çiqiş. Agar tizim buzilgan bölişi ehtimoli aniqlansa, oşkor bölgan kalit va hisob maʼlumotlarini almaştiriş.</li>
+
+
+
+<li>Tizimni buzib kiriş alomatlariga tekşiriş. Şubhali jarayonlar, nomaʼlum fayllar, yangi foydalanuvçi hisoblari, kutilmagan tarmoq ulanişlari va tizimda amalga oşirilgan noodatiy özgarişlarni tekşiriş. Zarur hollarda hodisani tekşiriş uçun tegişli jurnal maʼlumotlarini saqlab qoliş.</li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Apaçe Airflow tizimida aniqlangan CVE-2026-68982 zaifligi xabarlar brokerining xavfsizligi va topşiriqlarni bajariş mexanizmlarida autentifikatsiya hamda işonçlilikni tekşiriş çoralarining qançalik muhim ekanligini yana bir bor namoyon etadi.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, Redis yoki RabbitMQ xizmatlariga kiriş imkoniyati yetarli darajada çeklanmagan muhitlarda mazkur zaiflikdan foydalaniş serverlarda masofadan turib zararli kodlarni bajariş, maxfiy maʼlumotlarni qölga kiritiş va boşqa axborot tizimlariga hujumlarni davom ettiriş xavfini yuzaga keltirişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Şu munosabat bilan, Apaçe Airflow platformasidan foydalanuvçi taşkilotlarga tizim versiyasini zudlik bilan tekşiriş, barça tegişli komponentlarni xavfsiz versiyaga yangilaş, xabarlar brokerlariga kirişni çeklaş hamda xavfsizlik jurnalini kuçaytirilgan tartibda monitoring qiliş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/apace-airflow-tizimida-autentifikatsiyasiz-masofadan-turib-kod-bajaris-imkonini-beruvci-kritik-zaiflik-aniqlandi/">Apaçe Airflow tizimida autentifikatsiyasiz masofadan turib kod bajariş imkonini beruvçi kritik zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Apple iOS 27.2.1 va iPadOS 27.2.1 yangilanişlari orqali 9 ta xavfsizlik zaifligi bartaraf etildi!</title>
+		<link>https://uzcert.uz/apple-ios-27-2-1-va-ipados-27-2-1-yangilanislari-orqali-9-ta-xavfsizlik-zaifligi-bartaraf-etildi/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Tue, 10 Nov 2026 09:50:10 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42550</guid>
+
+					<description><![CDATA[<p>Apple kompaniyasi 2026-yil 9-noyabr kuni iPhone va iPad qurilmalari uçun iOS 27.2.1 hamda iPadOS 27.2.1 xavfsizlik yangilanişlarini taqdim etdi. Yangilanişlar orqali Bluetooth, AirPlay, iMessage, CoreUtils, App Intents va boşqa tizim komponentlarida aniqlangan jami 9 ta xavfsizlik zaifligi bartaraf etilgan. Ular orasida Bluetooth orqali qurilmalarni ruxsatsiz ulaş, AirPlay autentifikatsiya mexanizmini çetlab ötiş, iMessage guruh yozişmalariga ruxsatsiz kiriş hamda tizim xotirasini buziş imkonini yuzaga keltirişi mumkin bölgan zaifliklar mavjud. Zaifliklarning asosiy texnik xususiyatlari Apple kompaniyasining rasmiy xavfsizlik maʼlumotlariga köra, aniqlangan zaifliklarning katta qismi Bluetooth va AirPlay orqali qurilmalarni özaro boğlaş hamda autentifikatsiya qiliş mexanizmlariga taalluqlidir. Xususan, ayrim zaifliklar tajovuzkorga qurilmalarni özaro ulaş jarayonida qöllaniladigan tasdiqlaş kodlarini tekşiriş çeklovlarini çetlab ötiş imkonini berişi mumkin. Odatda, Bluetooth yoki AirPlay orqali qurilmalarni ulaş jarayonida foydalanuvçidan maxsus tasdiqlaş kodini kiritiş talab etiladi. Xavfsizlikni taʼminlaş maqsadida tizim notöğri kodlarni ketma-ket kiritiş urinişlariga çeklov örnatadi. Bu mexanizm kodni taxmin qiliş orqali ruxsatsiz ulanişga urinişlarning oldini olişga xizmat qiladi. Biroq aniqlangan zaifliklar ayrim holatlarda mazkur çeklovlarni çetlab ötiş imkoniyatini yuzaga keltirgan. Bluetooth va CoreUtils komponentlaridagi zaifliklar CVE-2026-113964 — CoreUtils komponentida aniqlangan mazkur zaiflik Bluetooth orqali ulaniş vaqtida tasdiqlaş kodini kiritiş urinişlari soniga qöyilgan çeklovni çetlab ötiş imkonini beradi. Bluetooth qamrov doirasidagi tajovuzkor uşbu zaiflikdan foydalanib, qurilma egasining iştirokisiz ham qurilma bilan ulanişni amalga oşirişga urinişi mumkin. CVE-2026-113965 — CoreUtils komponentidagi yana bir zaiflik bölib, maxsus şakllantirilgan zararli Bluetooth qurilmasiga foydalanuvçining harakatlarisiz qurilma bilan juftlaşiş (Pairing) imkonini berişi mumkin. Mazkur zaifliklar, ayniqsa, jamoat joylarida, umumiy foydalanişdagi hududlarda yoki Bluetooth doimiy yoqilgan holda işlatiladigan qurilmalarda alohida eʼtibor talab qiladi. AirPlay orqali ulanish mexanizmidagi zaifliklar AirPlay — Apple qurilmalari örtasida audio, video va boşqa multimedia maʼlumotlarini simsiz uzatiş imkonini beruvçi texnologiya hisoblanadi. Uşbu texnologiyaning qurilmalarni ulaş va autentifikatsiya qiliş mexanizmlarida ham ikkita zaiflik aniqlangan: Apple uşbu muammolarni tizimning içki holatini boşqariş mexanizmlarini takomillaştiriş orqali bartaraf etgan. Bluetooth xotirasini boşqarişdagi zaiflik CVE-2026-113970 — Bluetooth komponentida aniqlangan Use-After-Free turidagi xotira boşqaruvi zaifligi hisoblanadi. Mazkur zaiflik dastur tomonidan foydalanilgan xotira maydoni böşatilganidan keyin ham unga murojaat qiliş davom etişi natijasida yuzaga keladi. Bluetooth qamrov doirasidagi tajovuzkor uşbu xatolikdan foydalanib, jarayon xotirasining yaxlitligini buzişi mumkin. Bunday holat qurilma yoki uning ayrim xizmatlarida kutilmagan xatoliklar yuzaga kelişiga sabab bölişi ehtimoli mavjud. Apple muammoni xotirani boşqariş mexanizmlarini takomillaştiriş orqali bartaraf etgan. iMessage va foydalanuvçilarning şaxsiy yozişmalariga oid zaifliklar Yangilaniş doirasida Messages ilovasida ham ikkita muhim xavfsizlik muammosi bartaraf etilgan. CVE-2026-113961 — mazkur zaiflikdan foydalaniş orqali masofaviy tajovuzkor iMessage guruh suhbatiga ruxsatsiz qöşilişi va undagi xabarlarni qabul qilişi mumkin edi. Bunday holat guruh yozişmalarida qatnaşayotgan foydalanuvçilarning şaxsiy maʼlumotlari va maxfiy yozişmalari oşkor bölişiga olib kelişi mumkin. Apple uşbu muammoni guruhga qöşiliş jarayonida foydalanuvçi huquqlarini tekşiriş va avtorizatsiya mexanizmlarini kuçaytiriş orqali bartaraf etgan. CVE-2026-113960 — iMessage guruh suhbatiga yangi qöşilgan foydalanuvçiga uning guruhga qöşilişidan oldin yuborilgan xabarlarni ham köriş imkonini berişi mumkin bölgan zaiflik. Mazkur muammo natijasida guruh aʼzolarining avvalgi yozişmalari ruxsatsiz foydalanuvçiga oşkor bölişi ehtimoli mavjud edi. Apple uşbu zaiflikni keltirib çiqaruvçi dasturiy kodni olib taşlaş orqali muammoni bartaraf etgan. Uşbu ikki zaiflik iMessage guruh suhbatlarida foydalanuvçilarning maxfiyligini taʼminlaş, guruhga kiriş huquqlarini nazorat qiliş va yozişmalar tarixini himoyalaş qançalik muhim ekanini körsatadi. App Intents va Brotli komponentlaridagi zaifliklar Yangilaniş orqali operatsion tizimning boşqa muhim komponentlarida aniqlangan xavfsizlik muammolari ham bartaraf etilgan. CVE-2026-113963 — App Intents komponentida aniqlangan avtorizatsiya bilan boğliq zaiflik. Undan foydalaniş natijasida ayrim ilovalar foydalanuvçining maxfiy maʼlumotlariga ruxsatsiz kiriş imkoniyatiga ega bölişi mumkin edi. Apple mazkur muammoni avtorizatsiya tekşiruvlarini kuçaytiriş orqali bartaraf etgan. Zaiflik haqida László Várady ismli tadqiqotçi xabar bergan. CVE-2026-111497 — Brotli maʼlumotlarni siqiş va qayta oçiş uçun işlatiladigan kutubxonada aniqlangan xotira bilan boğliq zaiflik. Maxsus şakllantirilgan zararli maʼlumotlarni qayta işlaş jarayonida ajratilgan xotira çegarasidan taşqariga maʼlumot yozilişi (Out-of-Bounds Write) mumkin edi. Bunday xatolik xotira yaxlitligining buzilişiga va tizimda kutilmagan xatoliklar yuzaga kelişiga sabab bölişi mumkin. Apple mazkur muammoni kiruvçi maʼlumotlarni tekşiriş mexanizmlarini takomillaştiriş orqali bartaraf etgan. Aniqlangan zaifliklar röyxati Apple tomonidan eʼlon qilingan xavfsizlik maʼlumotlariga muvofiq, yangilaniş orqali quyidagi 9 ta zaiflik bartaraf etilgan: CVE identifikatori Komponent Zaiflikning qisqacha tavsifi CVE-2026-113964 CoreUtils Bluetooth ulaniş kodini tekşiriş çeklovini çetlab ötiş CVE-2026-113965 CoreUtils Foydalanuvçi iştirokisiz Bluetooth orqali juftlaşiş CVE-2026-113968 AirPlay Ulaniş kodini tekşiriş urinişlari çeklovini çetlab ötiş CVE-2026-113969 rapportd Mahalliy tarmoq orqali AirPlay autentifikatsiya çeklovini çetlab ötiş CVE-2026-113970 Bluetooth Use-After-Free orqali jarayon xotirasini buzish CVE-2026-113961 Messages iMessage guruh suhbatiga ruxsatsiz qöşiliş va xabarlarni oliş CVE-2026-113960 Messages Guruhga qöşilişdan oldingi xabarlarni köriş CVE-2026-113963 App Intents Ilovalar orqali maxfiy foydalanuvçi maʼlumotlariga ruxsatsiz kiriş CVE-2026-111497 Brotli Xotira çegarasidan taşqariga maʼlumot yoziş Qaysi qurilmalar yangilanişi kerak? Apple kompaniyasining rasmiy maʼlumotlariga köra, iOS 27.2.1 va iPadOS 27.2.1 yangilanişlari quyidagi qurilmalar uçun taqdim etilgan: Şuningdek, Apple aniqlangan xavfsizlik muammolarining ayrimlarini boşqa operatsion tizimlar uçun ham taqdim etilgan yangilanişlar orqali bartaraf etgan. Jumladan, macOS, watchOS va visionOS tizimlari uçun ham tegişli xavfsizlik tuzatişlari çiqarilgan. Şu sababli faqat iPhone va iPad qurilmalarini emas, balki Apple ekotizimida foydalanilayotgan boşqa qurilmalarni ham yangilaş holatini tekşiriş lozim. Foydalanuvçilar va taşkilotlar uçun tavsiyalar Aniqlangan zaifliklarning ayrimlari Bluetooth qamrov doirasidagi tajovuzkor tomonidan, boşqalari esa mahalliy tarmoq orqali foydalanilişi mumkinligini hisobga olib, quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi: iPhone yoki iPad qurilmasida quyidagi ketma-ketlik orqali yangilanişni tekşiriş lozim: Sozlamalar (Settings) → Umumiy (General) → Dasturiy taʼminotni yangilaş (Software Update). Mavjud bölsa, iOS 27.2.1 yoki iPadOS 27.2.1 versiyasini örnatiş tavsiya etiladi. Uşbu xizmatlardan foydalanilmayotgan vaqtda Bluetooth ulanişlarini hamda AirPlay orqali qurilmalarni ulaş imkoniyatlarini çeklaş maqsadga muvofiq. Ayniqsa, nomaʼlum qurilmalar bilan juftlaşiş sörovlarini tasdiqlamaslik lozim. Bluetooth yoki AirPlay orqali kelib tuşadigan ulaniş sörovlarini tekşirmasdan tasdiqlamaslik, nomaʼlum qurilmalarni işonçli qurilmalar röyxatiga qöşmaslik tavsiya etiladi. Guruh suhbatlariga nomaʼlum foydalanuvçilar qöşilişi bilan boğliq holatlarga eʼtibor beriş, şubhali guruh takliflarini qabul qilmaslik va şaxsiy yozişmalarda maxfiy maʼlumotlarni yuborişda ehtiyotkor böliş zarur. Taşkilotlarda foydalanilayotgan iPhone va iPad qurilmalarining operatsion tizim versiyalarini tekşiriş, eskirgan versiyalardan foydalanişni çeklaş hamda MDM (Mobile Device Management) tizimlari orqali xavfsizlik yangilanişlari örnatilişini nazorat qiliş tavsiya etiladi. Muhim maʼlumotlarning yöqoliş xavfini kamaytiriş maqsadida yangilanişni örnatişdan oldin iCloud yoki kompyuter orqali qurilma maʼlumotlarining zaxira nusxasini yaratiş maqsadga muvofiq. Apple qurilmalarida aniqlangan mazkur 9 ta zaiflik Bluetooth va AirPlay orqali qurilmalarni ulaş, iMessage yozişmalarini himoyalaş, ilovalarning foydalanuvçi maʼlumotlariga kiriş huquqlarini nazorat qiliş hamda tizim xotirasining yaxlitligini taʼminlaş mexanizmlariga taalluqlidir. Ayniqsa, Bluetooth va AirPlay orqali</p>
+<p>The post <a href="https://uzcert.uz/apple-ios-27-2-1-va-ipados-27-2-1-yangilanislari-orqali-9-ta-xavfsizlik-zaifligi-bartaraf-etildi/">Apple iOS 27.2.1 va iPadOS 27.2.1 yangilanişlari orqali 9 ta xavfsizlik zaifligi bartaraf etildi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph"><strong>Apple kompaniyasi 2026-yil 9-noyabr kuni iPhone va iPad qurilmalari uçun iOS 27.2.1 hamda iPadOS 27.2.1 xavfsizlik yangilanişlarini taqdim etdi. Yangilanişlar orqali Bluetooth, AirPlay, iMessage, CoreUtils, App Intents va boşqa tizim komponentlarida aniqlangan jami 9 ta xavfsizlik zaifligi bartaraf etilgan. Ular orasida Bluetooth orqali qurilmalarni ruxsatsiz ulaş, AirPlay autentifikatsiya mexanizmini çetlab ötiş, iMessage guruh yozişmalariga ruxsatsiz kiriş hamda tizim xotirasini buziş imkonini yuzaga keltirişi mumkin bölgan zaifliklar mavjud.</strong></p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaifliklarning asosiy texnik xususiyatlari</h2>
+
+
+
+<p class="wp-block-paragraph">Apple kompaniyasining rasmiy xavfsizlik maʼlumotlariga köra, aniqlangan zaifliklarning katta qismi Bluetooth va AirPlay orqali qurilmalarni özaro boğlaş hamda autentifikatsiya qiliş mexanizmlariga taalluqlidir.</p>
+
+
+
+<p class="wp-block-paragraph">Xususan, ayrim zaifliklar tajovuzkorga qurilmalarni özaro ulaş jarayonida qöllaniladigan tasdiqlaş kodlarini tekşiriş çeklovlarini çetlab ötiş imkonini berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Odatda, Bluetooth yoki AirPlay orqali qurilmalarni ulaş jarayonida foydalanuvçidan maxsus tasdiqlaş kodini kiritiş talab etiladi. Xavfsizlikni taʼminlaş maqsadida tizim notöğri kodlarni ketma-ket kiritiş urinişlariga çeklov örnatadi. Bu mexanizm kodni taxmin qiliş orqali ruxsatsiz ulanişga urinişlarning oldini olişga xizmat qiladi.</p>
+
+
+
+<p class="wp-block-paragraph">Biroq aniqlangan zaifliklar ayrim holatlarda mazkur çeklovlarni çetlab ötiş imkoniyatini yuzaga keltirgan.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">Bluetooth va CoreUtils komponentlaridagi zaifliklar</h3>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113964 — CoreUtils komponentida aniqlangan mazkur zaiflik Bluetooth orqali ulaniş vaqtida tasdiqlaş kodini kiritiş urinişlari soniga qöyilgan çeklovni çetlab ötiş imkonini beradi. Bluetooth qamrov doirasidagi tajovuzkor uşbu zaiflikdan foydalanib, qurilma egasining iştirokisiz ham qurilma bilan ulanişni amalga oşirişga urinişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113965 — CoreUtils komponentidagi yana bir zaiflik bölib, maxsus şakllantirilgan zararli Bluetooth qurilmasiga foydalanuvçining harakatlarisiz qurilma bilan juftlaşiş (Pairing) imkonini berişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaifliklar, ayniqsa, jamoat joylarida, umumiy foydalanişdagi hududlarda yoki Bluetooth doimiy yoqilgan holda işlatiladigan qurilmalarda alohida eʼtibor talab qiladi.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">AirPlay orqali ulanish mexanizmidagi zaifliklar</h3>
+
+
+
+<p class="wp-block-paragraph">AirPlay — Apple qurilmalari örtasida audio, video va boşqa multimedia maʼlumotlarini simsiz uzatiş imkonini beruvçi texnologiya hisoblanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu texnologiyaning qurilmalarni ulaş va autentifikatsiya qiliş mexanizmlarida ham ikkita zaiflik aniqlangan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>CVE-2026-113968 — Bluetooth qamrov doirasidagi tajovuzkor AirPlay orqali ulanişda tasdiqlaş kodini kiritiş urinişlariga qöyilgan çeklovni çetlab ötişi mumkin.</li>
+
+
+
+<li>CVE-2026-113969 — rapportd komponentida aniqlangan mazkur zaiflik bir xil mahalliy tarmoqqa ulangan tajovuzkorga AirPlay ulaniş kodini tekşiriş urinişlariga qöyilgan çeklovni aylanib ötiş imkonini beradi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Apple uşbu muammolarni tizimning içki holatini boşqariş mexanizmlarini takomillaştiriş orqali bartaraf etgan.</p>
+
+
+
+<h3 class="wp-block-heading has-medium-font-size">Bluetooth xotirasini boşqarişdagi zaiflik</h3>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113970 — Bluetooth komponentida aniqlangan Use-After-Free turidagi xotira boşqaruvi zaifligi hisoblanadi.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflik dastur tomonidan foydalanilgan xotira maydoni böşatilganidan keyin ham unga murojaat qiliş davom etişi natijasida yuzaga keladi.</p>
+
+
+
+<p class="wp-block-paragraph">Bluetooth qamrov doirasidagi tajovuzkor uşbu xatolikdan foydalanib, jarayon xotirasining yaxlitligini buzişi mumkin. Bunday holat qurilma yoki uning ayrim xizmatlarida kutilmagan xatoliklar yuzaga kelişiga sabab bölişi ehtimoli mavjud.</p>
+
+
+
+<p class="wp-block-paragraph">Apple muammoni xotirani boşqariş mexanizmlarini takomillaştiriş orqali bartaraf etgan.</p>
+
+
+
+<p class="wp-block-paragraph">iMessage va foydalanuvçilarning şaxsiy yozişmalariga oid zaifliklar</p>
+
+
+
+<p class="wp-block-paragraph">Yangilaniş doirasida Messages ilovasida ham ikkita muhim xavfsizlik muammosi bartaraf etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113961 — mazkur zaiflikdan foydalaniş orqali masofaviy tajovuzkor iMessage guruh suhbatiga ruxsatsiz qöşilişi va undagi xabarlarni qabul qilişi mumkin edi.</p>
+
+
+
+<p class="wp-block-paragraph">Bunday holat guruh yozişmalarida qatnaşayotgan foydalanuvçilarning şaxsiy maʼlumotlari va maxfiy yozişmalari oşkor bölişiga olib kelişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Apple uşbu muammoni guruhga qöşiliş jarayonida foydalanuvçi huquqlarini tekşiriş va avtorizatsiya mexanizmlarini kuçaytiriş orqali bartaraf etgan.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113960 — iMessage guruh suhbatiga yangi qöşilgan foydalanuvçiga uning guruhga qöşilişidan oldin yuborilgan xabarlarni ham köriş imkonini berişi mumkin bölgan zaiflik.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur muammo natijasida guruh aʼzolarining avvalgi yozişmalari ruxsatsiz foydalanuvçiga oşkor bölişi ehtimoli mavjud edi. Apple uşbu zaiflikni keltirib çiqaruvçi dasturiy kodni olib taşlaş orqali muammoni bartaraf etgan.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu ikki zaiflik iMessage guruh suhbatlarida foydalanuvçilarning maxfiyligini taʼminlaş, guruhga kiriş huquqlarini nazorat qiliş va yozişmalar tarixini himoyalaş qançalik muhim ekanini körsatadi.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">App Intents va Brotli komponentlaridagi zaifliklar</h2>
+
+
+
+<p class="wp-block-paragraph">Yangilaniş orqali operatsion tizimning boşqa muhim komponentlarida aniqlangan xavfsizlik muammolari ham bartaraf etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-113963 — App Intents komponentida aniqlangan avtorizatsiya bilan boğliq zaiflik. Undan foydalaniş natijasida ayrim ilovalar foydalanuvçining maxfiy maʼlumotlariga ruxsatsiz kiriş imkoniyatiga ega bölişi mumkin edi.</p>
+
+
+
+<p class="wp-block-paragraph">Apple mazkur muammoni avtorizatsiya tekşiruvlarini kuçaytiriş orqali bartaraf etgan. Zaiflik haqida László Várady ismli tadqiqotçi xabar bergan.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-111497 — Brotli maʼlumotlarni siqiş va qayta oçiş uçun işlatiladigan kutubxonada aniqlangan xotira bilan boğliq zaiflik.</p>
+
+
+
+<p class="wp-block-paragraph">Maxsus şakllantirilgan zararli maʼlumotlarni qayta işlaş jarayonida ajratilgan xotira çegarasidan taşqariga maʼlumot yozilişi (Out-of-Bounds Write) mumkin edi. Bunday xatolik xotira yaxlitligining buzilişiga va tizimda kutilmagan xatoliklar yuzaga kelişiga sabab bölişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Apple mazkur muammoni kiruvçi maʼlumotlarni tekşiriş mexanizmlarini takomillaştiriş orqali bartaraf etgan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Aniqlangan zaifliklar röyxati</h2>
+
+
+
+<p class="wp-block-paragraph">Apple tomonidan eʼlon qilingan xavfsizlik maʼlumotlariga muvofiq, yangilaniş orqali quyidagi 9 ta zaiflik bartaraf etilgan:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>CVE identifikatori</th><th>Komponent</th><th>Zaiflikning qisqacha tavsifi</th></tr><tr><td>CVE-2026-113964</td><td>CoreUtils</td><td>Bluetooth ulaniş kodini tekşiriş çeklovini çetlab ötiş</td></tr><tr><td>CVE-2026-113965</td><td>CoreUtils</td><td>Foydalanuvçi iştirokisiz Bluetooth orqali juftlaşiş</td></tr><tr><td>CVE-2026-113968</td><td>AirPlay</td><td>Ulaniş kodini tekşiriş urinişlari çeklovini çetlab ötiş</td></tr><tr><td>CVE-2026-113969</td><td>rapportd</td><td>Mahalliy tarmoq orqali AirPlay autentifikatsiya çeklovini çetlab ötiş</td></tr><tr><td>CVE-2026-113970</td><td>Bluetooth</td><td>Use-After-Free orqali jarayon xotirasini buzish</td></tr><tr><td>CVE-2026-113961</td><td>Messages</td><td>iMessage guruh suhbatiga ruxsatsiz qöşiliş va xabarlarni oliş</td></tr><tr><td>CVE-2026-113960</td><td>Messages</td><td>Guruhga qöşilişdan oldingi xabarlarni köriş</td></tr><tr><td>CVE-2026-113963</td><td>App Intents</td><td>Ilovalar orqali maxfiy foydalanuvçi maʼlumotlariga ruxsatsiz kiriş</td></tr><tr><td>CVE-2026-111497</td><td>Brotli</td><td>Xotira çegarasidan taşqariga maʼlumot yoziş</td></tr></tbody></table></figure>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Qaysi qurilmalar yangilanişi kerak?</h2>
+
+
+
+<p class="wp-block-paragraph">Apple kompaniyasining rasmiy maʼlumotlariga köra, iOS 27.2.1 va iPadOS 27.2.1 yangilanişlari quyidagi qurilmalar uçun taqdim etilgan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>iPhone 11 va undan keyingi modellar;</li>
+
+
+
+<li>iPad Pro 12,9 dyuymli 4-avlod va undan keyingi modellar;</li>
+
+
+
+<li>iPad Pro 11 dyuymli 2-avlod va undan keyingi modellar;</li>
+
+
+
+<li>iPad Air 4-avlod va undan keyingi modellar;</li>
+
+
+
+<li>iPad 9-avlod va undan keyingi modellar;</li>
+
+
+
+<li>iPad mini 6-avlod va undan keyingi modellar.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, Apple aniqlangan xavfsizlik muammolarining ayrimlarini boşqa operatsion tizimlar uçun ham taqdim etilgan yangilanişlar orqali bartaraf etgan. Jumladan, macOS, watchOS va visionOS tizimlari uçun ham tegişli xavfsizlik tuzatişlari çiqarilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Şu sababli faqat iPhone va iPad qurilmalarini emas, balki Apple ekotizimida foydalanilayotgan boşqa qurilmalarni ham yangilaş holatini tekşiriş lozim.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Foydalanuvçilar va taşkilotlar uçun tavsiyalar</h2>
+
+
+
+<p class="wp-block-paragraph">Aniqlangan zaifliklarning ayrimlari Bluetooth qamrov doirasidagi tajovuzkor tomonidan, boşqalari esa mahalliy tarmoq orqali foydalanilişi mumkinligini hisobga olib, quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li> <strong>Operatsion tizimni yangilaş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">iPhone yoki iPad qurilmasida quyidagi ketma-ketlik orqali yangilanişni tekşiriş lozim:</p>
+
+
+
+<p class="wp-block-paragraph">Sozlamalar (Settings) → Umumiy (General) → Dasturiy taʼminotni yangilaş (Software Update).</p>
+
+
+
+<p class="wp-block-paragraph">Mavjud bölsa, iOS 27.2.1 yoki iPadOS 27.2.1 versiyasini örnatiş tavsiya etiladi.</p>
+
+
+
+<ol start="2" class="wp-block-list">
+<li><strong>Bluetooth va AirPlay xizmatlaridan foydalanişni nazorat qiliş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Uşbu xizmatlardan foydalanilmayotgan vaqtda Bluetooth ulanişlarini hamda AirPlay orqali qurilmalarni ulaş imkoniyatlarini çeklaş maqsadga muvofiq. Ayniqsa, nomaʼlum qurilmalar bilan juftlaşiş sörovlarini tasdiqlamaslik lozim.</p>
+
+
+
+<ol start="3" class="wp-block-list">
+<li><strong>Nomaʼlum qurilmalar bilan ulanişdan saqlaniş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Bluetooth yoki AirPlay orqali kelib tuşadigan ulaniş sörovlarini tekşirmasdan tasdiqlamaslik, nomaʼlum qurilmalarni işonçli qurilmalar röyxatiga qöşmaslik tavsiya etiladi.</p>
+
+
+
+<ol start="4" class="wp-block-list">
+<li><strong>iMessage maxfiyligini nazorat qiliş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Guruh suhbatlariga nomaʼlum foydalanuvçilar qöşilişi bilan boğliq holatlarga eʼtibor beriş, şubhali guruh takliflarini qabul qilmaslik va şaxsiy yozişmalarda maxfiy maʼlumotlarni yuborişda ehtiyotkor böliş zarur.</p>
+
+
+
+<ol start="5" class="wp-block-list">
+<li><strong>Taşkilot qurilmalarini markazlaşgan boşqariş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Taşkilotlarda foydalanilayotgan iPhone va iPad qurilmalarining operatsion tizim versiyalarini tekşiriş, eskirgan versiyalardan foydalanişni çeklaş hamda MDM (Mobile Device Management) tizimlari orqali xavfsizlik yangilanişlari örnatilişini nazorat qiliş tavsiya etiladi.</p>
+
+
+
+<ol start="6" class="wp-block-list">
+<li><strong>Yangilanişdan oldin zaxira nusxasini yaratiş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Muhim maʼlumotlarning yöqoliş xavfini kamaytiriş maqsadida yangilanişni örnatişdan oldin iCloud yoki kompyuter orqali qurilma maʼlumotlarining zaxira nusxasini yaratiş maqsadga muvofiq.</p>
+
+
+
+<p class="wp-block-paragraph">Apple qurilmalarida aniqlangan mazkur 9 ta zaiflik Bluetooth va AirPlay orqali qurilmalarni ulaş, iMessage yozişmalarini himoyalaş, ilovalarning foydalanuvçi maʼlumotlariga kiriş huquqlarini nazorat qiliş hamda tizim xotirasining yaxlitligini taʼminlaş mexanizmlariga taalluqlidir.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, Bluetooth va AirPlay orqali autentifikatsiya çeklovlarini çetlab ötiş imkoniyati qurilmalar xavfsizligi uçun muhim tahdid hisoblanadi. iMessage bilan boğliq zaifliklar esa şaxsiy yozişmalarning maxfiyligi va foydalanuvçi maʼlumotlarini himoyalaş masalalariga bevosita taʼsir körsatişi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Apple hozirça mazkur zaifliklardan real hujumlarda foydalanilganini tasdiqlamagan. Şunga qaramay, ularning texnik xususiyatlari va ehtimoliy oqibatlarini inobatga olgan holda, xavfsizlik yangilanişlarini keçiktirmasdan örnatiş muhim.</p>
+
+
+
+<p class="wp-block-paragraph">Foydalanuvçilarga iPhone va iPad qurilmalarini iOS 27.2.1 yoki iPadOS 27.2.1 versiyalariga, şuningdek, boşqa Apple qurilmalarini ular uçun taqdim etilgan tegişli xavfsizlik yangilanişlariga zudlik bilan yangilaş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/apple-ios-27-2-1-va-ipados-27-2-1-yangilanislari-orqali-9-ta-xavfsizlik-zaifligi-bartaraf-etildi/">Apple iOS 27.2.1 va iPadOS 27.2.1 yangilanişlari orqali 9 ta xavfsizlik zaifligi bartaraf etildi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+		<item>
+		<title>Google Chrome brauzerida faol foydalanilayotgan kritik 0-day zaiflik aniqlandi!</title>
+		<link>https://uzcert.uz/google-chrome-brauzerida-faol-foydalanilayotgan-kritik-0-day-zaiflik-aniqlandi/</link>
+		
+		<dc:creator><![CDATA[Bektosh Rustamov]]></dc:creator>
+		<pubDate>Tue, 10 Nov 2026 04:49:58 +0000</pubDate>
+				<category><![CDATA[Yangiliklar]]></category>
+		<guid isPermaLink="false">https://uzcert.uz/?p=42547</guid>
+
+					<description><![CDATA[<p>Google kompaniyasi Chrome brauzerida aniqlangan va kiberjinoyatçilar tomonidan real hujumlarda foydalanilayotgani tasdiqlangan CVE-2026-125350 identifikatorli 0-day (Zero-Day) zaiflikni bartaraf etiş uçun navbatdan taşqari xavfsizlik yangilanişini taqdim etdi. XML komponentida yuzaga keladigan mazkur zaiflik xotirani boşqarişdagi xatolik bilan boğliq bölib, undan muvaffaqiyatli foydalaniş brauzer faoliyatining izdan çiqişi yoki muayyan şaroitlarda zararli kodni bajariş imkoniyatini yuzaga keltirişi mumkin. Google foydalanuvçilarni brauzerning sönggi versiyasiga yangilaşga çaqirmoqda. Zaiflikning kelib çiqiş sababi va texnik xususiyatlari 2026-yil 9-noyabr kuni Google Çrome işlab çiquvçilari brauzerning Stable kanalida xavfsizlik yangilanişini eʼlon qildi. Mazkur yangilaniş orqali jami 9 ta xavfsizlik zaifligi bartaraf etilgan bölib, ulardan 7 tasi yuqori (High), 2 tasi esa örta (Medium) xavf darajasiga ega. Uşbu zaifliklar orasida eng jiddiy eʼtibor CVE-2026-125350 identifikatorli 0-day zaifligiga qaratilmoqda. Google mazkur zaiflikdan foydalaniş imkonini beruvçi ekspluatatsiya vositasi mavjudligini va undan real hujumlarda foydalanilayotganini rasman tasdiqlagan. Zaiflik Çrome brauzerining XML maʼlumotlarini qayta işlaş komponentida yuzaga keladigan Use-After-Free (UAF) turidagi xotira boşqaruvi xatosi bilan boğliq. Use-After-Free — dastur tomonidan foydalanilgan xotira maydoni böşatilganidan keyin ham unga murojaat qiliş davom etişi natijasida yuzaga keladigan zaiflik turi hisoblanadi. Bunday holatda dastur avval foydalanilgan xotira hududidagi maʼlumotlarga qayta murojaat qilişi mumkin. Natijada xotira yaxlitligi buzilişi, dastur kutilmaganda töxtaşi yoki tajovuzkor tomonidan boşqariladigan maʼlumotlar qayta işlanişi ehtimoli paydo böladi. Mazkur zaiflikdan foydalaniş ssenariysida tajovuzkor maxsus şakllantirilgan XML maʼlumotlarini öz içiga olgan zararli veb-sahifani tayyorlaşi mumkin. Foydalanuvçi uşbu sahifaga taşrif buyurganida Çrome brauzerining XML komponentida xotiradan notöğri foydalaniş holati yuzaga kelişi ehtimoli mavjud. Agar hujum muvaffaqiyatli amalga oşirilsa, quyidagi oqibatlar kuzatilişi mumkin: Taʼkidlaş joizki, Google CVE-2026-125350 zaifligidan real hujumlarda foydalanilayotganini tasdiqlagan bölsa-da, hozirça hujumlarni amalga oşirayotgan şaxslar yoki guruhlar, hujumlarning aniq kölami va yakuniy maqsadlari haqida batafsil maʼlumot bermagan. Zaiflik haqida Google kompaniyasiga 2026-yil 6-noyabr kuni anonim xavfsizlik tadqiqotçisi xabar bergan. Oradan atigi uç kun ötib, 9-noyabr kuni uni bartaraf etişga qaratilgan yangilaniş eʼlon qilingan. Bir vaqtning özida yana 8 ta zaiflik bartaraf etildi Çrome brauzerining 2026-yil 9-noyabrdagi xavfsizlik yangilanişi faqat CVE-2026-125350 zaifligini bartaraf etiş bilan çeklanmagan. Unda brauzerning turli komponentlarida aniqlangan yana 8 ta xavfsizlik muammosi ham tuzatilgan. Jumladan: Uşbu zaifliklarning aksariyati brauzerning veb-kontentni qayta işlaş, grafik tasvirlarni aks ettiriş, JavaScript kodlarini bajariş va fayllar bilan işlaş mexanizmlariga tegişli. Ayniqsa, V8 JavaScript dvigateli, GPU va XML komponentlaridagi xotira boşqaruvi bilan boğliq xatoliklar alohida ahamiyatga ega. Çunki mazkur komponentlar brauzer tomonidan taşqi manbalardan olingan maʼlumotlarni qayta işlaşda faol iştirok etadi. Qaysi Google Çrome versiyalari zaiflikdan taʼsirlangan? Google kompaniyasining 2026-yil 9-noyabrdagi rasmiy xabariga köra, aniqlangan zaifliklarni bartaraf etiş uçun quyidagi Stable versiyalari taqdim etilgan: Operatsion tizim Yangilangan Chrome versiyasi Windows 157.0.8103.50 / 157.0.8103.51 macOS 157.0.8103.50 / 157.0.8103.51 Linux 157.0.8103.50 Bundan taşqari, korporativ foydalanuvçilar uçun möljallangan Extended Stable kanalida Windows va macOS tizimlari uçun 156.0.8078.96 versiyasi ham taqdim etilgan. Google yangilanişlarni bosqiçma-bosqiç, yaʼni bir neça kun yoki hafta davomida tarqatişini bildirgan. Şu sababli barça foydalanuvçilarda yangilaniş avtomatik ravişda bir vaqtda paydo bölmasligi mumkin. Google xavfsizlik nuqsonlariga oid texnik tafsilotlarni foydalanuvçilarning aksariyati tegişli tuzatişlarni örnatguniga qadar çeklangan holda saqlaşini ham maʼlum qilgan. Bunday yondaşuv tajovuzkorlarning zaiflikdan foydalaniş mexanizmini batafsil örganib, hujumlarni kengaytirişining oldini olişga qaratilgan. Foydalanuvçilar va taşkilotlar uçun tavsiyalar Mazkur zaiflikdan real hujumlarda foydalanilayotgani tasdiqlanganini inobatga olib, Google Çrome brauzeridan foydalanayotgan barça foydalanuvçilar va taşkilotlarga quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi: Google Çrome brauzerini oçib, quyidagi manzilga ötiş lozim: çrome://settings/help Mazkur sahifada brauzerning joriy versiyasi avtomatik tekşiriladi va mavjud yangilanişlar yuklab olinadi. Yangilaniş örnatilgaç, uni kuçga kiritiş uçun brauzerni qayta işga tuşiriş (Relaunç) talab etiladi. Avtomatik yangilaniş hali mavjud bölmagan holatlarda brauzerning yuqoridagi bölimi orqali yangilanişlarni qölda tekşiriş tavsiya etiladi. Linux foydalanuvçilari esa foydalanayotgan distributivning paketlar boşqaruv tizimi orqali tegişli yangilanişlarni örnatişlari lozim. 3.Şubhali havolalarga ötmaslik. Elektron poçta, messenjerlar, ijtimoiy tarmoqlar yoki boşqa manbalar orqali yuborilgan nomaʼlum havolalarni oçişda ehtiyotkor böliş zarur. Ayniqsa, şubhali veb-saytlarga kiriş va ulardagi nomaʼlum fayllarni yuklab olişdan saqlaniş lozim. Google Çrome bilan bir qatorda Çromium loyihasi asosida işlab çiqilgan boşqa brauzerlar ham öxşaş dasturiy komponentlardan foydalanadi. Şu sababli Microsoft Edge, Opera, Brave, Vivaldi va boşqa Çromium asosidagi brauzerlar foydalanuvçilari ham tegişli işlab çiqaruvçilarning xavfsizlik yangilanişlarini kuzatib borişlari va ular taqdim etilişi bilan örnatişlari kerak. Bunda Google Çrome uçun çiqarilgan yangilaniş boşqa brauzerlarga avtomatik ravişda tatbiq etilmasligini hisobga oliş lozim. Taşkilotlarning axborot texnologiyalari va kiberxavfsizlik bölinmalari tarmoqdagi barça işçi stansiyalar va serverlarda foydalanilayotgan brauzerlar versiyalarini inventarizatsiyadan ötkazişi, eskirgan versiyalarni aniqlaşi hamda yangilanişlarning örnatilişini markazlaşgan tartibda nazorat qilişi maqsadga muvofiq. Şuningdek, brauzerlar faoliyatiga oid xavfsizlik hodisalarini monitoring qiliş, şubhali veb-manzillarga kiriş holatlarini tahlil qiliş va zararli kontentni aniqlaş mexanizmlarini takomillaştiriş tavsiya etiladi. CVE-2026-125350 zaifligining eng xavfli jihati — undan foydalaniş holatlari allaqaçon real muhitda kuzatilgani va Google tomonidan rasman tasdiqlanganidir. Brauzerlar internetdagi turli manbalardan olingan maʼlumotlarni doimiy ravişda qayta işlaşi sababli, ulardagi xotira boşqaruvi bilan boğliq xatoliklar foydalanuvçilar va taşkilotlar uçun jiddiy kiberxavfsizlik tahdidini yuzaga keltiradi. Ayniqsa, zararli veb-sahifalar, fişing havolalari va buzib kirilgan qonuniy veb-saytlar orqali foydalanuvçilarni hujum nişoniga aylantiriş ehtimoli mavjud. Şu bois mazkur tahdidning oldini olişda faqat antivirus vositalariga tayaniş yetarli emas. Dasturiy taʼminotni öz vaqtida yangilaş, şubhali havolalardan ehtiyot böliş va taşkilotlarda brauzerlar xavfsizligini markazlaşgan holda nazorat qiliş muhim ahamiyatga ega. Foydalanuvçilarga Google Çrome brauzerini 157.0.8103.50/.51 (Windows va macOS) yoki 157.0.8103.50 (Linux) versiyalariga yoxud undan keyingi xavfsizlik yangilanişi mavjud versiyalarga zudlik bilan yangilaş tavsiya etiladi.</p>
+<p>The post <a href="https://uzcert.uz/google-chrome-brauzerida-faol-foydalanilayotgan-kritik-0-day-zaiflik-aniqlandi/">Google Chrome brauzerida faol foydalanilayotgan kritik 0-day zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></description>
+										<content:encoded><![CDATA[
+<p class="wp-block-paragraph"><strong>Google kompaniyasi Chrome brauzerida aniqlangan va kiberjinoyatçilar tomonidan real hujumlarda foydalanilayotgani tasdiqlangan CVE-2026-125350 identifikatorli 0-day (Zero-Day) zaiflikni bartaraf etiş uçun navbatdan taşqari xavfsizlik yangilanişini taqdim etdi. XML komponentida yuzaga keladigan mazkur zaiflik xotirani boşqarişdagi xatolik bilan boğliq bölib, undan muvaffaqiyatli foydalaniş brauzer faoliyatining izdan çiqişi yoki muayyan şaroitlarda zararli kodni bajariş imkoniyatini yuzaga keltirişi mumkin. Google foydalanuvçilarni brauzerning sönggi versiyasiga yangilaşga çaqirmoqda.</strong></p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Zaiflikning kelib çiqiş sababi va texnik xususiyatlari</h2>
+
+
+
+<p class="wp-block-paragraph">2026-yil 9-noyabr kuni Google Çrome işlab çiquvçilari brauzerning Stable kanalida xavfsizlik yangilanişini eʼlon qildi. Mazkur yangilaniş orqali jami 9 ta xavfsizlik zaifligi bartaraf etilgan bölib, ulardan 7 tasi yuqori (High), 2 tasi esa örta (Medium) xavf darajasiga ega.</p>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaifliklar orasida eng jiddiy eʼtibor CVE-2026-125350 identifikatorli 0-day zaifligiga qaratilmoqda. Google mazkur zaiflikdan foydalaniş imkonini beruvçi ekspluatatsiya vositasi mavjudligini va undan real hujumlarda foydalanilayotganini rasman tasdiqlagan.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflik Çrome brauzerining XML maʼlumotlarini qayta işlaş komponentida yuzaga keladigan Use-After-Free (UAF) turidagi xotira boşqaruvi xatosi bilan boğliq.</p>
+
+
+
+<p class="wp-block-paragraph">Use-After-Free — dastur tomonidan foydalanilgan xotira maydoni böşatilganidan keyin ham unga murojaat qiliş davom etişi natijasida yuzaga keladigan zaiflik turi hisoblanadi. Bunday holatda dastur avval foydalanilgan xotira hududidagi maʼlumotlarga qayta murojaat qilişi mumkin. Natijada xotira yaxlitligi buzilişi, dastur kutilmaganda töxtaşi yoki tajovuzkor tomonidan boşqariladigan maʼlumotlar qayta işlanişi ehtimoli paydo böladi.</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan foydalaniş ssenariysida tajovuzkor maxsus şakllantirilgan XML maʼlumotlarini öz içiga olgan zararli veb-sahifani tayyorlaşi mumkin. Foydalanuvçi uşbu sahifaga taşrif buyurganida Çrome brauzerining XML komponentida xotiradan notöğri foydalaniş holati yuzaga kelişi ehtimoli mavjud.</p>
+
+
+
+<p class="wp-block-paragraph">Agar hujum muvaffaqiyatli amalga oşirilsa, quyidagi oqibatlar kuzatilişi mumkin:</p>
+
+
+
+<ul class="wp-block-list">
+<li>Masofadan zararli kod bajarilişi (RCE) — zaiflikdan foydalanişning muayyan şaroitlarida tajovuzkor tomonidan brauzer jarayonida zararli kodni işga tuşiriş imkoniyati yuzaga kelişi mumkin.</li>
+
+
+
+<li>Brauzer faoliyatining izdan çiqişi — xotira bilan boğliq xatolik sababli Çrome brauzeri işlaşdan töxtaşi yoki kutilmaganda yopilişi mumkin.</li>
+
+
+
+<li>Xotira yaxlitligining buzilişi — dastur xotirasidagi maʼlumotlar notöğri qayta işlanişi va boşqa xavfsizlik muammolari uçun şaroit yuzaga kelişi mumkin.</li>
+
+
+
+<li>Keyingi hujumlar uçun imkoniyat yaratilişi — brauzer jarayonida kod bajarilişiga erişilgan taqdirda, qöşimça zaifliklardan foydalaniş orqali hujum kölamini kengaytirişga urinişlar amalga oşirilişi mumkin.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Taʼkidlaş joizki, Google CVE-2026-125350 zaifligidan real hujumlarda foydalanilayotganini tasdiqlagan bölsa-da, hozirça hujumlarni amalga oşirayotgan şaxslar yoki guruhlar, hujumlarning aniq kölami va yakuniy maqsadlari haqida batafsil maʼlumot bermagan.</p>
+
+
+
+<p class="wp-block-paragraph">Zaiflik haqida Google kompaniyasiga 2026-yil 6-noyabr kuni anonim xavfsizlik tadqiqotçisi xabar bergan. Oradan atigi uç kun ötib, 9-noyabr kuni uni bartaraf etişga qaratilgan yangilaniş eʼlon qilingan.</p>
+
+
+
+<p class="wp-block-paragraph">Bir vaqtning özida yana 8 ta zaiflik bartaraf etildi</p>
+
+
+
+<p class="wp-block-paragraph">Çrome brauzerining 2026-yil 9-noyabrdagi xavfsizlik yangilanişi faqat CVE-2026-125350 zaifligini bartaraf etiş bilan çeklanmagan. Unda brauzerning turli komponentlarida aniqlangan yana 8 ta xavfsizlik muammosi ham tuzatilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Jumladan:</p>
+
+
+
+<ul class="wp-block-list">
+<li>CVE-2026-125346 (High) — XML komponentida Use-After-Free turidagi xotira boşqaruvi xatosi.</li>
+
+
+
+<li>CVE-2026-125344 (High) — V8 JavaScript dvigatelida Type Confusion, yaʼni maʼlumotlar turlarini notöğri talqin qiliş bilan boğliq zaiflik.</li>
+
+
+
+<li>CVE-2026-125348 (High) — GPU komponentida ajratilgan xotira çegarasidan taşqariga maʼlumot yoziş (Out-of-Bounds Write) zaifligi.</li>
+
+
+
+<li>CVE-2026-125347 (High) — FileSystem komponentida ruxsatlarni tekşiriş va avtorizatsiya mexanizmidagi xatolik.</li>
+
+
+
+<li>CVE-2026-125343 (High) — Compositing komponentida buferning tölib ketişi (Buffer Overflow) zaifligi.</li>
+
+
+
+<li>CVE-2026-125345 (High) — WebGL komponentida resurslarni notöğri initsializatsiya qiliş bilan boğliq zaiflik.</li>
+
+
+
+<li>CVE-2026-125349 (Medium) — GPU komponentida resurslarni dastlabki holatga keltiriş bilan boğliq xatolik.</li>
+
+
+
+<li>CVE-2026-125342 (Medium) — GPU komponentida aniqlangan yana bir resurslarni notöğri initsializatsiya qiliş zaifligi.</li>
+</ul>
+
+
+
+<p class="wp-block-paragraph">Uşbu zaifliklarning aksariyati brauzerning veb-kontentni qayta işlaş, grafik tasvirlarni aks ettiriş, JavaScript kodlarini bajariş va fayllar bilan işlaş mexanizmlariga tegişli.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, V8 JavaScript dvigateli, GPU va XML komponentlaridagi xotira boşqaruvi bilan boğliq xatoliklar alohida ahamiyatga ega. Çunki mazkur komponentlar brauzer tomonidan taşqi manbalardan olingan maʼlumotlarni qayta işlaşda faol iştirok etadi.</p>
+
+
+
+<p class="wp-block-paragraph">Qaysi Google Çrome versiyalari zaiflikdan taʼsirlangan?</p>
+
+
+
+<p class="wp-block-paragraph">Google kompaniyasining 2026-yil 9-noyabrdagi rasmiy xabariga köra, aniqlangan zaifliklarni bartaraf etiş uçun quyidagi Stable versiyalari taqdim etilgan:</p>
+
+
+
+<figure class="wp-block-table"><table class="has-fixed-layout"><tbody><tr><th>Operatsion tizim</th><th>Yangilangan Chrome versiyasi</th></tr><tr><td>Windows</td><td>157.0.8103.50 / 157.0.8103.51</td></tr><tr><td>macOS</td><td>157.0.8103.50 / 157.0.8103.51</td></tr><tr><td>Linux</td><td>157.0.8103.50</td></tr></tbody></table></figure>
+
+
+
+<p class="wp-block-paragraph">Bundan taşqari, korporativ foydalanuvçilar uçun möljallangan Extended Stable kanalida Windows va macOS tizimlari uçun 156.0.8078.96 versiyasi ham taqdim etilgan.</p>
+
+
+
+<p class="wp-block-paragraph">Google yangilanişlarni bosqiçma-bosqiç, yaʼni bir neça kun yoki hafta davomida tarqatişini bildirgan. Şu sababli barça foydalanuvçilarda yangilaniş avtomatik ravişda bir vaqtda paydo bölmasligi mumkin.</p>
+
+
+
+<p class="wp-block-paragraph">Google xavfsizlik nuqsonlariga oid texnik tafsilotlarni foydalanuvçilarning aksariyati tegişli tuzatişlarni örnatguniga qadar çeklangan holda saqlaşini ham maʼlum qilgan. Bunday yondaşuv tajovuzkorlarning zaiflikdan foydalaniş mexanizmini batafsil örganib, hujumlarni kengaytirişining oldini olişga qaratilgan.</p>
+
+
+
+<h2 class="wp-block-heading has-medium-font-size">Foydalanuvçilar va taşkilotlar uçun tavsiyalar</h2>
+
+
+
+<p class="wp-block-paragraph">Mazkur zaiflikdan real hujumlarda foydalanilayotgani tasdiqlanganini inobatga olib, Google Çrome brauzeridan foydalanayotgan barça foydalanuvçilar va taşkilotlarga quyidagi xavfsizlik çoralarini amalga oşiriş tavsiya etiladi:</p>
+
+
+
+<ol class="wp-block-list">
+<li><strong>Brauzer versiyasini tekşiriş va yangilaş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Google Çrome brauzerini oçib, quyidagi manzilga ötiş lozim:</p>
+
+
+
+<p class="wp-block-paragraph">çrome://settings/help</p>
+
+
+
+<p class="wp-block-paragraph">Mazkur sahifada brauzerning joriy versiyasi avtomatik tekşiriladi va mavjud yangilanişlar yuklab olinadi. Yangilaniş örnatilgaç, uni kuçga kiritiş uçun brauzerni qayta işga tuşiriş (Relaunç) talab etiladi.</p>
+
+
+
+<ol start="2" class="wp-block-list">
+<li><strong>Yangilanişni kutib ötirmasdan qölda tekşiriş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Avtomatik yangilaniş hali mavjud bölmagan holatlarda brauzerning yuqoridagi bölimi orqali yangilanişlarni qölda tekşiriş tavsiya etiladi. Linux foydalanuvçilari esa foydalanayotgan distributivning paketlar boşqaruv tizimi orqali tegişli yangilanişlarni örnatişlari lozim.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>3.Şubhali havolalarga ötmaslik.</strong></p>
+
+
+
+<p class="wp-block-paragraph">Elektron poçta, messenjerlar, ijtimoiy tarmoqlar yoki boşqa manbalar orqali yuborilgan nomaʼlum havolalarni oçişda ehtiyotkor böliş zarur. Ayniqsa, şubhali veb-saytlarga kiriş va ulardagi nomaʼlum fayllarni yuklab olişdan saqlaniş lozim.</p>
+
+
+
+<ol start="4" class="wp-block-list">
+<li><strong>Çromium asosidagi boşqa brauzerlarni ham tekşiriş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Google Çrome bilan bir qatorda Çromium loyihasi asosida işlab çiqilgan boşqa brauzerlar ham öxşaş dasturiy komponentlardan foydalanadi. Şu sababli Microsoft Edge, Opera, Brave, Vivaldi va boşqa Çromium asosidagi brauzerlar foydalanuvçilari ham tegişli işlab çiqaruvçilarning xavfsizlik yangilanişlarini kuzatib borişlari va ular taqdim etilişi bilan örnatişlari kerak.</p>
+
+
+
+<p class="wp-block-paragraph">Bunda Google Çrome uçun çiqarilgan yangilaniş boşqa brauzerlarga avtomatik ravişda tatbiq etilmasligini hisobga oliş lozim.</p>
+
+
+
+<ol start="5" class="wp-block-list">
+<li><strong>Taşkilotlarda markazlaşgan yangilaş siyosatini joriy etiş.</strong></li>
+</ol>
+
+
+
+<p class="wp-block-paragraph">Taşkilotlarning axborot texnologiyalari va kiberxavfsizlik bölinmalari tarmoqdagi barça işçi stansiyalar va serverlarda foydalanilayotgan brauzerlar versiyalarini inventarizatsiyadan ötkazişi, eskirgan versiyalarni aniqlaşi hamda yangilanişlarning örnatilişini markazlaşgan tartibda nazorat qilişi maqsadga muvofiq.</p>
+
+
+
+<p class="wp-block-paragraph">Şuningdek, brauzerlar faoliyatiga oid xavfsizlik hodisalarini monitoring qiliş, şubhali veb-manzillarga kiriş holatlarini tahlil qiliş va zararli kontentni aniqlaş mexanizmlarini takomillaştiriş tavsiya etiladi.</p>
+
+
+
+<p class="wp-block-paragraph">CVE-2026-125350 zaifligining eng xavfli jihati — undan foydalaniş holatlari allaqaçon real muhitda kuzatilgani va Google tomonidan rasman tasdiqlanganidir. Brauzerlar internetdagi turli manbalardan olingan maʼlumotlarni doimiy ravişda qayta işlaşi sababli, ulardagi xotira boşqaruvi bilan boğliq xatoliklar foydalanuvçilar va taşkilotlar uçun jiddiy kiberxavfsizlik tahdidini yuzaga keltiradi.</p>
+
+
+
+<p class="wp-block-paragraph">Ayniqsa, zararli veb-sahifalar, fişing havolalari va buzib kirilgan qonuniy veb-saytlar orqali foydalanuvçilarni hujum nişoniga aylantiriş ehtimoli mavjud. Şu bois mazkur tahdidning oldini olişda faqat antivirus vositalariga tayaniş yetarli emas. Dasturiy taʼminotni öz vaqtida yangilaş, şubhali havolalardan ehtiyot böliş va taşkilotlarda brauzerlar xavfsizligini markazlaşgan holda nazorat qiliş muhim ahamiyatga ega.</p>
+
+
+
+<p class="wp-block-paragraph"><strong>Foydalanuvçilarga Google Çrome brauzerini 157.0.8103.50/.51 (Windows va macOS) yoki 157.0.8103.50 (Linux) versiyalariga yoxud undan keyingi xavfsizlik yangilanişi mavjud versiyalarga zudlik bilan yangilaş tavsiya etiladi.</strong></p>
+<p>The post <a href="https://uzcert.uz/google-chrome-brauzerida-faol-foydalanilayotgan-kritik-0-day-zaiflik-aniqlandi/">Google Chrome brauzerida faol foydalanilayotgan kritik 0-day zaiflik aniqlandi!</a> appeared first on <a href="https://uzcert.uz">UZCERT xizmati</a>.</p>
+]]></content:encoded>
+					
+		
+		
+			</item>
+	</channel>
+</rss>

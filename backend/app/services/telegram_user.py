@@ -11,6 +11,7 @@ ko'rsatilmaydi — faqat xabar matni (filtrdan o'tganlari) va havola.
 from __future__ import annotations
 
 import asyncio
+import logging
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -19,6 +20,8 @@ from telethon import TelegramClient
 from telethon.tl.types import Channel, Chat
 
 from app.core.config import settings
+
+log = logging.getLogger("osint.telegram")
 
 _client: TelegramClient | None = None
 _lock = asyncio.Lock()
@@ -49,11 +52,30 @@ async def get_client() -> TelegramClient:
             )
         if not _client.is_connected():
             await _client.connect()
-        if not await _client.is_user_authorized():
+        if not await _authorized(_client):
+            # Telethon natijani keshlaydi: bitta vaqtinchalik RPC xatosi ham jarayon umri davomida "login
+            # qilinmagan" bo'lib qolardi. Mijozni tashlab yuboramiz — keyingi urinish sessiyani qayta tekshiradi.
+            try:
+                await _client.disconnect()
+            finally:
+                _client = None
             raise TelegramNotConfigured(
-                "Telegram akkaunti login qilinmagan — scripts/tg_login.py ni ishga tushiring"
+                "Telegram akkaunti login qilinmagan yoki sessiya bekor qilingan — "
+                "scripts/tg_login.py ni ishga tushiring"
             )
         return _client
+
+
+async def _authorized(client: TelegramClient) -> bool:
+    """Sessiya haqiqiymi (is_user_authorized o'rniga — RPC xato turini logga yozish uchun)."""
+    from telethon import errors, functions
+
+    try:
+        await client(functions.updates.GetStateRequest())
+        return True
+    except errors.RPCError as exc:
+        log.warning("Telegram sessiyasi tekshiruvi: %s", type(exc).__name__)
+        return False
 
 
 @dataclass
@@ -133,3 +155,22 @@ async def fetch_messages() -> list[TgMessage]:
         except Exception:
             continue  # ruxsat yo'q / flood-wait — shu chatni o'tkazib yuboramiz
     return out
+
+
+async def fetch_chat_messages(chat: str, limit: int) -> list[TgMessage]:
+    """Bitta kanal/guruhdan so'nggi xabarlar. `chat` — username yoki raqamli ID (-100...).
+
+    Faqat akkaunt a'zo bo'lgan chatlar (dialoglar ichidan) o'qiladi — begona chatga qo'shilish yo'q.
+    """
+    client = await get_client()
+    key = chat.strip().lstrip("@")
+    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
+        info = _chat_info(d)
+        if info is None or not chat_matches(info, [key]):
+            continue
+        out: list[TgMessage] = []
+        async for m in client.iter_messages(d.entity, limit=limit):
+            if m.message:
+                out.append(TgMessage(info, m.id, m.message, m.date))
+        return out
+    raise ValueError(f"Chat topilmadi yoki akkaunt a'zo emas: {chat}")

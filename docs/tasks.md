@@ -81,7 +81,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 0 — Poydevor: tarmoq + baza nusxasi, Alembic (baseline + stamp, start'da upgrade), rollar va `require_admin`,
   `REGISTRATION_OPEN`, SECRET_KEY tekshiruvi, PyJWT, pytest
 - ✅ Bosqich 1 — Ma'lumot modeli: `sources`, `source_runs`, `categories`, `events` yangi ustunlari, eski qatorlarni ko'chirish
-- ⬜ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
+- ✅ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
 - ⬜ Bosqich 3 — Manbalar: bazaga seed, Telegram chatlari alohida, yangi threat-intel manbalari
 - ⬜ Bosqich 4 — Kategoriyalar (15 ta) CRUD va klassifikator, filtrlar
 - ⬜ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali

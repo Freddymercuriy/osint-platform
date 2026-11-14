@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Query
 from pydantic import BaseModel
@@ -6,9 +6,9 @@ from sqlalchemy import func, or_, select
 
 from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core.config import settings
-from app.models import EventRecord
+from app.models import EventRecord, Source
 from app.schemas import EventItemOut, EventsResponse
-from app.services.events import collector
+from app.services.events import scheduler
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -64,35 +64,51 @@ class CollectorStatus(BaseModel):
 
 @router.get("/status", response_model=CollectorStatus)
 async def collector_status(current_user: CurrentUser, db: DbSession) -> CollectorStatus:
+    """Yig'uvchi holati (v1 shakli saqlangan; manbalar bo'yicha batafsil — /api/admin/collector)."""
     rows = (await db.execute(
         select(EventRecord.category, func.count(EventRecord.id)).group_by(EventRecord.category)
     )).all()
     by_cat = {c: n for c, n in rows}
-    s = collector.state
+    last_check, last_error = (await db.execute(
+        select(func.max(Source.last_check_at),
+               select(Source.last_error).where(Source.enabled, Source.status == "down")
+               .order_by(Source.last_check_at.desc()).limit(1).scalar_subquery())
+    )).one()
+    s = scheduler.state
     return CollectorStatus(
         enabled=settings.events_poll_enabled,
-        running=s.running,
-        poll_seconds=settings.events_poll_seconds,
-        last_run=s.last_run,
-        last_duration=s.last_duration,
+        running=s.running and s.lock_held,
+        poll_seconds=int(scheduler.TICK_RANGE[1]),
+        last_run=last_check or s.last_run_at,
+        last_duration=None,
         last_new=s.last_new,
-        last_error=s.last_error,
+        last_error=last_error,
         runs=s.runs,
         total_events=sum(by_cat.values()),
         by_category=by_cat,
         notify_telegram=settings.notify_telegram,
         notify_categories=settings.notify_categories_list,
-        notified_total=s.notified_total,
+        notified_total=0,
         since=settings.events_since_dt,
         retention_days=max(0, settings.events_retention_days),
         retention_keep=settings.events_retention_keep_list,
-        last_purged=s.last_purged,
-        purged_total=s.purged_total,
+        last_purged=0,
+        purged_total=0,
     )
 
 
 @router.post("/refresh")
-async def refresh(current_user: AdminUser) -> dict[str, int]:
-    """Hozir yig'ish (navbatdagi fon tsiklini kutmasdan)."""
-    new = await collector.run_once()
-    return {"new": new}
+async def refresh(current_user: AdminUser, db: DbSession) -> dict[str, int]:
+    """Hozir yig'ish: yoqilgan, backoff'da bo'lmagan va oxirgi tekshiruvi intervalining yarmidan eski manbalar.
+
+    Rate limit'i qattiq manbalar (Google News, ransomware.live) shu qoida bilan ortiqcha so'ralmaydi.
+    """
+    now = datetime.now(UTC)
+    rows = (await db.scalars(select(Source).where(Source.enabled))).all()
+    due = [
+        s.id for s in rows
+        if s.consecutive_failures == 0
+        and (s.last_check_at is None or (now - s.last_check_at).total_seconds() >= max(60, s.interval_seconds / 2))
+    ]
+    results = await scheduler.run_many(due, manual=True, timeout=90)
+    return {"new": sum(r.new for r in results), "sources": len(due), "finished": len(results)}

@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
-from app.core.config import settings
-from app.models import EventRecord, NotificationState
+from app.models import Category, EventRecord, NotificationState
 from app.schemas import EventItemOut
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -34,9 +33,12 @@ async def list_notifications(
     db: DbSession,
     limit: int = Query(20, ge=1, le=100),
 ) -> NotificationsResponse:
-    cats = settings.notify_categories_list
+    # Ogohlantiriladigan kategoriyalar — bazadan (categories.notify). Baseline hodisalar ogohlantirish bermaydi.
+    cats = list((await db.scalars(
+        select(Category.slug).where(Category.notify, Category.enabled).order_by(Category.sort_order)
+    )).all())
     seen_at = await _seen_at(db, current_user.id)
-    base = EventRecord.category.in_(cats)
+    base = EventRecord.category.in_(cats) & EventRecord.is_baseline.is_(False)
 
     unread_stmt = select(func.count(EventRecord.id)).where(base)
     if seen_at:

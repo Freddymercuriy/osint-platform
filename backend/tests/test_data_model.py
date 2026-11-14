@@ -83,8 +83,10 @@ def test_legacy_rows_backfilled_and_restored():
             "insert into events (uid, source, category, title, url, summary, lang, notified) "
             "values ($1, $2, $3, $4, 'https://x.example/', $5, 'ru', false)", legacy))
         _migrate()
-        rows = {r["uid"]: r for r in asyncio.run(_q(
-            "select e.uid, e.summary, e.matched_keywords, e.channel, s.name as src, e.countries, "
+        # 0005 uid'larni qayta hisoblaydi — qatorlar sarlavha bo'yicha topiladi
+        by_title = {t[3]: t[0] for t in legacy}
+        rows = {by_title[r["title"]]: r for r in asyncio.run(_q(
+            "select e.title, e.summary, e.matched_keywords, e.channel, s.name as src, e.countries, "
             "c.slug as cat, e.severity from events e left join sources s on s.id = e.source_id "
             "left join categories c on c.id = e.category_id"))}
         assert rows["u1"]["summary"] == "В Ташкенте задержан"
@@ -99,7 +101,7 @@ def test_legacy_rows_backfilled_and_restored():
         assert rows["u5"]["summary"] == "matn prefikssiz" and rows["u5"]["matched_keywords"] == []
 
         _migrate("downgrade", "0002_user_roles")
-        back = {r["uid"]: r["summary"] for r in asyncio.run(_q("select uid, summary from events"))}
+        back = {by_title[r["title"]]: r["summary"] for r in asyncio.run(_q("select title, summary from events"))}
         assert back["u1"] == "🔎 мошенничество онлайн · В Ташкенте задержан"
         assert back["u3"] == "🔎 kazakh, .kz · text"
         assert back["u5"] == "matn prefikssiz"

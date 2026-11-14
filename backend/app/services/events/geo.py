@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import re
 
-from app.services.events.aggregator import _flat, _region_regex
+from app.services.events.filters import _flat, _region_regex
 from app.services.events.feeds import COUNTRY_KEYWORDS
 
 COUNTRY_CODES = tuple(COUNTRY_KEYWORDS)

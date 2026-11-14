@@ -4,11 +4,11 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import auth, events, notifications, search, stats, telegram
+from app.api import admin_sources, auth, events, notifications, search, stats, telegram
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal, engine
 from app.services.admin_roles import sync_admin_roles
-from app.services.events import collector as events_collector
+from app.services.events import scheduler as events_scheduler
 
 # Modellar Base.metadata ga ro'yxatdan o'tishi uchun import qilinadi
 from app import models  # noqa: F401
@@ -32,9 +32,9 @@ async def lifespan(app: FastAPI):
     # Sxema Alembic bilan boshqariladi (scripts/start.sh → scripts/migrate.py); create_all yo'q.
     async with AsyncSessionLocal() as db:
         await sync_admin_roles(db)
-    events_collector.start()  # fon yig'uvchi (Events)
+    events_scheduler.start()  # fon yig'uvchi: har manba o'z jadvali bilan
     yield
-    await events_collector.stop()
+    await events_scheduler.stop()
     await engine.dispose()
 
 
@@ -55,6 +55,7 @@ app.include_router(events.router)
 app.include_router(telegram.router)
 app.include_router(notifications.router)
 app.include_router(stats.router)
+app.include_router(admin_sources.router)
 
 
 @app.get("/health", tags=["system"])

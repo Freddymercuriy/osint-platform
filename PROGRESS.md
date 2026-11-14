@@ -77,6 +77,50 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 2: yig'uvchi dvigatel (2026-11-14)
+- `services/events/scheduler.py` — bitta 300 s tsikl o'rniga **har manba o'z jadvali**: `next_run_at = now + interval ×
+  random(1 ± jitter)`; rejasiz manbalar ishga tushganda bir interval ichida tasodifiy taqsimlanadi; tsikl har 15–30 s,
+  bir vaqtda ≤ 8 yig'ish. Jadval, ETag/Last-Modified va kursor holati bazada (restart qayta yuklamaydi).
+  Xato → eksponensial backoff (±20%, ≤ 6 soat), 429/503 `Retry-After` va Telegram `FloodWaitError` hurmat qilinadi;
+  muvaffaqiyatda avtomatik tiklanadi. PostgreSQL advisory lock — ikkinchi worker ikkinchi rejalashtiruvchini ochmaydi.
+- Holatlar: `ok`, `degraded` (sekin >15 s / oxirgi 10 urinishda ≥3 xato / lentaning eng yangi elementi >14 kun —
+  `config.stale_after_days`), `down` (ketma-ket ≥3 xato), `blocked` (403, 429, challenge/CAPTCHA sahifasi),
+  `auth_missing` (kalit/login yo'q yoki 401), `disabled`, `never_run`. Har urinish — `source_runs` qatori (30 kun saqlanadi).
+- `services/connectors/` — tur bo'yicha ulagichlar (`@register`): `rss`, `google_news`, `ransomware_live`, `telegram`
+  (t.me/s), `telegram_user`. `connectors/http.py`: bir xostga bittadan so'rov + 1–4 s tasodifiy pauza, shartli so'rov
+  (304 = sog'lom, yangisiz), holat kodlari → xato turlari, **SSRF** (har so'rov va redirect oldidan DNS: xususiy, loopback,
+  link-local, reserved manzillar rad etiladi). User-Agent endi ochiq: `OSINT-Platform/2.0 (+repo)` (brauzerga o'xshatilmaydi) —
+  52 manbadan hech biri bu sabab bloklamadi.
+- `services/events/pipeline.py`: URL faqat http(s); `EVENTS_SINCE` va kategoriya `retention_days`; **baseline** — manbaning
+  birinchi muvaffaqiyatli yig'ishi faqat `backfill_days` (≥ `EVENTS_SINCE`) oynasini yozadi, `is_baseline=True`, 🔔 da
+  ko'rinmaydi; oynadan eski yangi elementlar yoziladi, lekin ogohlantirmaydi. Takrorlar endi tashlanmaydi:
+  mavjud hodisaning `also_reported_by` ro'yxatiga qo'shiladi (yangilik imzosi + manbalararo `dedup_key`, masalan
+  ransomware qurboni domeni). `services/events/filters.py` — eski `aggregator.py` dagi matn/filtr yordamchilari.
+  `aggregator.py`, `collector.py` va kodidagi `FEEDS` ro'yxati olib tashlandi.
+- `0005_event_uid_v2`: uid = sha256(manba nomi | URL | sarlavha) — kategoriyasiz (klassifikator o'zgartirsa ham barqaror).
+- Admin API (`/api/admin/*`, faqat admin): `connectors`, `sources` (ro'yxat + filtr status/kind/enabled, 24 soatlik elementlar,
+  7 kunlik uptime, kalit bormi), yaratish/tahrirlash/o'chirish (hodisalar manba nomi bilan qoladi), enable/disable,
+  `test` (dry run — bazaga, ETag'ga, kursorga hech narsa yozilmaydi; saqlanmagan qoralama uchun ham), `run` (hozir),
+  `runs` (tarix), `export`/`import` (JSON, nom bo'yicha upsert), `collector`. `api_key_env` — faqat `..._API_KEY/_KEY/_TOKEN`
+  nomi (SECRET_KEY, DATABASE_URL, TG_* rad etiladi). `POST /api/events/refresh` — backoff'da bo'lmagan va oxirgi tekshiruvi
+  intervalining yarmidan eski manbalarni yig'adi (Google News / ransomware.live ortiqcha so'ralmaydi).
+- Bildirishnomalar: kategoriyalar `categories.notify` dan, baseline hodisalar hisoblanmaydi.
+- `telegram_user.get_client()`: sessiya tekshiruvi xatosi endi logga turi bilan yoziladi va mijoz qayta yaratiladi
+  (Telethon `is_user_authorized()` bitta vaqtinchalik xatoni jarayon umri bo'yi keshlardi).
+- Tekshirildi: ✅ 74 pytest (jitter chegaralari, backoff o'sishi/cheki/Retry-After, baseline → 304 → yangi element,
+  500×3 → degraded/degraded/down va tiklanish, 403/429/challenge/401, kalitsiz manba tarmoqqa chiqmaydi, SSRF (ichki DNS),
+  sekin va eskirgan lenta, yangilik va ransomware takrori → also_reported_by, yozib olingan UZCERT/Google News/ransomware.live
+  javoblari, advisory lock, 15 admin route × 401/403, CRUD, ichki URL'lar 422, dry run hech narsa yozmaydi, run now + tarix,
+  eksport/import, FloodWait → RateLimited); ✅ jonli: 63 manba taqsimlandi, ~15 daqiqada 56 urinish — 52 `ok`, 0 `blocked`,
+  15 ta takror `also_reported_by` ga tushdi; ✅ `tsc`, smoke (admin va analyst) toza.
+- ❗ **Telegram sessiyasi bekor qilingan**: `AuthKeyUnregisteredError` (Telegram kalitni o'z tomonida o'chirgan — akkaunt
+  sozlamalarida sessiya tugatilgan yoki Telegram o'zi chiqargan). 10:33 UTC da ishlagan, 14:20 UTC da bekor; aniq vaqt noma'lum
+  (eski yig'uvchi xatoni yutib, keshdagi xabarlarni qaytarib turgan). Testlar Telegram'ga ulanmaydi (muhit tozalanadi,
+  `TG_SESSION_PATH` vaqtinchalik). **Qayta login kerak**: `docker-compose exec backend python scripts/tg_login.py`.
+  Manba `auth_missing`, soatiga bir qayta tekshiriladi va login'dan keyin o'zi tiklanadi.
+- ⚠️ Tekshirilmadi: Telegram ulagichi jonli (sessiya yo'q); bir nechta uvicorn worker bilan advisory lock (faqat testda,
+  ikki ulanish bilan); `Retry-After` HTTP-sana ko'rinishi jonli manbada.
+
 ### v2 — Bosqich 1: ma'lumot modeli (2026-11-14)
 - Modellar: `models/category.py` (`Category`: slug, nom/tavsif en/ru/uz, severity, rang tokeni, Lucide ikon, notify,
   retention_days, tartib, enabled, is_system, `rules` JSONB), `models/source.py` (`Source`: kind, `config` JSONB, til,

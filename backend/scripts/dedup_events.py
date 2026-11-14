@@ -21,8 +21,8 @@ from sqlalchemy import delete, select  # noqa: E402
 
 from app.core.db import AsyncSessionLocal  # noqa: E402
 from app.models import EventRecord  # noqa: E402
-from app.services.events.aggregator import GOOGLE_NEWS_TAG  # noqa: E402
-from app.services.events.collector import DEDUP_CATEGORIES, DEDUP_WINDOW  # noqa: E402
+from app.services.connectors.google_news import GOOGLE_NEWS_TAG  # noqa: E402
+from app.services.events.pipeline import DEDUP_CHANNELS, DEDUP_WINDOW  # noqa: E402
 from app.services.events.dedup import signature, same_story  # noqa: E402
 
 
@@ -34,7 +34,7 @@ def _when(r: EventRecord) -> datetime:
 async def main(apply: bool) -> None:
     async with AsyncSessionLocal() as db:
         rows = list((await db.scalars(
-            select(EventRecord).where(EventRecord.category.in_(DEDUP_CATEGORIES))
+            select(EventRecord).where(EventRecord.channel.in_(DEDUP_CHANNELS))
         )).all())
         rows.sort(key=lambda r: (GOOGLE_NEWS_TAG in r.source, _when(r)))
 
