@@ -6,7 +6,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Git repo, `.gitignore`, `README.md`
 - ✅ Hujjatlar (`PROGRESS.md`, `docs/`)
 - ✅ Agent ta'riflari (`.claude/agents/`)
-- 🔄 GitHub repo + birinchi push
+- ✅ GitHub repo + birinchi push
 
 ## Bosqich 2 — Backend asos ✅
 - ✅ FastAPI ilova (`main.py`), sozlamalar (`config.py`)
@@ -33,15 +33,30 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ `/api/search/email`, `/api/search/phone`
 - ✅ Frontend sahifalar (umumiy `SearchModule` komponenti)
 
-## Bosqich 6 — Events (O'zbekiston) 🔄
+## Bosqich 6 — Events (O'zbekiston) ✅
 - ✅ RSS aggregator + `/api/events` + `/dashboard/events`
 - ✅ Seed manbalar: Gazeta.uz (UZ/RU), Kun.uz
-- ⬜ Foydalanuvchi bergan news saytlarni qo'shish
-- ⬜ Reg saytlar (ruxsat tasdiqlangandan keyin)
-- ⬜ Keshlash (har so'rovda feedlarni qayta yuklamaslik)
+- ✅ Threat intel manbalari: ransomware.live, Telegram (ochiq kanallar + foydalanuvchi akkaunti)
+- ✅ Keshlash → keyin DB'ga saqlash (fon yig'uvchi)
+- ⬜ Qo'shimcha manbalar: intelforums.cc (qaror kutilmoqda), Reddit (API kaliti kerak)
 
-## Bosqich 7+ — Kengaytirish
-- ⬜ Domen / IP / WHOIS moduli
+## Bosqich 7 — Fon yig'uvchi va ogohlantirishlar ✅
+- ✅ `events` jadvali, fon yig'uvchi (har 5 daq), dedup
+- ✅ Saytdagi ogohlantirishlar 🔔 (`/api/notifications`)
+
+## Bosqich 8–9 — UI qayta dizayn va motion ✅
+- ✅ Dizayn tizimi, app shell, grafikli dashboard
+- ✅ Motion design (framer-motion); mobil (360px) tekshiruvi va tuzatishlar
+- ✅ UI smoke-test (`frontend/scripts/qa/smoke.js`)
+
+## Bosqich 10 — Domen moduli va tarix ✅
+- ✅ `DomainCollector`: DNS, SPF/DMARC, WHOIS/RDAP, subdomenlar (CT), ASN; IP: PTR, ASN, RDAP
+- ✅ `/api/search/domain` + `/dashboard/domain`
+- ✅ Qidiruv tarixi sahifasi (`/dashboard/history`): filtr, qidiruv, natijalarni ko'rish, o'chirish
+- ✅ Tarix API: `kind`/`q`/`limit`/`offset`, `DELETE /jobs/{id}`, `DELETE /history`
+
+## Keyingi — Kengaytirish
 - ⬜ Hisobot (report) eksporti (PDF/JSON)
-- ⬜ Rate limiting, caching
-- ⬜ Testlar (pytest, Playwright)
+- ⬜ Events sahifalash, eski hodisalarni tozalash (retention)
+- ⬜ Rate limiting, natijalarni keshlash
+- ⬜ Testlar (pytest), Alembic migratsiyalar

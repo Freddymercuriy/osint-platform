@@ -3,14 +3,11 @@
 import {
   Activity,
   ArrowRight,
-  AtSign,
   BarChart3,
   Clock,
   Database,
   ExternalLink,
   Globe,
-  Mail,
-  Phone,
   Radar,
   Search,
   Send,
@@ -38,6 +35,7 @@ import {
 import { getCollectorStatus, getMe, type CollectorStatus, type Me } from "@/lib/api";
 import { CATEGORY_ORDER, categoryMeta } from "@/lib/categories";
 import { cn } from "@/lib/cn";
+import { MODULES } from "@/lib/modules";
 import { getOverview, type Overview } from "@/lib/stats";
 
 const MONTHS = ["yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek"];
@@ -74,13 +72,6 @@ function RadarVisual() {
     </div>
   );
 }
-
-const MODULES = [
-  { href: "/dashboard/username", title: "Username qidiruv", desc: "13 ta ochiq saytda profil izlash", icon: AtSign, tone: "cyan" as const },
-  { href: "/dashboard/email", title: "Email tekshiruvi", desc: "Sintaksis, MX server, Gravatar", icon: Mail, tone: "violet" as const },
-  { href: "/dashboard/phone", title: "Telefon tekshiruvi", desc: "Davlat, operator, raqam turi", icon: Phone, tone: "emerald" as const },
-  { href: "#", title: "Domen / WHOIS", desc: "DNS, WHOIS, subdomenlar", icon: Globe, tone: "slate" as const, soon: true },
-];
 
 export default function DashboardPage() {
   const [me, setMe] = useState<Me | null>(null);
@@ -130,10 +121,12 @@ export default function DashboardPage() {
         <div className="pointer-events-none absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-brand-cyan/10 blur-3xl" />
         <div className="relative flex items-center gap-8">
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">
-              <LiveDot tone={cs?.running ? (cs.last_error ? "amber" : "emerald") : "red"} />
-              <ScrambleText text={cs?.running === false ? "Monitoring to'xtagan" : "Monitoring faol"} />
-              {cs?.last_run && <span className="text-slate-500">· oxirgi skan {timeAgo(cs.last_run)}</span>}
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">
+              <span className="inline-flex items-center gap-2 whitespace-nowrap">
+                <LiveDot tone={cs?.running ? (cs.last_error ? "amber" : "emerald") : "red"} />
+                <ScrambleText text={cs?.running === false ? "Monitoring to'xtagan" : "Monitoring faol"} />
+              </span>
+              {cs?.last_run && <span className="whitespace-nowrap text-slate-500">· oxirgi skan {timeAgo(cs.last_run)}</span>}
             </div>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               <TextReveal text={`${greeting()},`} delay={0.1} />{" "}
@@ -166,11 +159,11 @@ export default function DashboardPage() {
 
       {/* ---------- KPI ---------- */}
       <Stagger className="grid grid-cols-2 gap-4 lg:grid-cols-5" inView={false}>
-        <StaggerItem><StatTile label="Jami hodisalar" value={ov?.total_events ?? 0} icon={Database} tone="cyan" loading={loading} hint="bazada saqlangan" /></StaggerItem>
-        <StaggerItem><StatTile label="So'nggi 24 soat" value={ov?.new_24h ?? 0} icon={Activity} tone="violet" loading={loading} hint="yangi topilgan" /></StaggerItem>
-        <StaggerItem><StatTile label="Ransomware" value={ov?.by_category.ransomware ?? 0} icon={Skull} tone="red" loading={loading} hint="UZ qurbonlar" /></StaggerItem>
-        <StaggerItem><StatTile label="Leak" value={ov?.by_category.leak ?? 0} icon={ShieldAlert} tone="orange" loading={loading} hint="leak chatlarida" /></StaggerItem>
-        <StaggerItem><StatTile label="Telegram" value={tg} icon={Send} tone="sky" loading={loading} hint="kanal va guruhlar" /></StaggerItem>
+        <StaggerItem><StatTile label="Jami hodisalar" value={ov?.total_events ?? 0} icon={Database} tone="cyan" stacked loading={loading} hint="bazada saqlangan" /></StaggerItem>
+        <StaggerItem><StatTile label="So'nggi 24 soat" value={ov?.new_24h ?? 0} icon={Activity} tone="violet" stacked loading={loading} hint="yangi topilgan" /></StaggerItem>
+        <StaggerItem><StatTile label="Ransomware" value={ov?.by_category.ransomware ?? 0} icon={Skull} tone="red" stacked loading={loading} hint="UZ qurbonlar" /></StaggerItem>
+        <StaggerItem><StatTile label="Leak" value={ov?.by_category.leak ?? 0} icon={ShieldAlert} tone="orange" stacked loading={loading} hint="leak chatlarida" /></StaggerItem>
+        <StaggerItem className="col-span-2 lg:col-span-1"><StatTile label="Telegram" value={tg} icon={Send} tone="sky" stacked loading={loading} hint="kanal va guruhlar" /></StaggerItem>
       </Stagger>
 
       {/* ---------- Grafiklar ---------- */}
@@ -288,16 +281,17 @@ export default function DashboardPage() {
                     href={e.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="group flex items-start gap-4 border-b border-white/[0.04] px-5 py-3.5 transition last:border-0 hover:bg-white/[0.03]"
+                    className="group flex flex-wrap items-start gap-x-4 gap-y-2 border-b border-white/[0.04] px-5 py-3.5 transition last:border-0 hover:bg-white/[0.03] sm:flex-nowrap"
                   >
                     <div className="mt-0.5">
                       <CategoryBadge category={e.category} />
                     </div>
-                    <div className="min-w-0 flex-1">
+                    {/* mobil: nishon + vaqt birinchi qatorda, sarlavha to'liq kenglikda pastda */}
+                    <div className="order-last min-w-0 basis-full sm:order-none sm:flex-1 sm:basis-0">
                       <div className="truncate text-sm font-medium text-slate-200 group-hover:text-white">{e.title}</div>
                       <div className="mt-0.5 line-clamp-1 text-xs text-slate-500">{e.summary || e.source}</div>
                     </div>
-                    <div className="flex shrink-0 items-center gap-1.5 text-xs text-slate-500">
+                    <div className="ml-auto flex shrink-0 items-center gap-1.5 text-xs text-slate-500 sm:ml-0">
                       <Clock className="h-3.5 w-3.5" />
                       {timeAgo(e.published ?? e.first_seen)}
                       <ExternalLink className="ml-1 h-3.5 w-3.5 opacity-0 transition group-hover:opacity-100" />
@@ -336,42 +330,27 @@ export default function DashboardPage() {
       <Reveal>
         <div className="mb-3 flex items-baseline justify-between">
           <h2 className="font-semibold text-white">Tekshiruv modullari</h2>
-          <span className="text-xs text-slate-500">
-            Sizning qidiruvlaringiz: <span className="font-mono text-slate-300">{ov?.searches_total ?? 0}</span>
-          </span>
+          <Link href="/dashboard/history" className="group inline-flex items-center gap-1 text-xs text-slate-500 transition hover:text-brand-cyan">
+            Sizning qidiruvlaringiz: <span className="font-mono text-slate-300 group-hover:text-brand-cyan">{ov?.searches_total ?? 0}</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {MODULES.map((m, i) => {
-            const inner = (
-              <Card
-                hover={!m.soon}
-                className={cn("group h-full p-5", m.soon && "opacity-60")}
-              >
+          {MODULES.map((m) => (
+            <Link key={m.kind} href={m.href}>
+              <Card hover className="group h-full p-5">
                 <div className="flex items-start justify-between">
                   <IconBox icon={m.icon} tone={m.tone} />
-                  {m.soon ? (
-                    <span className="kbd">tez orada</span>
-                  ) : (
-                    <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-brand-cyan" />
-                  )}
+                  <ArrowRight className="h-4 w-4 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-brand-cyan" />
                 </div>
                 <div className="mt-4 font-medium text-white">{m.title}</div>
                 <div className="mt-1 text-sm text-slate-500">{m.desc}</div>
-                {!m.soon && (
-                  <div className="mt-3 font-mono text-[11px] text-slate-600">
-                    {ov?.searches_by_kind[m.href.split("/").pop() ?? ""] ?? 0} ta qidiruv
-                  </div>
-                )}
+                <div className="mt-3 font-mono text-[11px] text-slate-600">
+                  {ov?.searches_by_kind[m.kind] ?? 0} ta qidiruv
+                </div>
               </Card>
-            );
-            return m.soon ? (
-              <div key={m.title}>{inner}</div>
-            ) : (
-              <Link key={m.title} href={m.href}>
-                {inner}
-              </Link>
-            );
-          })}
+            </Link>
+          ))}
         </div>
       </Reveal>
     </div>

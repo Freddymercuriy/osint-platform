@@ -50,3 +50,6 @@ tmp/
 # TypeScript build keshi
 *.tsbuildinfo
 .next-build/
+
+# UI smoke-test skrinshotlari (frontend/scripts/qa)
+.qa-shots/

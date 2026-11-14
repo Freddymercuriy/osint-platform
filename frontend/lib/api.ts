@@ -93,6 +93,7 @@ export type SearchResponse = {
   kind: string;
   checked: number;
   found: number;
+  created_at?: string | null;
   results: CollectResult[];
 };
 
@@ -102,6 +103,10 @@ export type SearchJob = {
   query: string;
   status: string;
   created_at: string;
+  /** tekshirilgan manbalar soni */
+  checked: number;
+  /** topilganlar soni */
+  found: number;
 };
 
 async function postSearch(path: string, query: string): Promise<SearchResponse> {
@@ -116,12 +121,47 @@ async function postSearch(path: string, query: string): Promise<SearchResponse> 
 export const searchUsername = (query: string) => postSearch("/api/search/username", query);
 export const searchEmail = (query: string) => postSearch("/api/search/email", query);
 export const searchPhone = (query: string) => postSearch("/api/search/phone", query);
+export const searchDomain = (query: string) => postSearch("/api/search/domain", query);
 
-export async function getHistory(): Promise<SearchJob[]> {
-  const res = await fetch(`${API_URL}/api/search/history`, {
+export type HistoryParams = { kind?: string; q?: string; limit?: number; offset?: number };
+
+/** Qidiruv tarixi (yangi → eski). `kind`/`q` bo'yicha filtr, `limit`/`offset` bilan sahifalash. */
+export async function getHistory(params: HistoryParams = {}): Promise<SearchJob[]> {
+  const sp = new URLSearchParams();
+  if (params.kind) sp.set("kind", params.kind);
+  if (params.q) sp.set("q", params.q);
+  if (params.limit) sp.set("limit", String(params.limit));
+  if (params.offset) sp.set("offset", String(params.offset));
+  const qs = sp.toString();
+  const res = await fetch(`${API_URL}/api/search/history${qs ? `?${qs}` : ""}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<SearchJob[]>(res);
+}
+
+/** Bitta qidiruvning saqlangan natijalari. */
+export async function getJob(id: number): Promise<SearchResponse> {
+  const res = await fetch(`${API_URL}/api/search/jobs/${id}`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<SearchResponse>(res);
+}
+
+export async function deleteJob(id: number): Promise<void> {
+  const res = await fetch(`${API_URL}/api/search/jobs/${id}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) await handle(res); // 204 — tanasiz
+}
+
+/** Tarixni tozalash (kind berilsa — faqat shu modul). O'chirilganlar sonini qaytaradi. */
+export async function clearHistory(kind?: string): Promise<{ deleted: number }> {
+  const res = await fetch(`${API_URL}/api/search/history${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<{ deleted: number }>(res);
 }
 
 // --- Telegram (foydalanuvchi akkaunti) ---

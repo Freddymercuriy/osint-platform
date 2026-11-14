@@ -36,11 +36,21 @@ class BaseCollector:
 
 Bu yangi modul qo'shishni oson qiladi — faqat yangi collector yozib, ro'yxatga qo'shiladi.
 
+Mavjud collectorlar: `username`, `email`, `phone`, `domain` (domen yoki IP). Har biri `POST /api/search/<kind>` orqali
+chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, `GET|DELETE /api/search/jobs/{id}`).
+
+`DomainCollector` qoidalari: foydalanuvchi kiritgan host'ga to'g'ridan-to'g'ri ulanmaydi (SSRF) — faqat DNS so'rovlari va
+qat'iy belgilangan ochiq xizmatlar (rdap.org, crt.sh, WHOIS serverlari); WHOIS/RDAP'dagi shaxsiy ma'lumotlar
+(registrant ismi, email, telefon, manzil) o'qilmaydi va saqlanmaydi.
+
 ## Frontend (`frontend/`)
 
 - Next.js App Router
 - `app/` — sahifalar (login, dashboard, search)
 - `lib/api.ts` — backend bilan ishlash (fetch wrapper)
+- `lib/modules.ts` — tekshiruv modullari ro'yxati (nom, rang, ikon, yo'l)
+- `components/SearchModule.tsx` — barcha qidiruv sahifalari uchun umumiy komponent
+- `scripts/qa/` — UI smoke-test (headless Chrome)
 - Tailwind CSS
 
 ## Autentifikatsiya

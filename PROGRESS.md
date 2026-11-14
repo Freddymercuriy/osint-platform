@@ -4,17 +4,24 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 9 — motion design qo'shildi (JARAYONDA TO'XTATILDI, pastdagi "Uyda davom etish" bo'limiga qarang)
-**Oxirgi yangilanish:** 2026-11-13
+**Bosqich:** 10 — Domen / IP / WHOIS moduli va Qidiruv tarixi sahifasi qo'shildi; Bosqich 9 (motion design) tekshiruvlari yopildi
+**Oxirgi yangilanish:** 2026-11-14
 
-## ▶️ UYDA DAVOM ETISH (2026-11-13 kechqurun to'xtatildi)
+## ▶️ DAVOM ETISH UCHUN
+
+### Ishga tushirish (shu kompyuterda)
+```bash
+docker-compose start                      # db + backend (konteynerlar mavjud bo'lsa); bo'lmasa: docker-compose up -d
+cd frontend && npm run dev                # http://localhost:3000
+# backend kodi o'zgarsa: docker-compose restart backend  (uvicorn --reload yo'q)
+```
 
 ### Boshqa kompyuterda ishga tushirish
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
-| Nima | Qayerda | Uyda nima qilish |
+| Nima | Qayerda | Nima qilish |
 |---|---|---|
-| `backend/.env` | maxfiy | ish kompyuteridan nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false` |
-| `backend/data/tg_session.session` | Telegram sessiyasi | nusxalash YOKI uyda qayta login: `docker-compose exec backend python scripts/tg_login.py` |
+| `backend/.env` | maxfiy | nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false` |
+| `backend/data/tg_session.session` | Telegram sessiyasi | nusxalash YOKI qayta login: `docker-compose exec backend python scripts/tg_login.py` |
 | Postgres ma'lumotlari | docker volume | ko'chmaydi: foydalanuvchi qayta ro'yxatdan o'tadi, hodisalarni fon yig'uvchi 5 daqiqada o'zi yig'adi |
 | `frontend/.env.local` | — | `cp frontend/.env.example frontend/.env.local` |
 
@@ -24,37 +31,54 @@ git clone https://github.com/Freddymercuriy/osint-platform && cd osint-platform 
 docker-compose build backend && docker-compose up -d        # yoki: docker compose ...
 cd frontend && npm install && cp .env.example .env.local && npm run dev   # http://localhost:3000
 ```
-Push uchun uyda ham `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
-### Shu sessiyada qilingan (Bosqich 8b + 9)
-- **Tekshiruv va xavfsizlik** (commit `13500e6`, push qilingan): 26 ta API testi; Postgres/backend portlari `127.0.0.1` ga bog'landi
-  (avval LAN/Tailscale'ga ochiq edi); `debug=False` (traceback mijozga chiqmaydi); buzuq JWT → 401; frontend 401'da login'ga qaytaradi
-  (`/login?expired=1`); `next dev -H 127.0.0.1`; `NEXT_DIST_DIR=.next-build npm run build` — dev serverni buzmaydigan tekshiruv build'i.
-- **Motion design** (`framer-motion` 14): `components/motion/index.tsx` — MotionProvider (reduced-motion hurmat), Reveal, Stagger/StaggerItem,
-  CountUp, TextReveal, ScrambleText, Tilt, Magnetic, PageTransition, RouteProgress, Aurora, Float. CSS: `globals.css` oxirida
-  (spotlight, btn-sheen, bar-grow, bell-ring, text-gradient-animated, aurora).
-  Ulangan joylar: root layout (Aurora fon, RouteProgress), `dashboard/template.tsx` (sahifa o'tishi), Sidebar (faol belgi `layoutId` bilan sirpanadi),
-  NotificationBell (prujinali ochilish, qo'ng'iroq silkinishi), Card (sichqonchani kuzatuvchi yorug'lik), Button (yaltirash, bosilish),
-  StatTile (raqam sanaladi), grafiklar (ustunlar o'sib chiqadi), dashboard (so'zma-so'z sarlavha, zinapoya), landing (TextReveal, 3D Tilt kartalar,
-  scroll reveal), Events (kategoriya belgisi sirpanadi, kartalar chapdan kiradi, muhim tugunlar pulslanadi), SearchModule (filtr belgisi, natija kartalari
-  `AnimatePresence popLayout`, foiz chizig'i).
-  Unumdorlik uchun: `.glass` dan `backdrop-blur` olib tashlandi; aurora — `filter: blur` emas, radial gradient.
-- Tuzatildi: landing radar hydration ogohlantirishi (koordinatalar yaxlitlandi), grafik shkalasi (`niceMax`).
+### 2026-11-14 sessiyasida qilingan (Bosqich 9 yopildi + Bosqich 10)
+- **Kechagi ⚠️ tekshiruvlar bajarildi:** qidiruv sahifalari (natija kartalari, filtr almashishi — username/phone), register,
+  mobil 360px, framer-motion bilan production build — hammasi o'tdi. Topilgan va tuzatilgan kamchiliklar:
+  - mobil dashboard: KPI yorlig'i ikonka ustiga chiqardi → `StatTile` ga `stacked` prop (tor to'rda ikonka yorliq ustida);
+  - mobil "Muhim hodisalar": sarlavha 3-4 harfga qisilardi → nishon + vaqt birinchi qatorda, sarlavha to'liq kenglikda;
+  - sanalar `2026 M09 22` ko'rinishida chiqardi (brauzerda `uz-UZ` lokali to'liq emas) → `formatDate` / `formatTime` /
+    `formatDateTime` (`components/ui`, o'zbekcha oy nomlari). **`toLocaleDateString("uz-UZ")` ishlatmang**;
+  - `favicon.ico` 404 → `app/icon.svg`.
+- **Domen / IP / WHOIS moduli** (`/dashboard/domain`, `POST /api/search/domain`): `services/collectors/domain.py` —
+  - domen: DNS A/AAAA, NS, MX, SPF, DMARC; WHOIS/RDAP (rdap.org → rasmiy RDAP; ishlamasa port 43 WHOIS, serverni IANA'dan oladi;
+    .uz ham ishlaydi); domen muddati (30 kundan kam qolsa ogohlantirish); subdomenlar (crt.sh, Certificate Transparency);
+    hosting/ASN (Team Cymru DNS);
+  - IP (v4/v6): PTR, ASN, RDAP tarmoq; xususiy/loopback manzillarga tashqi so'rov yuborilmaydi;
+  - **maxfiylik:** WHOIS/RDAP'dan registrant/admin/tech ismi, email, telefon, manzil o'qilmaydi va saqlanmaydi — faqat
+    registrator, sanalar, holat, NS. **SSRF:** foydalanuvchi kiritgan host'ga hech qachon to'g'ridan-to'g'ri ulanilmaydi
+    (faqat DNS, rdap.org, crt.sh, WHOIS serverlari); kirish regex bilan tekshiriladi;
+  - ⚠️ crt.sh tez-tez sekin/502 → o'sha qator "Noaniq" chiqadi va qidiruv ~12 s davom etadi (qolgan qatorlar ishlayveradi).
+- **Qidiruv tarixi** (`/dashboard/history`): modul bo'yicha filtr (sanoq bilan), matn bo'yicha qidiruv (server tomonda, debounce),
+  natijalarni qator ichida ochish, "Qayta" (modul sahifasiga `?q=` bilan — so'rov oldindan to'ldiriladi), bitta yozuvni o'chirish
+  va tarixni tozalash (ikki bosqichli tasdiq), "Yana yuklash".
+  API: `GET /api/search/history?kind=&q=&limit=&offset=` (har yozuvda `checked`/`found`), `DELETE /api/search/jobs/{id}`,
+  `DELETE /api/search/history?kind=`. Natijalar DB ustun uzunligiga kesiladi (`_clip`).
+- `lib/modules.ts` — modullar ro'yxati (nom/rang/ikon) bitta joyda: dashboard, tarix, sidebar shundan oladi.
+- `SearchModule` natija kartasi: manba nomi 2 qatorgacha, uzun izoh bosilganda to'liq ochiladi.
+- **UI smoke-test repoda:** `frontend/scripts/qa/` (headless Chrome + CDP, qo'shimcha paket shart emas):
+  `cd frontend && TOKEN=<JWT> node scripts/qa/smoke.js` — 10 sahifa × desktop/mobil: konsol xatolari, gorizontal skroll,
+  ko'rinmay qolgan kontent; skrinshotlar `frontend/.qa-shots/` (gitignored).
+- Agentlar ishlatildi: `osint-collector` (domain.py), `frontend` (history sahifasi); qolgani va ko'rib chiqish — asosiy sessiyada.
 
 ### Tekshirilgan / tekshirilMAGAN
-- ✅ `npx tsc --noEmit` xatosiz; dev serverda `/`, `/login`, `/dashboard`, `/dashboard/events` skrinshot bilan ko'rildi, konsol xatosiz.
-- ⚠️ **Tekshirilmadi (to'xtatilgani uchun):** qidiruv sahifalarida natija kartalari animatsiyasi va filtr almashishi (username/phone);
-  framer-motion bilan production build (`NEXT_DIST_DIR=.next-build npm run build`); mobil ko'rinish (360px); register sahifasi.
-- Skrinshot skripti ish kompyuterining vaqtinchalik papkasida qoldi (git'da yo'q) — kerak bo'lsa qayta yoziladi (headless Chrome + CDP).
+- ✅ `npx tsc --noEmit`; `NEXT_DIST_DIR=.next-build npm run build` (12 route); smoke-test 20/20 toza (konsol xatosiz).
+- ✅ API jonli sinovi: domen (`kun.uz`, `gov.uz`), IP (`8.8.8.8`), yaroqsiz kirish → 422, tokensiz → 401, tarix filtri/sahifalash,
+  o'chirish (204 → 404, natijalar CASCADE bilan ketadi), boshqa foydalanuvchi begona yozuvni ko'rmaydi/o'chira olmaydi (404).
+- ✅ Brauzerda: domen qidiruvi (skan → natija), `?q=` oldindan to'ldirish, tarix filtri/qidiruvi/ochish, o'chirish (bekor + tasdiq).
+- ⚠️ **Tekshirilmadi:** "Tarixni tozalash" tugmasining tasdiq yo'li brauzerda (test hisobining tarixini o'chirmaslik uchun; API'ning o'zi
+  sinalgan); WHOIS port-43 parseri faqat `.uz` da sinalgan (boshqa ccTLD formatlari tanilmasa qator "Noaniq" bo'ladi);
+  `next lint` (ESLint sozlanmagan).
 
 ### Keyingi qadamlar (tartib bilan)
-1. Yuqoridagi ⚠️ tekshiruvlarni bajarish; xato chiqsa tuzatish.
-2. Foydalanuvchi UI'ni ko'rib fikr bildiradi → kerakli joylarni sayqallash (animatsiya tezligi/kuchi, ranglar).
-3. Qidiruv tarixi sahifasi (API tayyor: `/api/search/history`, `/api/search/jobs/{id}`).
-4. Domen / IP / WHOIS moduli (sidebar'da "tez orada").
-5. Events: intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak), ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
-6. Texnik qarz: Alembic migratsiyalar; Next 15+ ga ko'chish (npm audit: 2 ta ogohlantirish); test hisobi `test@example.com / password123` ni o'chirish;
-   eski hodisalarni tozalash (retention); `.claude/agents` dagi 9 agentdan foydalanish.
+1. Foydalanuvchi UI'ni ko'rib fikr bildiradi → sayqallash (animatsiya tezligi/kuchi, ranglar).
+2. Hisobot eksporti (qidiruv natijasi → JSON/PDF) — tarix sahifasidan.
+3. Events: sahifalash (API'da `offset` bor), eski hodisalarni tozalash (retention);
+   intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak), ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
+4. Domen moduli: crt.sh o'rniga/yoniga tezroq CT manbasi; natijalarni qisqa muddat keshlash.
+5. Texnik qarz: Alembic migratsiyalar; pytest to'plami (hozir API testlari qo'lda); Next 15+ ga ko'chish (npm audit: 2 ta ogohlantirish);
+   test hisobi `test@example.com / password123` ni o'chirish (hozir QA uchun ishlatiladi); rate limiting (qidiruv endpointlari).
 
 ## Stack (tasdiqlangan)
 
@@ -157,6 +181,8 @@ Push uchun uyda ham `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, dav
     TG akkaunt yorlig'ida `(@None)`; sidebar yorlig'i sig'masligi
   - Tekshiruv: headless Chrome (CDP) skrinshotlari — landing, login, dashboard, events, username (skan + natija) ✅
 
+- [x] **Domen / IP / WHOIS + Qidiruv tarixi (Bosqich 10, 2026-11-14)** — tafsilotlar yuqorida ("2026-11-14 sessiyasida qilingan")
+
 ## ⚠️ Docker eslatmasi (muhim)
 - `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz
   (masalan CORS_ORIGINS), `restart` yetmaydi → konteynerni qayta yaratish kerak:
@@ -185,13 +211,9 @@ Qoida: leak'larning **o'zi (PII, dumplar) yuklanmaydi/saqlanmaydi** — faqat ho
 
 ## Keyingi qadamlar ⏭️
 
-0. (ixtiyoriy) Eski yozuvlarni tozalash (retention), Events sahifasida sahifalash (offset API'da bor)
-0. (ixtiyoriy) Ogohlantirish uchun alohida bot / boshqa kanal (email)
-1. Domen / IP / WHOIS collector moduli
-2. Qidiruv tarixini frontend'da ko'rsatish sahifasi (`/api/search/history`, `/jobs/{id}` bor)
-3. Collector'larni `name` bo'yicha registry orqali ulash
-4. (keyin) Alembic migratsiyalar — hozir dev'da `create_all` (sxema o'zgarsa jadvalni DROP qilib qayta yaratish kerak)
-5. (keyin) Next 15 ga ko'chish — npm audit ogohlantirishlari uchun
+Yuqoridagi "Keyingi qadamlar (tartib bilan)" bo'limiga qarang. Qo'shimcha (ixtiyoriy):
+- Ogohlantirish uchun alohida bot / boshqa kanal (email)
+- Collector'larni `name` bo'yicha registry orqali ulash
 
 ## Yangi dep eslatmasi ⚠️
 - `phonenumbers` requirements.txt da bor, lekin hozir faqat konteynerga `pip install` bilan

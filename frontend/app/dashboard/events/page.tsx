@@ -28,6 +28,9 @@ import {
   LiveDot,
   PageHeader,
   Skeleton,
+  formatDate,
+  formatDateTime,
+  formatTime,
   timeAgo,
 } from "@/components/ui";
 import { CountUp, SPRING, motion } from "@/components/motion";
@@ -150,18 +153,14 @@ function dayLabel(iso: string | null): string {
   yest.setDate(today.getDate() - 1);
   if (dayKey(d.toISOString()) === dayKey(today.toISOString())) return "Bugun";
   if (dayKey(d.toISOString()) === dayKey(yest.toISOString())) return "Kecha";
-  return d.toLocaleDateString("uz-UZ", {
-    day: "numeric",
-    month: "long",
-    year: d.getFullYear() === today.getFullYear() ? undefined : "numeric",
-  });
+  return formatDate(d, { year: d.getFullYear() !== today.getFullYear() });
 }
 
 function clockTime(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
-  return d.toLocaleTimeString("uz-UZ", { hour: "2-digit", minute: "2-digit" });
+  return formatTime(d);
 }
 
 function escapeRe(s: string) {
@@ -419,7 +418,7 @@ function EventCard({ e, query, delay }: { e: FeedItem; query: string; delay: num
           {t && (
             <span
               className="ml-auto flex items-center gap-1.5 text-slate-500"
-              title={new Date(t).toLocaleString("uz-UZ")}
+              title={formatDateTime(t)}
             >
               <span className="font-mono tabular-nums text-slate-600">{clockTime(t)}</span>
               <span>{timeAgo(t)}</span>

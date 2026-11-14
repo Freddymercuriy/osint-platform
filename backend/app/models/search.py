@@ -24,6 +24,15 @@ class SearchJob(Base):
         back_populates="job", cascade="all, delete-orphan", lazy="selectin"
     )
 
+    # Tarix ro'yxati uchun qisqa xulosa (results `selectin` bilan yuklangan)
+    @property
+    def checked(self) -> int:
+        return len(self.results)
+
+    @property
+    def found(self) -> int:
+        return sum(1 for r in self.results if r.status == "found")
+
 
 class Result(Base):
     """Qidiruvdan olingan bitta topilma."""

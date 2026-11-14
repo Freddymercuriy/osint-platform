@@ -325,6 +325,7 @@ export function StatTile({
   tone = "cyan",
   hint,
   loading,
+  stacked,
 }: {
   label: string;
   value: React.ReactNode;
@@ -332,10 +333,17 @@ export function StatTile({
   tone?: Tone;
   hint?: React.ReactNode;
   loading?: boolean;
+  /** Tor (2 ustunli) to'rda: mobil ekranda ikonka yorliq ustiga chiqadi, yorliq ikonka ostiga tushmaydi. */
+  stacked?: boolean;
 }) {
   return (
-    <Card hover className="relative overflow-hidden p-5">
-      <div className="flex items-start justify-between gap-3">
+    <Card hover className={cn("relative h-full overflow-hidden", stacked ? "p-4 sm:p-5" : "p-5")}>
+      <div
+        className={cn(
+          "flex items-start justify-between gap-3",
+          stacked && "flex-col-reverse justify-end sm:flex-row sm:justify-between",
+        )}
+      >
         <div className="min-w-0">
           <div className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</div>
           {loading ? (
@@ -448,5 +456,36 @@ export function timeAgo(iso: string | null | undefined): string {
   if (diff < 3600) return `${Math.floor(diff / 60)} daq oldin`;
   if (diff < 86400) return `${Math.floor(diff / 3600)} soat oldin`;
   if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} kun oldin`;
-  return d.toLocaleDateString("uz-UZ", { day: "2-digit", month: "short", year: "numeric" });
+  return formatDate(d, { short: true });
+}
+
+/* Brauzerlarning ko'pida "uz-UZ" lokali to'liq emas ("2026 M09 22" chiqadi) — oy nomlarini o'zimiz beramiz. */
+const UZ_MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
+const UZ_MONTHS_SHORT = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** Sana: "22 sentabr 2026" (short: "22 sen 2026"). `year: false` — yilsiz. */
+export function formatDate(
+  value: Date | string | null | undefined,
+  opts: { short?: boolean; year?: boolean } = {},
+): string {
+  if (!value) return "";
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return "";
+  const month = (opts.short ? UZ_MONTHS_SHORT : UZ_MONTHS)[d.getMonth()];
+  return `${d.getDate()} ${month}${opts.year === false ? "" : ` ${d.getFullYear()}`}`;
+}
+
+/** Soat: "14:05" */
+export function formatTime(value: Date | string | null | undefined): string {
+  if (!value) return "";
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return "";
+  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+/** To'liq: "22 sentabr 2026, 14:05" */
+export function formatDateTime(value: Date | string | null | undefined): string {
+  const date = formatDate(value);
+  return date ? `${date}, ${formatTime(value)}` : "";
 }

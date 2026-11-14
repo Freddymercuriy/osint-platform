@@ -18,6 +18,7 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Badge,
@@ -38,7 +39,7 @@ import type { Tone } from "@/lib/categories";
 import { AnimatePresence, EASE, SPRING, motion } from "@/components/motion";
 import { cn } from "@/lib/cn";
 
-export type SearchKind = "username" | "email" | "phone";
+export type SearchKind = "username" | "email" | "phone" | "domain";
 
 type Filter = "all" | "found" | "not_found" | "error";
 
@@ -115,6 +116,9 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
   const found = status === "found";
   const copyText = r.url || r.value;
   const letter = (r.source.trim()[0] || "?").toUpperCase();
+  // Uzun izoh (masalan WHOIS) 3 qatorga qisqartiriladi — bosilsa to'liq ochiladi
+  const [expanded, setExpanded] = useState(false);
+  const longDetail = (r.detail?.length ?? 0) > 90;
 
   return (
     <Card
@@ -139,13 +143,31 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
           {letter}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="truncate font-medium text-slate-100">{r.source}</div>
+          <div className="line-clamp-2 break-words font-medium leading-snug text-slate-100" title={r.source}>
+            {r.source}
+          </div>
           <div className="truncate font-mono text-[11px] uppercase tracking-wider text-slate-500">{r.type}</div>
         </div>
         <StatusBadge status={r.status} />
       </div>
 
-      {r.detail && <p className="line-clamp-3 text-sm leading-relaxed text-slate-400">{r.detail}</p>}
+      {r.detail &&
+        (longDetail ? (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-expanded={expanded}
+            title={expanded ? "Yig'ish" : "To'liq ko'rsatish"}
+            className={cn(
+              "break-words rounded text-left text-sm leading-relaxed text-slate-400 transition hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
+              !expanded && "line-clamp-3",
+            )}
+          >
+            {r.detail}
+          </button>
+        ) : (
+          <p className="break-words text-sm leading-relaxed text-slate-400">{r.detail}</p>
+        ))}
 
       <div className="mt-auto flex items-center gap-2 border-t border-white/[0.06] pt-3">
         {r.url ? (
@@ -262,9 +284,9 @@ export default function SearchModule({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const loadHistory = useCallback(() => {
-    getHistory()
+    getHistory({ kind, limit: 8 })
       .then((jobs) => {
-        setHistory(jobs.filter((j) => j.kind === kind).slice(0, 8));
+        setHistory(jobs);
         setHistoryError(false);
       })
       .catch(() => setHistoryError(true));
@@ -273,6 +295,12 @@ export default function SearchModule({
   useEffect(() => {
     loadHistory();
   }, [loadHistory]);
+
+  // Tarix sahifasidan "?q=..." bilan kelinsa — so'rovni oldindan to'ldiramiz (avtomatik ishga tushirmaymiz)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("q");
+    if (q) setQuery(q.slice(0, 256));
+  }, []);
 
   const run = useCallback(
     async (raw: string) => {
@@ -566,6 +594,15 @@ export default function SearchModule({
                   </li>
                 ))}
               </ul>
+            )}
+
+            {history && history.length > 0 && (
+              <Link
+                href="/dashboard/history"
+                className="mt-3 flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-xs text-slate-400 transition hover:border-brand-cyan/30 hover:text-brand-cyan"
+              >
+                Butun tarix <ArrowRight className="h-3.5 w-3.5" />
+              </Link>
             )}
           </Card>
 

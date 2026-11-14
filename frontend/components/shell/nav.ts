@@ -1,6 +1,7 @@
 import {
   AtSign,
   Globe,
+  History,
   LayoutDashboard,
   Mail,
   Phone,
@@ -32,7 +33,8 @@ export const NAV: NavSection[] = [
       { href: "/dashboard/username", label: "Username qidiruv", icon: AtSign },
       { href: "/dashboard/email", label: "Email tekshiruvi", icon: Mail },
       { href: "/dashboard/phone", label: "Telefon tekshiruvi", icon: Phone },
-      { href: "#", label: "Domen / WHOIS", icon: Globe, soon: true },
+      { href: "/dashboard/domain", label: "Domen / IP / WHOIS", icon: Globe },
+      { href: "/dashboard/history", label: "Qidiruv tarixi", icon: History },
     ],
   },
 ];

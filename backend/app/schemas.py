@@ -46,6 +46,7 @@ class SearchResponse(BaseModel):
     kind: str
     checked: int  # tekshirilgan manbalar soni
     found: int  # topilgan profillar soni
+    created_at: datetime | None = None
     results: list[CollectResultOut]
 
 
@@ -57,6 +58,8 @@ class SearchJobOut(BaseModel):
     query: str
     status: str
     created_at: datetime
+    checked: int = 0  # tekshirilgan manbalar soni
+    found: int = 0  # topilganlar soni
 
 
 # --- Events (yangiliklar/tadbirlar) ---
