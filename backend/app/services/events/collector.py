@@ -28,9 +28,10 @@ from sqlalchemy import delete, func, select
 
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal
-from app.models import EventRecord
+from app.models import Category, EventRecord, Source
 from app.services.events.aggregator import GOOGLE_NEWS_TAG, EventItem, collect_all
 from app.services.events.dedup import TitleSig, same_story, signature
+from app.services.events.geo import detect_countries
 
 log = logging.getLogger("osint.events")
 
@@ -211,15 +212,29 @@ async def run_once() -> int:
                     known = [(signature(t), _aware(p or f, started)) for t, p, f in rows]
                 unique_ids = {id(i) for i in drop_similar(list(fresh.values()), known, started)}
 
+                # v2 ustunlari: manba va kategoriya yozuvlari (Bosqich 2 da yig'uvchi to'liq qayta yoziladi)
+                source_ids = dict((await db.execute(select(Source.name, Source.id))).all())
+                cats = {c.slug: c for c in (await db.scalars(select(Category))).all()}
+
                 new_records: list[EventRecord] = []
                 for uid, i in fresh.items():
                     if id(i) not in unique_ids:
                         continue
+                    cat = cats.get(i.category)
+                    sid = source_ids.get(i.source)
+                    if sid is None and i.source.endswith(f" {GOOGLE_NEWS_TAG}"):
+                        sid = source_ids.get(i.source[: -len(GOOGLE_NEWS_TAG) - 1])
+                    if sid is None and i.source.startswith("TG: "):
+                        sid = source_ids.get("Telegram (akkaunt)")
                     rec = EventRecord(
                         uid=uid, source=i.source[:128], category=i.category,
                         title=i.title[:512], url=i.url[:1024], summary=i.summary,
                         lang=i.lang[:8], published=i.published,
                         notified=is_bootstrap,  # birinchi yig'ishda eski narsalar uchun ogohlantirmaymiz
+                        source_id=sid, category_id=cat.id if cat else None,
+                        severity=cat.severity if cat else "info", channel=i.channel,
+                        matched_keywords=i.matched_keywords[:12],
+                        countries=detect_countries(i.title, i.summary),
                     )
                     db.add(rec)
                     new_records.append(rec)

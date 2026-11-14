@@ -74,10 +74,28 @@ def run_migrations(*args: str) -> subprocess.CompletedProcess:
     )
 
 
+# Migratsiyalar seed qilgan ma'lumot (kategoriyalar, manbalar) — har testdan oldin shu holatga qaytariladi
+SEED_TABLES = ("categories", "sources")
+
+
+async def _snapshot_seed() -> None:
+    import asyncpg
+
+    conn = await asyncpg.connect(_plain(TEST_DATABASE_URL))
+    try:
+        await conn.execute("create schema if not exists seed")
+        for t in SEED_TABLES:
+            await conn.execute(f"drop table if exists seed.{t}")
+            await conn.execute(f"create table seed.{t} as select * from public.{t}")
+    finally:
+        await conn.close()
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _database() -> None:
     asyncio.run(_recreate_db())
     run_migrations()
+    asyncio.run(_snapshot_seed())
 
 
 # ---------------------------------------------------------------- per-test
@@ -95,6 +113,11 @@ async def _clean_tables():
         if tables:
             await conn.execute(text(
                 "truncate " + ", ".join(f'"{t}"' for t in tables) + " restart identity cascade"
+            ))
+        for t in SEED_TABLES:
+            await conn.execute(text(f"insert into public.{t} select * from seed.{t}"))
+            await conn.execute(text(
+                f"select setval(pg_get_serial_sequence('{t}', 'id'), coalesce((select max(id) from {t}), 1))"
             ))
     yield
 

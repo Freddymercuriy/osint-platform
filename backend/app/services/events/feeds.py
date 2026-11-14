@@ -57,40 +57,57 @@ class Feed:
 #  Ataylab TASHLANGAN (yolg'on mos kelish): "osh", "semey", "kaspi" (Каспий),
 #  "karshi", "talas", "naryn", "mary", "petropavl".
 # =========================================================================
-REGION_KEYWORDS: tuple[str, ...] = (
-    # --- O'zbekiston ---
-    "uzbek", "o'zbek", "узбек", "ўзбек", "ӯзбек",
-    "tashkent", "toshkent", "ташкент", "тошкент",
-    "samarkand", "samarqand", "самарканд", "самарқанд",
-    "bukhara", "buxoro", "бухара", "бухоро",
-    "andijan", "andijon", "андижан", "андижон",
-    "namangan", "наманган", "fergana", "ferghana", "farg'ona", "фергана", "фарғона",
-    "nukus", "нукус", "urgench", "urganch", "ургенч", "termez", "termiz", "термез",
-    "kokand", "qo'qon", "коканд", "qoraqalpoq", "karakalpak", "каракалпак",
-    "khorezm", "xorazm", "хорезм",
-    # --- Qozog'iston ---
-    "kazakh", "kazakstan", "kazahstan", "qozoq", "qozog'", "қозоқ", "қозоғ",
-    "казах", "қазақ", "astana", "астана", "nur-sultan", "нур-султан",
-    "almaty", "алматы", "алма-ата", "shymkent", "шымкент", "chimkent", "чимкент",
-    "karaganda", "караганд", "қарағанды", "aktobe", "актобе", "ақтөбе",
-    "atyrau", "атырау", "aktau", "актау", "pavlodar", "павлодар",
-    "kostanay", "костанай", "kyzylorda", "кызылорда", "oskemen", "усть-каменогорск",
-    # --- Qirg'iziston ---
-    "kyrgyz", "kirghiz", "kirgiz", "qirg'iz", "киргиз", "кыргыз", "қирғиз", "қырғыз",
-    "bishkek", "бишкек", "jalal-abad", "джалал-абад",
-    # --- Tojikiston ---
-    "tajik", "tadjik", "tojik", "таджик", "тоҷик", "тожик", "тоҷик",
-    "dushanbe", "душанбе", "khujand", "xo'jand", "худжанд", "хуҷанд", "khatlon", "хатлон",
-    # --- Turkmaniston ---
-    "turkmen", "turkman", "туркмен", "ashgabat", "ashkhabad", "ashgabad",
-    "ашхабад", "ашгабат", "turkmenbashi", "dashoguz", "дашогуз",
-    # --- Butun mintaqa ---
+COUNTRY_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "UZ": (
+        "uzbek", "o'zbek", "узбек", "ўзбек", "ӯзбек",
+        "tashkent", "toshkent", "ташкент", "тошкент",
+        "samarkand", "samarqand", "самарканд", "самарқанд",
+        "bukhara", "buxoro", "бухара", "бухоро",
+        "andijan", "andijon", "андижан", "андижон",
+        "namangan", "наманган", "fergana", "ferghana", "farg'ona", "фергана", "фарғона",
+        "nukus", "нукус", "urgench", "urganch", "ургенч", "termez", "termiz", "термез",
+        "kokand", "qo'qon", "коканд", "qoraqalpoq", "karakalpak", "каракалпак",
+        "khorezm", "xorazm", "хорезм",
+        ".uz",
+    ),
+    "KZ": (
+        "kazakh", "kazakstan", "kazahstan", "qozoq", "qozog'", "қозоқ", "қозоғ",
+        "казах", "қазақ", "astana", "астана", "nur-sultan", "нур-султан",
+        "almaty", "алматы", "алма-ата", "shymkent", "шымкент", "chimkent", "чимкент",
+        "karaganda", "караганд", "қарағанды", "aktobe", "актобе", "ақтөбе",
+        "atyrau", "атырау", "aktau", "актау", "pavlodar", "павлодар",
+        "kostanay", "костанай", "kyzylorda", "кызылорда", "oskemen", "усть-каменогорск",
+        ".kz",
+    ),
+    "KG": (
+        "kyrgyz", "kirghiz", "kirgiz", "qirg'iz", "киргиз", "кыргыз", "қирғиз", "қырғыз",
+        "bishkek", "бишкек", "jalal-abad", "джалал-абад",
+        ".kg",
+    ),
+    "TJ": (
+        "tajik", "tadjik", "tojik", "таджик", "тоҷик", "тожик",
+        "dushanbe", "душанбе", "khujand", "xo'jand", "худжанд", "хуҷанд", "khatlon", "хатлон",
+        ".tj",
+    ),
+    "TM": (
+        "turkmen", "turkman", "туркмен", "ashgabat", "ashkhabad", "ashgabad",
+        "ашхабад", "ашгабат", "turkmenbashi", "dashoguz", "дашогуз",
+        ".tm",
+    ),
+}
+
+# Butun mintaqa (aniq davlatni bildirmaydi)
+REGIONWIDE_KEYWORDS: tuple[str, ...] = (
     "central asia", "centralasia", "markaziy osiyo", "o'rta osiyo", "марказий осиё",
     "орталық азия", "центральная ази", "центральной ази", "центральную ази",
     "центральной азией", "центральноазиат", "средняя ази", "средней ази",
     "среднюю ази", "средней азией",
-    # --- Milliy domenlar ---
-    ".uz", ".kz", ".kg", ".tj", ".tm",
+)
+
+REGION_KEYWORDS: tuple[str, ...] = (
+    tuple(k for kws in COUNTRY_KEYWORDS.values() for k in kws if not k.startswith("."))
+    + REGIONWIDE_KEYWORDS
+    + tuple(k for kws in COUNTRY_KEYWORDS.values() for k in kws if k.startswith("."))
 )
 
 # Orqaga moslik: boshqa joylarda `UZ_KEYWORDS` import qilinadi.

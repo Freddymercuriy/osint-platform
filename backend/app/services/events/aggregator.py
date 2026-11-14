@@ -4,7 +4,7 @@ import asyncio
 import html
 import re
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from calendar import timegm  # feedparser struct_time'lari UTC'da — mktime (lokal vaqt) emas
 
@@ -38,6 +38,8 @@ class EventItem:
     published: datetime | None
     lang: str
     category: str
+    matched_keywords: list[str] = field(default_factory=list)
+    channel: str = "news"  # news | telegram_channel | telegram_group | api
 
 
 # ---------------------------------------------------------------- yordamchilar
@@ -162,7 +164,7 @@ def _strip_own(text: str, feed: Feed) -> str:
 
 
 def _apply_filters(items: list[EventItem], feed: Feed) -> list[EventItem]:
-    """Feed bayroqlari bo'yicha filtr (title + summary). Mos kelganlarga '🔎 ...' belgisi qo'shiladi."""
+    """Feed bayroqlari bo'yicha filtr (title + summary). Mos kelgan kalit so'zlar `matched_keywords` ga yoziladi."""
     out: list[EventItem] = []
     for i in items:
         text = f"{i.title} {i.summary}"
@@ -181,7 +183,7 @@ def _apply_filters(items: list[EventItem], feed: Feed) -> list[EventItem]:
                 continue
             hits += h
         if hits:
-            i.summary = f"🔎 {', '.join(hits[:4])} · {i.summary}"
+            i.matched_keywords = list(dict.fromkeys(i.matched_keywords + hits))
         out.append(i)
     return out
 
@@ -293,6 +295,7 @@ async def _fetch_ransomware_live(client: httpx.AsyncClient, feed: Feed) -> list[
             published=_parse_iso(v.get("discovered") or v.get("attackdate")),
             lang=feed.lang,
             category=feed.category,
+            channel="api",
         ))
     return items
 
@@ -318,6 +321,7 @@ async def _fetch_telegram(client: httpx.AsyncClient, feed: Feed) -> list[EventIt
             published=_parse_iso(time_el.get("datetime") if time_el else None),
             lang=feed.lang,
             category=feed.category,
+            channel="telegram_channel",
         ))
     return items
 
@@ -358,10 +362,12 @@ async def _fetch_telegram_user(_client: httpx.AsyncClient, feed: Feed) -> list[E
             source=f"TG: {m.chat.title}",
             title=first_line[:140] + ("..." if len(first_line) > 140 else ""),
             url=m.url,
-            summary=(f"🔎 {', '.join(hits[:4])} · " if hits else "") + snippet,
+            summary=snippet,
             published=m.date,
             lang=feed.lang,
             category=category_for(m.chat),
+            matched_keywords=hits,
+            channel="telegram_group" if m.chat.kind == "group" else "telegram_channel",
         ))
     return items
 

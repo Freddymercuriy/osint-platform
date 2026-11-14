@@ -114,7 +114,20 @@ class EventItemOut(BaseModel):
     summary: str
     published: datetime | None = None
     lang: str
-    category: str
+    category: str  # kategoriya slug'i (v1 bilan mos)
+    # v2
+    source_id: int | None = None
+    category_id: int | None = None
+    channel: str = "news"
+    scope: str = "regional"
+    severity: str = "info"
+    countries: list[str] = []
+    sector: str | None = None
+    actor: str | None = None
+    matched_keywords: list[str] = []
+    extra: dict = {}
+    also_reported_by: list = []
+    is_baseline: bool = False
 
 
 class EventsResponse(BaseModel):

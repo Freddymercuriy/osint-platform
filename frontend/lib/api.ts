@@ -228,6 +228,12 @@ export type EventItem = {
   category: string;
   id?: number;
   first_seen?: string | null;
+  // v2
+  channel?: string;
+  severity?: string;
+  countries?: string[];
+  matched_keywords?: string[];
+  is_baseline?: boolean;
 };
 
 export type EventsResponse = { count: number; items: EventItem[] };

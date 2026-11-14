@@ -382,7 +382,10 @@ function EventCard({ e, query, delay }: { e: FeedItem; query: string; delay: num
   const meta = categoryMeta(e.category);
   const Icon = meta.icon;
   const t = eventTime(e);
-  const { keywords, snippet } = parseSummary(e.summary);
+  // v2: kalit so'zlar alohida maydonda; eski yozuvlar uchun summary'dagi "🔎 ... ·" ham tushuniladi
+  const parsed = parseSummary(e.summary);
+  const keywords = e.matched_keywords?.length ? e.matched_keywords.slice(0, 4) : parsed.keywords;
+  const snippet = parsed.snippet;
   const critical = e.category === "ransomware" || e.category === "leak";
 
   return (

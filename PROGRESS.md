@@ -77,6 +77,28 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 1: ma'lumot modeli (2026-11-14)
+- Modellar: `models/category.py` (`Category`: slug, nom/tavsif en/ru/uz, severity, rang tokeni, Lucide ikon, notify,
+  retention_days, tartib, enabled, is_system, `rules` JSONB), `models/source.py` (`Source`: kind, `config` JSONB, til,
+  qat'iy kategoriya, scope, region/cyber filtr, translate, interval/jitter/backfill, `api_key_env` — faqat o'zgaruvchi NOMI,
+  ETag/Last-Modified, `next_run_at`, `state` JSONB, `baseline_done`, sog'liq maydonlari; `SourceRun` — har urinish).
+  `events` ga: source_id, category_id, category_locked, channel, scope, severity, countries[], sector, actor,
+  matched_keywords[], extra, also_reported_by, is_baseline (+ GIN indeks countries). `events.category` — slug (48).
+- Migratsiyalar: `0003_v2_data_model` (jadvallar + 15 kategoriya; notify/retention — `NOTIFY_CATEGORIES`,
+  `EVENTS_RETENTION_KEEP`, `EVENTS_RETENTION_DAYS` dan bir marta), `0004_seed_sources` (v1 `FEEDS` ning **muzlatilgan nusxasi**
+  — 63 manba, `interval_seconds = max(ttl, min_interval)`; eski qatorlar: `🔎 … ·` → `matched_keywords`, channel, source_id
+  nom bo'yicha, countries matndan, ransomware/leak → category_id + severity). Downgrade `🔎` prefiksini qaytaradi.
+- `services/events/geo.py` — `detect_countries()`; `feeds.REGION_KEYWORDS` endi `COUNTRY_KEYWORDS` (davlat bo'yicha) +
+  `REGIONWIDE_KEYWORDS` dan yig'iladi (so'zlar to'plami o'zgarmadi — diff bilan tekshirildi).
+- Hozirgi yig'uvchi (Bosqich 2 da almashtiriladi) yangi ustunlarni to'ldiradi; kalit so'zlar endi summary'ga yopishtirilmaydi.
+  `GET /api/events` — `category` hamon slug satr, yonida yangi maydonlar. Frontend kalit so'zlarni `matched_keywords` dan oladi.
+- Tekshirildi: ✅ 26 pytest (seed: 15 kategoriya / 63 manba; eski qatorlarni ko'chirish va downgrade'da tiklash — vaqtinchalik
+  bazada; davlatlarni aniqlash 6 holat; API maydonlari); ✅ jonli baza: `0004_seed_sources`, 38 hodisa: prefiksli summary 0 ta,
+  25/38 manbaga bog'landi, 21/38 da davlat; ✅ `tsc`, smoke toza. Bosqichdan oldingi nusxa:
+  `~/osint-backups/osint-pre-phase1-20261114-153919.sql`.
+- ⚠️ Cheklov: Google News orqali kelgan 13 ta eski yozuv `source_id` siz (nashr nomi qaysi GN so'rovidan kelgani noma'lum);
+  17 hodisada davlat yo'q (UZCERT kabi milliy manbalar matnda davlat nomini yozmaydi — Bosqich 3 da manba bo'yicha standart davlat).
+
 ### v2 — Bosqich 0: poydevor (2026-11-14)
 - Tarmoq `feat/v2-upgrade`; baza nusxasi `~/osint-backups/osint-pre-v2-20261114-145705.sql` (6 jadval, 37 hodisa).
 - **Alembic**: `backend/alembic.ini`, `backend/migrations/` (async env, URL — `settings.database_url`).
