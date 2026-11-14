@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -15,7 +17,13 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     is_active: bool
+    role: str = "analyst"
+    locale: str | None = None
     created_at: datetime
+
+
+class UserUpdate(BaseModel):
+    locale: Literal["uz", "ru", "en"] | None = None
 
 
 class Token(BaseModel):

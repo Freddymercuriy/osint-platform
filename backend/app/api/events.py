@@ -4,7 +4,7 @@ from fastapi import APIRouter, Query
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
-from app.api.deps import CurrentUser, DbSession
+from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core.config import settings
 from app.models import EventRecord
 from app.schemas import EventItemOut, EventsResponse
@@ -92,7 +92,7 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
 
 
 @router.post("/refresh")
-async def refresh(current_user: CurrentUser) -> dict[str, int]:
+async def refresh(current_user: AdminUser) -> dict[str, int]:
     """Hozir yig'ish (navbatdagi fon tsiklini kutmasdan)."""
     new = await collector.run_once()
     return {"new": new}

@@ -26,15 +26,18 @@ export default function Sidebar({
   const [cs, setCs] = useState<CollectorStatus | null>(null);
   const [tg, setTg] = useState<TgStatus | null>(null);
 
+  const isAdmin = me?.role === "admin";
+
   useEffect(() => {
     const load = () => {
       getCollectorStatus().then(setCs).catch(() => setCs(null));
-      getTgStatus().then(setTg).catch(() => setTg(null));
+      // Telegram akkaunt holati faqat admin uchun (boshqalarga backend 403 qaytaradi)
+      if (isAdmin) getTgStatus().then(setTg).catch(() => setTg(null));
     };
     load();
     const t = setInterval(load, 60_000);
     return () => clearInterval(t);
-  }, []);
+  }, [isAdmin]);
 
   return (
     <aside className="flex h-full w-64 flex-col border-r border-white/[0.06] bg-ink-900/80 backdrop-blur-xl">

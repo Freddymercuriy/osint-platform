@@ -33,3 +33,13 @@ async def get_current_user(
 
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
+
+
+async def require_admin(current_user: CurrentUser) -> User:
+    """Faqat admin: /api/admin/*, manual yig'ish, Telegram akkaunt ma'lumotlari."""
+    if current_user.role != "admin":
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Bu amal faqat administrator uchun")
+    return current_user
+
+
+AdminUser = Annotated[User, Depends(require_admin)]

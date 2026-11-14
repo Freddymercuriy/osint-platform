@@ -4,10 +4,18 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 13 — Username moduli endi faqat Telegram (akkaunt ID'si, username tarixi, umumiy guruhlar). Undan oldin: Bosqich 12 — Events lentasi (Markaziy Osiyo + kiber/leak, `EVENTS_SINCE=2026-11-10`, 63 manba, takror voqealarni kesish)
+**Bosqich:** v2 yangilanishi — tarmoq `feat/v2-upgrade` (spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md), bosqichlar ro'yxati: `docs/tasks.md` → "v2"). `main` da — v1 (Bosqich 13).
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
+
+### v2 yangilanishi — davom ettirish nuqtasi
+- Ish **`feat/v2-upgrade`** tarmog'ida (`main` ga merge qilinmaydi, force-push yo'q). Har bosqich boshida
+  `docs/upgrade-v2-spec.md` ni qayta o'qing; bajarilganlar — `docs/tasks.md` ("v2" bo'limi) va pastdagi "v2 — Bosqich N" yozuvlari.
+- v2 dan oldingi baza nusxasi: `~/osint-backups/osint-pre-v2-20261114-145705.sql` (to'liq `pg_dump`).
+- Testlar: `docker-compose exec backend pytest` (alohida `osint_test` baza, haqiqiy `.env`/Telegram sessiyasi o'qilmaydi).
+- Sxema endi **Alembic** bilan: konteyner ishga tushganda `scripts/start.sh` → `scripts/migrate.py` (`upgrade head`).
+  Qo'lda: `docker-compose exec backend python scripts/migrate.py [downgrade -1]`.
 
 ### Ishga tushirish (shu kompyuterda)
 ```bash
@@ -68,6 +76,34 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 — Bosqich 0: poydevor (2026-11-14)
+- Tarmoq `feat/v2-upgrade`; baza nusxasi `~/osint-backups/osint-pre-v2-20261114-145705.sql` (6 jadval, 37 hodisa).
+- **Alembic**: `backend/alembic.ini`, `backend/migrations/` (async env, URL — `settings.database_url`).
+  `0001_baseline` — v1 sxemasi qo'lda yozilgan; `0002_user_roles` — `users.role` (`admin`|`analyst`, CHECK) va `users.locale`.
+  `scripts/migrate.py`: `alembic_version` yo'q, lekin jadvallar bor bo'lsa → avval `stamp 0001_baseline`, keyin `upgrade head`
+  (eski o'rnatmalar ham avtomatik o'tadi). `create_all` `main.py` dan olib tashlandi. Dockerfile `CMD` → `scripts/start.sh`.
+- **Rollar**: `ADMIN_EMAILS` (backend/.env ga egasining manzili yozildi) → admin; ro'yxat bo'sh va admin yo'q bo'lsa — eng eski faol
+  foydalanuvchi; ro'yxatdan o'tgan birinchi foydalanuvchi ham admin. Hech kim avtomatik pastga tushirilmaydi.
+  `require_admin` (`AdminUser`) → `POST /api/events/refresh`, `/api/telegram/*` (keyin `/api/admin/*`). `GET/PATCH /api/auth/me`
+  endi `role`, `locale`. `GET /api/auth/config` → `registration_open`. Nofaol akkaunt login qila olmaydi.
+- `REGISTRATION_OPEN` (bo'sh = faqat development'da ochiq). `ENVIRONMENT` development/test emas va `SECRET_KEY` standart yoki
+  <32 belgi bo'lsa — backend **ishga tushmaydi**.
+- `python-jose 3.3.0` (CVE-2024-33663) → **PyJWT 2.15.1**; Alembic 1.14 → 1.20.1.
+- **pytest**: `backend/tests/` (pytest 9.2, pytest-asyncio 1.5, httpx `ASGITransport`), `requirements-dev.txt`, image `DEV=1`
+  build argumenti bilan. `conftest.py`: barcha muhit o'zgaruvchilari tozalanadi, `OSINT_ENV_FILE` → mavjud bo'lmagan fayl
+  (haqiqiy `.env` va Telegram sessiyasi testga tushmaydi), `<baza>_test` har sessiyada qayta yaratiladi va migratsiya qilinadi,
+  har testdan oldin jadvallar bo'shatiladi; testda `NullPool`.
+- Frontend: `Me` turiga `role`/`locale`; `/me` bir sahifada bir marta so'raladi (kesh); Sidebar va Events Telegram holatini faqat
+  admin uchun so'raydi (analyst'da 403 konsol xatosi bo'lardi).
+- Tekshirildi: ✅ 17 pytest (ro'yxat/login/me, 409, yopiq ro'yxat, locale, nofaol foydalanuvchi, admin route'lar 401/403/200,
+  rol tayinlash ikki yo'li, SECRET_KEY bilan production ishga tushmasligi — subprocess, JWT buzilgan/muddati o'tgan,
+  migratsiyalar base↔head); ✅ baseline: zaxira nusxadan tiklangan baza (stamp+upgrade) va bo'sh bazadan qurilgan sxema
+  `pg_dump --schema-only` da bir xil; ✅ jonli baza: `0002_user_roles`, egasi admin, test akkaunti analyst, 37 hodisa joyida,
+  yig'uvchi 67 element yig'di (Telegram ham), Telegram sessiya fayli joyida; ✅ jonli 403/200 (analyst/admin);
+  ✅ `tsc`; ✅ smoke 22/22 analyst va admin tokenlari bilan.
+- ⚠️ Tekshirilmadi: `REGISTRATION_OPEN` o'chiqligida frontend register sahifasining xabari (backend 403 matnini ko'rsatadi);
+  Events sahifasidagi "Yangilash" tugmasi analyst uchun hali ko'rinadi (bosilsa 403 xabari) — Bosqich 7 da yashiriladi.
 
 ### 2026-11-14, 3-sessiya davomi (Bosqich 13: username moduli → faqat Telegram)
 Foydalanuvchi talabi: *"username bo'yicha qidirish faqat Telegram orqali bo'lsin; ID'ni bilgan holda username qachon

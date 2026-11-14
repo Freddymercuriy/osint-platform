@@ -1,0 +1,4 @@
+# Testlar uchun (konteynerga DEV=1 build argumenti bilan o'rnatiladi)
+-r requirements.txt
+pytest==9.2.0
+pytest-asyncio==1.5.0

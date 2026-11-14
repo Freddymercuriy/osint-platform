@@ -13,6 +13,7 @@ export function setToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
+  meCache = null;
 }
 
 type ApiError = { detail?: string };
@@ -60,13 +61,31 @@ export async function login(email: string, password: string): Promise<string> {
   return data.access_token;
 }
 
-export type Me = { id: number; email: string; is_active: boolean; created_at: string };
+export type Role = "admin" | "analyst";
+
+export type Me = {
+  id: number;
+  email: string;
+  is_active: boolean;
+  role: Role;
+  locale: string | null;
+  created_at: string;
+};
+
+// Bitta sahifa yuklanishida /me bir marta so'raladi (layout, dashboard, events bir xil javobni ishlatadi)
+let meCache: { token: string | null; promise: Promise<Me> } | null = null;
 
 export async function getMe(): Promise<Me> {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${getToken()}` },
+  const token = getToken();
+  if (meCache && meCache.token === token) return meCache.promise;
+  const promise = fetch(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((res) => handle<Me>(res));
+  meCache = { token, promise };
+  promise.catch(() => {
+    meCache = null;
   });
-  return handle<Me>(res);
+  return promise;
 }
 
 function authHeaders(): HeadersInit {

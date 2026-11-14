@@ -1,19 +1,25 @@
+import os
 from datetime import UTC, datetime, timedelta, timezone
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# .env.example va kod ichidagi standart qiymatlar — production'da ishga tushishga yo'l qo'yilmaydi
+INSECURE_SECRET_KEYS = frozenset({"change-me", "change-me-to-a-long-random-string", "secret", ""})
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Testlar haqiqiy .env (Telegram, kalitlar) ni o'qimasligi uchun yo'lni almashtirish mumkin
+        env_file=os.getenv("OSINT_ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         env_ignore_empty=True,  # "TG_API_ID=" kabi bo'sh qiymatlar → default (None)
     )
 
     app_name: str = "OSINT Platform"
-    environment: str = "development"
+    environment: str = "development"  # development | production | test
     debug: bool = True
 
     database_url: str = "postgresql+asyncpg://osint:osint@localhost:5432/osint"
@@ -22,6 +28,11 @@ class Settings(BaseSettings):
     secret_key: str = "change-me"
     access_token_expire_minutes: int = 60
     algorithm: str = "HS256"
+
+    # Rollar: shu manzillar admin bo'ladi (vergul bilan). Bo'sh bo'lsa — eng eski faol foydalanuvchi.
+    admin_emails: str = ""
+    # Ochiq ro'yxatdan o'tish. Berilmasa: development'da yoqiq, boshqa muhitda o'chiq.
+    registration_open: bool | None = None
 
     cors_origins: str = "http://localhost:3000"
 
@@ -52,6 +63,24 @@ class Settings(BaseSettings):
     # Boshlanish sanasi: shundan OLDINGI hodisalar (barcha kategoriyalar) yig'ilmaydi va bazadan o'chiriladi.
     # "2026-11-14" (kun boshi, Toshkent vaqti UTC+5) yoki to'liq ISO vaqt. Bo'sh = chegara yo'q.
     events_since: str = ""
+
+    @property
+    def is_development(self) -> bool:
+        return self.environment.lower() in ("development", "dev", "local", "test")
+
+    @property
+    def registration_allowed(self) -> bool:
+        if self.registration_open is not None:
+            return self.registration_open
+        return self.is_development
+
+    @property
+    def admin_emails_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    @property
+    def secret_key_is_default(self) -> bool:
+        return self.secret_key in INSECURE_SECRET_KEYS or len(self.secret_key) < 32
 
     @property
     def notify_categories_list(self) -> list[str]:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
 
-from app.api.deps import CurrentUser
+from app.api.deps import AdminUser
 from app.core.config import settings
 from app.services import telegram_user as tg
 
@@ -26,7 +26,7 @@ class TgChat(BaseModel):
 
 
 @router.get("/status", response_model=TgStatus)
-async def tg_status(current_user: CurrentUser) -> TgStatus:
+async def tg_status(current_user: AdminUser) -> TgStatus:
     base = dict(
         configured=tg.is_configured(),
         session=tg.session_exists(),
@@ -50,7 +50,7 @@ async def tg_status(current_user: CurrentUser) -> TgStatus:
 
 
 @router.get("/chats", response_model=list[TgChat])
-async def tg_chats(current_user: CurrentUser) -> list[TgChat]:
+async def tg_chats(current_user: AdminUser) -> list[TgChat]:
     try:
         chats = await tg.list_chats()
     except tg.TelegramNotConfigured as exc:

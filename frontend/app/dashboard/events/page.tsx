@@ -38,6 +38,7 @@ import { trackPointer } from "@/components/ui";
 import {
   getCollectorStatus,
   getEvents,
+  getMe,
   getTgStatus,
   refreshEvents,
   type CollectorStatus,
@@ -541,7 +542,12 @@ export default function EventsPage() {
   const reqId = useRef(0);
 
   const loadStatus = useCallback(async () => {
-    const [c, t] = await Promise.allSettled([getCollectorStatus(), getTgStatus()]);
+    // Telegram akkaunt ma'lumotlari faqat admin uchun (backend 403 qaytaradi)
+    const isAdmin = await getMe().then((m) => m.role === "admin", () => false);
+    const [c, t] = await Promise.allSettled([
+      getCollectorStatus(),
+      isAdmin ? getTgStatus() : Promise.reject(new Error("admin emas")),
+    ]);
     setCs(c.status === "fulfilled" ? c.value : null);
     setTg(t.status === "fulfilled" ? t.value : null);
     setStatusLoading(false);

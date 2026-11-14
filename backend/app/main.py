@@ -6,7 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api import auth, events, notifications, search, stats, telegram
 from app.core.config import settings
-from app.core.db import Base, engine
+from app.core.db import AsyncSessionLocal, engine
+from app.services.admin_roles import sync_admin_roles
 from app.services.events import collector as events_collector
 
 # Modellar Base.metadata ga ro'yxatdan o'tishi uchun import qilinadi
@@ -18,11 +19,19 @@ logging.getLogger("telethon").setLevel(logging.WARNING)
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
+# Production'da standart SECRET_KEY bilan ishga tushmaymiz: kalitni bilgan har kim token yasay oladi
+if not settings.is_development and settings.secret_key_is_default:
+    raise RuntimeError(
+        "SECRET_KEY standart yoki juda qisqa (<32 belgi). backend/.env da tasodifiy kalit bering: "
+        "python -c 'import secrets; print(secrets.token_hex(32))'"
+    )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Dev uchun jadvallarni avtomatik yaratamiz. Prod'da Alembic migratsiya ishlatiladi.
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    # Sxema Alembic bilan boshqariladi (scripts/start.sh → scripts/migrate.py); create_all yo'q.
+    async with AsyncSessionLocal() as db:
+        await sync_admin_roles(db)
     events_collector.start()  # fon yig'uvchi (Events)
     yield
     await events_collector.stop()

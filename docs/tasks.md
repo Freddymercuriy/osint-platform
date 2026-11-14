@@ -77,6 +77,19 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Umumiy guruhlar va ulardagi xabarlar soni
 - ⬜ Kuzatuv ro'yxati: qidirilgan ID'larni fon rejimida qayta tekshirish (qaror kutilmoqda)
 
+## v2 yangilanishi (`feat/v2-upgrade`, spetsifikatsiya: `docs/upgrade-v2-spec.md`)
+- ✅ Bosqich 0 — Poydevor: tarmoq + baza nusxasi, Alembic (baseline + stamp, start'da upgrade), rollar va `require_admin`,
+  `REGISTRATION_OPEN`, SECRET_KEY tekshiruvi, PyJWT, pytest
+- ⬜ Bosqich 1 — Ma'lumot modeli: `sources`, `source_runs`, `categories`, `events` yangi ustunlari, eski qatorlarni ko'chirish
+- ⬜ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
+- ⬜ Bosqich 3 — Manbalar: bazaga seed, Telegram chatlari alohida, yangi threat-intel manbalari
+- ⬜ Bosqich 4 — Kategoriyalar (15 ta) CRUD va klassifikator, filtrlar
+- ⬜ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali
+- ⬜ Bosqich 6 — Interfeys: Light/Dark/System, uz/ru/en
+- ⬜ Bosqich 7 — Admin bo'limi va Events sahifasi
+- ⬜ Bosqich 8 — Interaktiv statistika dashboard'i
+- ⬜ Bosqich 9 — Xavfsizlik, testlar, hujjatlar
+
 ## Keyingi — Kengaytirish
 - ⬜ Rate limiting, natijalarni keshlash
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
