@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta 2026-11-14 dan boshlanadi (undan oldin: Bosqich 11 — hisobot eksporti, retention)
+**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta **2026-11-10** dan boshlanadi (`EVENTS_SINCE`); 63 manba (undan oldin: Bosqich 11 — hisobot eksporti, retention)
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
@@ -20,7 +20,7 @@ cd frontend && npm run dev                # http://localhost:3000
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
 | Nima | Qayerda | Nima qilish |
 |---|---|---|
-| `backend/.env` | maxfiy | nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false`, `EVENTS_SINCE=2026-11-14` |
+| `backend/.env` | maxfiy | nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false`, `EVENTS_SINCE=2026-11-10` |
 | `backend/data/tg_session.session` | Telegram sessiyasi | nusxalash YOKI qayta login: `docker-compose exec backend python scripts/tg_login.py` |
 | Postgres ma'lumotlari | docker volume | ko'chmaydi: foydalanuvchi qayta ro'yxatdan o'tadi, hodisalarni fon yig'uvchi 5 daqiqada o'zi yig'adi |
 | `frontend/.env.local` | — | `cp frontend/.env.example frontend/.env.local` |
@@ -68,6 +68,16 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### 2026-11-14, 2-sessiya davomi-3 (`EVENTS_SINCE` → 2026-11-10)
+- Foydalanuvchi: "11.10.2026 dan boshlab yig'sin" → **10-noyabr** deb tushunildi (assistent taklif qilgan `2026-11-10` ga javob edi;
+  agar 11-oktabr nazarda tutilgan bo'lsa — `backend/.env` da `EVENTS_SINCE=2026-10-11` + `docker-compose restart backend`).
+- `backend/.env`: `EVENTS_SINCE=2026-11-10`, backend restart → birinchi yig'ishda **46 ta hodisa** (40 yangilik, 6 Telegram), xatosiz.
+  Yangi filtr + Google News + takror kesish yo'li endi haqiqiy ma'lumotda oxirigacha ishladi (manba → baza → Events sahifasi);
+  smoke: dashboard va events (desktop + mobil) toza.
+- Lentada sezilgan shovqin (filtrni sozlash uchun namunalar): "Павел Дуров предложил ... взломать его аккаунт" (Kursiv),
+  "Binance возместила ... при взломе" (Turkmenportal), "Russian hackers breach Romania emails" (CyberNews — Qozog'iston faqat matn ichida).
+  Tojikiston hujjatlari voqeasi turlicha sarlavhalar bilan ~12 marta qolgan (takror kesish faqat o'xshash sarlavhalarni birlashtiradi).
 
 ### 2026-11-14, 2-sessiya davomi-2 (bloklangan saytlar uchun ikkilamchi manbalar)
 Foydalanuvchi so'radi: Cloudflare/403 beradigan saytlardan (BleepingComputer, CyberNews, Cyber Express, camonitor.kz, turkmenportal,
