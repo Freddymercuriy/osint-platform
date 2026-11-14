@@ -24,6 +24,10 @@ class EventRecord(Base):
         Index("ix_events_countries", "countries", postgresql_using="gin"),
         Index("ix_events_category_id", "category_id"),
         Index("ix_events_source_id", "source_id"),
+        Index("ix_events_when", text("coalesce(published, first_seen)")),
+        Index("ix_events_severity", "severity"),
+        Index("ix_events_channel", "channel"),
+        Index("ix_events_scope_when", "scope", text("coalesce(published, first_seen)")),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

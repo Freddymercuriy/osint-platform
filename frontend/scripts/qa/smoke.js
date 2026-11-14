@@ -22,6 +22,9 @@ const PRIVATE = [
   "/dashboard/phone",
   "/dashboard/domain",
   "/dashboard/history",
+  "/dashboard/admin/sources",
+  "/dashboard/admin/categories",
+  "/dashboard/admin/system",
 ];
 const MAIN = ["/", "/login", "/dashboard", "/dashboard/events", "/dashboard/username", "/dashboard/history"];
 const MATRIX = process.env.MATRIX === "1";

@@ -1,9 +1,11 @@
 "use client";
 
-import { ArrowUpRight, Hash, Languages, Link2, User } from "lucide-react";
+import { ArrowUpRight, Hash, Languages, Link2, Pencil, User } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
-import { Badge, CategoryBadge, SeverityBadge } from "@/components/ui";
+import { Badge, Button, CategoryBadge, Select, SeverityBadge } from "@/components/ui";
+import { setEventCategory } from "@/lib/adminApi";
+import { useCategories, type CategoryView } from "@/lib/useCategories";
 import { CHANNEL_META, type Tone } from "@/lib/categories";
 import { useFormat } from "@/lib/format";
 import type { EventItem } from "@/lib/api";
@@ -36,13 +38,74 @@ function Highlight({ text, query }: { text: string; query: string }) {
   );
 }
 
-export function EventCard({ e, query }: { e: EventItem; query: string }) {
+export type FilterKey = "category" | "severity" | "country" | "channel" | "source";
+
+/** Bosiladigan "chip": bosilganda filtr qo'shiladi. */
+function FilterChip({ label, onClick, children }: { label: string; onClick?: () => void; children: React.ReactNode }) {
+  const t = useTranslations("events.card");
+  if (!onClick) return <>{children}</>;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={t("addFilter", { label })}
+      aria-label={t("addFilter", { label })}
+      className="focus-ring rounded-full transition-opacity hover:opacity-80"
+    >
+      {children}
+    </button>
+  );
+}
+
+export function EventCard({
+  e,
+  query,
+  onFilter,
+  isAdmin,
+  categories,
+  onUpdated,
+}: {
+  e: EventItem;
+  query: string;
+  onFilter?: (key: FilterKey, value: string) => void;
+  isAdmin?: boolean;
+  categories?: CategoryView[];
+  onUpdated?: (next: EventItem) => void;
+}) {
+  const tcard = useTranslations("events.card");
+  const [editing, setEditing] = useState(false);
+  const [newCat, setNewCat] = useState(e.category);
+  const [saving, setSaving] = useState(false);
+  const [catErr, setCatErr] = useState<string | null>(null);
+  const [savedMsg, setSavedMsg] = useState(false);
+
+  async function saveCategory() {
+    if (e.id == null || !newCat || newCat === e.category) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    setCatErr(null);
+    try {
+      const res = await setEventCategory(e.id, newCat);
+      onUpdated?.({ ...e, category: res.category ?? newCat, category_id: res.category_id ?? e.category_id });
+      setEditing(false);
+      setSavedMsg(true);
+    } catch (err) {
+      setCatErr(err instanceof Error ? err.message : "");
+    } finally {
+      setSaving(false);
+    }
+  }
+
   const t = useTranslations("events");
   const tc = useTranslations("common");
   const tch = useTranslations("channel");
   const tco = useTranslations("country");
   const locale = useLocale();
   const f = useFormat();
+  const tsev = useTranslations("severity");
+  const { bySlug } = useCategories();
   const [showOrig, setShowOrig] = useState(false);
 
   const origTitle = e.original_title ?? "";
@@ -66,17 +129,25 @@ export function EventCard({ e, query }: { e: EventItem; query: string }) {
     <li>
       <article className="card p-4 transition-colors hover:border-border-strong sm:p-5">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 text-xs">
-          <CategoryBadge category={e.category} />
-          {e.severity && <SeverityBadge severity={e.severity} />}
+          <FilterChip label={bySlug(e.category).name} onClick={onFilter && (() => onFilter("category", e.category))}>
+            <CategoryBadge category={e.category} />
+          </FilterChip>
+          {e.severity && (
+            <FilterChip label={tsev(e.severity)} onClick={onFilter && (() => onFilter("severity", e.severity!))}>
+              <SeverityBadge severity={e.severity} />
+            </FilterChip>
+          )}
           {e.channel && chMeta && ChIcon && (
-            <Badge tone={chMeta.tone as Tone} icon={ChIcon}>
-              {tch.has(e.channel) ? tch(e.channel) : e.channel}
-            </Badge>
+            <FilterChip label={tch.has(e.channel) ? tch(e.channel) : e.channel} onClick={onFilter && (() => onFilter("channel", e.channel!))}>
+              <Badge tone={chMeta.tone as Tone} icon={ChIcon}>
+                {tch.has(e.channel) ? tch(e.channel) : e.channel}
+              </Badge>
+            </FilterChip>
           )}
           {countries.map((c) => (
-            <Badge key={c} tone="slate">
-              {tco.has(c) ? tco(c) : c}
-            </Badge>
+            <FilterChip key={c} label={tco.has(c) ? tco(c) : c} onClick={onFilter && (() => onFilter("country", c))}>
+              <Badge tone="slate">{tco.has(c) ? tco(c) : c}</Badge>
+            </FilterChip>
           ))}
           {when && (
             <span className="ml-auto flex items-center gap-1.5 text-fg-muted" title={f.dateTime(when)}>
@@ -103,11 +174,22 @@ export function EventCard({ e, query }: { e: EventItem; query: string }) {
         )}
 
         <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-fg-muted">
-          {e.source && (
-            <span className="max-w-[16rem] truncate font-mono" title={e.source}>
-              {e.source}
-            </span>
-          )}
+          {e.source &&
+            (onFilter && e.source_id != null ? (
+              <button
+                type="button"
+                onClick={() => onFilter("source", String(e.source_id))}
+                title={tcard("addFilter", { label: e.source })}
+                aria-label={tcard("addFilter", { label: e.source })}
+                className="focus-ring max-w-[16rem] truncate rounded-md border border-border px-1.5 py-0.5 font-mono hover:border-border-strong hover:text-fg"
+              >
+                {e.source}
+              </button>
+            ) : (
+              <span className="max-w-[16rem] truncate font-mono" title={e.source}>
+                {e.source}
+              </span>
+            ))}
           {e.actor && (
             <span className="inline-flex items-center gap-1" title={t("actorHint")}>
               <User className="h-3.5 w-3.5" aria-hidden />
@@ -155,8 +237,22 @@ export function EventCard({ e, query }: { e: EventItem; query: string }) {
           </details>
         )}
 
-        {(hasOriginal || e.url) && (
+        {(hasOriginal || e.url || (isAdmin && e.id != null)) && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-2.5">
+            {isAdmin && e.id != null && !editing && (
+              <button
+                type="button"
+                onClick={() => {
+                  setNewCat(e.category);
+                  setSavedMsg(false);
+                  setEditing(true);
+                }}
+                className="focus-ring inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-fg-muted hover:bg-surface-2 hover:text-fg"
+              >
+                <Pencil className="h-3.5 w-3.5" aria-hidden />
+                {tcard("changeCategory")}
+              </button>
+            )}
             {hasOriginal && (
               <button
                 type="button"
@@ -179,6 +275,45 @@ export function EventCard({ e, query }: { e: EventItem; query: string }) {
               </a>
             )}
           </div>
+        )}
+        {isAdmin && editing && (
+          <div
+            className="mt-2 space-y-2 rounded-lg border border-border bg-surface-2 p-3"
+            onKeyDown={(ev) => ev.key === "Escape" && setEditing(false)}
+          >
+            <div className="flex flex-wrap items-center gap-2">
+              <Select
+                autoFocus
+                value={newCat}
+                onChange={(ev) => setNewCat(ev.target.value)}
+                aria-label={tcard("chooseCategory")}
+                className="!h-9 min-w-0 flex-1 sm:max-w-xs"
+              >
+                {(categories ?? []).map((c) => (
+                  <option key={c.slug} value={c.slug}>
+                    {c.name}
+                  </option>
+                ))}
+              </Select>
+              <Button size="sm" loading={saving} onClick={saveCategory} disabled={newCat === e.category}>
+                {tcard("save")}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>
+                {tc("cancel")}
+              </Button>
+            </div>
+            <p className="text-xs text-fg-muted">{tcard("lockedHint")}</p>
+            {catErr && (
+              <p role="alert" className="text-xs text-danger">
+                {catErr}
+              </p>
+            )}
+          </div>
+        )}
+        {savedMsg && !editing && (
+          <p role="status" className="mt-2 text-xs text-success">
+            {tcard("saved")}
+          </p>
         )}
       </article>
     </li>

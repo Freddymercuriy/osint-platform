@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
-from app.models import Category, EventRecord, NotificationState
+from app.models import AdminAlert, Category, EventRecord, NotificationState
 from app.api.events import localize
 from app.schemas import EventItemOut
 
@@ -16,11 +16,23 @@ class NotificationItem(EventItemOut):
     is_new: bool
 
 
+class SystemAlert(BaseModel):
+    """Adminlar uchun: matni frontendda `kind` bo'yicha tarjima qilinadi."""
+
+    id: int
+    kind: str
+    source_id: int | None
+    data: dict
+    created_at: datetime
+    is_new: bool
+
+
 class NotificationsResponse(BaseModel):
     unread: int
     categories: list[str]
     seen_at: datetime | None
     items: list[NotificationItem]
+    system: list[SystemAlert] = []
 
 
 async def _seen_at(db: DbSession, user_id: int) -> datetime | None:
@@ -55,7 +67,15 @@ async def list_notifications(
         NotificationItem(**it.model_dump(), is_new=seen_at is None or r.first_seen > seen_at)
         for it, r in zip(localized, rows, strict=True)
     ]
-    return NotificationsResponse(unread=unread, categories=cats, seen_at=seen_at, items=items)
+    system: list[SystemAlert] = []
+    if current_user.role == "admin":
+        alerts = (await db.scalars(
+            select(AdminAlert).where(AdminAlert.resolved_at.is_(None)).order_by(AdminAlert.created_at.desc()).limit(20)
+        )).all()
+        system = [SystemAlert(id=a.id, kind=a.kind, source_id=a.source_id, data=a.data, created_at=a.created_at,
+                              is_new=seen_at is None or a.created_at > seen_at) for a in alerts]
+        unread += sum(1 for a in system if a.is_new)
+    return NotificationsResponse(unread=unread, categories=cats, seen_at=seen_at, items=items, system=system)
 
 
 @router.post("/read")

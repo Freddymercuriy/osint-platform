@@ -72,6 +72,12 @@ class Settings(BaseSettings):
     nvd_api_key: str | None = None
     cloudflare_api_token: str | None = None
 
+    # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
+    app_timezone: str = "Asia/Tashkent"
+
+    # Manba shuncha soat davomida down/blocked bo'lsa — adminlarga ogohlantirish
+    source_down_alert_hours: int = 3
+
     # Tarjima (Google Cloud Translation, Basic v2 — API kalit bilan). Kalit bo'lmasa tarjimalar "pending" qoladi.
     google_translate_api_key: str | None = None
     translate_enabled: bool = True

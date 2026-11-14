@@ -1,12 +1,15 @@
 "use client";
 
 import { CalendarDays, ChevronDown, Radar, RefreshCw, Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Button, Card, EmptyState, ErrorBanner, Input, PageHeader, Select, Skeleton } from "@/components/ui";
-import { EventCard, eventTime } from "@/components/events/EventCard";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Card, EmptyState, ErrorBanner, PageHeader, Skeleton } from "@/components/ui";
+import { EventCard, eventTime, type FilterKey } from "@/components/events/EventCard";
+import { EventFilterBar, SCOPES, type Scope } from "@/components/events/EventFilterBar";
 import { StatusStrip } from "@/components/events/StatusStrip";
 import {
+  eventFiltersToParams,
   getCollectorStatus,
   getEvents,
   getMe,
@@ -17,13 +20,31 @@ import {
   type EventItem,
   type TgStatus,
 } from "@/lib/api";
+import { getEventFacets, type EventFacets } from "@/lib/adminApi";
 import { useCategories } from "@/lib/useCategories";
 import { useFormat } from "@/lib/format";
-import { cn } from "@/lib/cn";
 
 const PAGE_SIZE = 40;
-type Scope = NonNullable<EventFilters["scope"]>;
-const SCOPES: Scope[] = ["regional", "global", "all"];
+const LIST_KEYS = ["category", "severity", "country", "channel", "source", "source_lang"] as const;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+/** URL query -> filtrlar (API bilan bir xil nomlar, ro'yxatlar vergul bilan). */
+function parseFilters(sp: URLSearchParams): { filters: EventFilters; scope: Scope } {
+  const filters: EventFilters = {};
+  for (const k of LIST_KEYS) {
+    const v = (sp.get(k) ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+    if (v.length) filters[k] = v;
+  }
+  const q = (sp.get("q") ?? "").trim();
+  if (q) filters.q = q;
+  const from = sp.get("date_from");
+  const to = sp.get("date_to");
+  if (from && DATE_RE.test(from)) filters.date_from = from;
+  if (to && DATE_RE.test(to)) filters.date_to = to;
+  const sc = sp.get("scope");
+  const scope = (SCOPES as string[]).includes(sc ?? "") ? (sc as Scope) : "regional";
+  return { filters, scope };
+}
 
 function dayKey(iso: string | null): string {
   if (!iso) return "none";
@@ -53,20 +74,25 @@ function FeedSkeleton() {
   );
 }
 
-export default function EventsPage() {
+function EventsView() {
   const t = useTranslations("events");
   const tc = useTranslations("common");
-  const ts = useTranslations("scope");
   const locale = useLocale();
   const f = useFormat();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { list: categories } = useCategories();
+
+  const spKey = searchParams.toString();
+  const { filters, scope } = useMemo(() => parseFilters(new URLSearchParams(spKey)), [spKey]);
+  const effective = useMemo<EventFilters>(() => ({ ...filters, scope }), [filters, scope]);
+  const queryKey = useMemo(() => eventFiltersToParams(effective).toString(), [effective]);
 
   const [items, setItems] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [qInput, setQInput] = useState("");
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("");
-  const [scope, setScope] = useState<Scope>("regional");
+  const [qInput, setQInput] = useState(filters.q ?? "");
+  const [facets, setFacets] = useState<EventFacets | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -77,6 +103,40 @@ export default function EventsPage() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastNew, setLastNew] = useState<number | null>(null);
   const reqId = useRef(0);
+  const lastQ = useRef(filters.q ?? "");
+  const spRef = useRef(spKey);
+  spRef.current = spKey;
+
+  /** Filtrlarni URL ga yozish (skrollsiz). */
+  const setFilters = useCallback(
+    (patch: Partial<EventFilters>) => {
+      const p = new URLSearchParams(spRef.current);
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0) || (k === "scope" && v === "regional")) {
+          p.delete(k);
+        } else p.set(k, Array.isArray(v) ? v.join(",") : String(v));
+      }
+      const qs = p.toString();
+      spRef.current = qs;
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname],
+  );
+
+  const resetAll = useCallback(() => {
+    lastQ.current = "";
+    setQInput("");
+    spRef.current = "";
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
+
+  const addFilter = useCallback(
+    (key: FilterKey, value: string) => {
+      const cur = filters[key] ?? [];
+      if (!cur.includes(value)) setFilters({ [key]: [...cur, value] });
+    },
+    [filters, setFilters],
+  );
 
   const loadStatus = useCallback(async () => {
     // Telegram akkaunt ma'lumotlari va yangilash faqat admin uchun (backend 403 qaytaradi)
@@ -91,47 +151,31 @@ export default function EventsPage() {
     setStatusLoading(false);
   }, []);
 
-  const filters = useCallback(
-    (query: string, category: string, sc: Scope): EventFilters => ({
-      q: query || undefined,
-      category: category ? [category] : undefined,
-      scope: sc,
-    }),
-    [],
-  );
-
-  const load = useCallback(
-    async (query: string, category: string, sc: Scope) => {
-      const id = ++reqId.current;
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await getEvents({ filters: filters(query, category, sc), lang: locale, limit: PAGE_SIZE });
-        if (id !== reqId.current) return;
-        setItems(res.items);
-        setTotal(res.count);
-      } catch (err) {
-        if (id !== reqId.current) return;
-        setError(err instanceof Error ? err.message : tc("error"));
-        setItems([]);
-        setTotal(0);
-      } finally {
-        if (id === reqId.current) setLoading(false);
-      }
-    },
-    [filters, locale, tc],
-  );
+  const load = useCallback(async () => {
+    const id = ++reqId.current;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getEvents({ filters: effective, lang: locale, limit: PAGE_SIZE });
+      if (id !== reqId.current) return;
+      setItems(res.items);
+      setTotal(res.count);
+    } catch (err) {
+      if (id !== reqId.current) return;
+      setError(err instanceof Error ? err.message : tc("error"));
+      setItems([]);
+      setTotal(0);
+    } finally {
+      if (id === reqId.current) setLoading(false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryKey, locale, tc]);
 
   async function loadMore() {
     const id = reqId.current;
     setLoadingMore(true);
     try {
-      const res = await getEvents({
-        filters: filters(q, cat, scope),
-        lang: locale,
-        limit: PAGE_SIZE,
-        offset: items.length,
-      });
+      const res = await getEvents({ filters: effective, lang: locale, limit: PAGE_SIZE, offset: items.length });
       if (id !== reqId.current) return;
       setItems((prev) => [...prev, ...res.items]);
       setTotal(res.count);
@@ -148,7 +192,7 @@ export default function EventsPage() {
     try {
       const r = await refreshEvents();
       setLastNew(r.new);
-      await Promise.all([load(q, cat, scope), loadStatus()]);
+      await Promise.all([load(), loadStatus(), getEventFacets().then(setFacets, () => {})]);
     } catch (err) {
       setError(err instanceof Error ? err.message : tc("error"));
     } finally {
@@ -162,15 +206,34 @@ export default function EventsPage() {
     return () => clearInterval(id);
   }, [loadStatus]);
 
-  // Qidiruv — 400ms debounce
   useEffect(() => {
-    const id = setTimeout(() => setQ(qInput.trim()), 400);
-    return () => clearTimeout(id);
-  }, [qInput]);
+    getEventFacets().then(setFacets, () => setFacets(null));
+  }, []);
 
   useEffect(() => {
-    load(q, cat, scope);
-  }, [q, cat, scope, load]);
+    load();
+  }, [load]);
+
+  // Qidiruv — 400ms debounce, keyin URL ga
+  useEffect(() => {
+    const v = qInput.trim();
+    if (v === (filters.q ?? "")) return;
+    const id = setTimeout(() => {
+      lastQ.current = v;
+      setFilters({ q: v || undefined });
+    }, 400);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qInput]);
+
+  // URL tashqaridan o'zgarsa (orqaga, havola) — qidiruv maydonini moslash
+  useEffect(() => {
+    const urlQ = filters.q ?? "";
+    if (urlQ !== lastQ.current) {
+      lastQ.current = urlQ;
+      setQInput(urlQ);
+    }
+  }, [filters.q]);
 
   useEffect(() => {
     if (lastNew === null) return;
@@ -204,11 +267,12 @@ export default function EventsPage() {
     return out;
   }, [items, dayLabel]);
 
+  const updateItem = useCallback((next: EventItem) => {
+    setItems((prev) => prev.map((x) => (x.id !== undefined && x.id === next.id ? next : x)));
+  }, []);
+
   const hasMore = items.length < total;
-  const clearSearch = () => {
-    setQInput("");
-    setQ("");
-  };
+  const filtered = Object.keys(filters).length > 0 || scope !== "regional";
 
   return (
     <div className="animate-fade-in">
@@ -229,99 +293,44 @@ export default function EventsPage() {
       <div className="space-y-5">
         <StatusStrip cs={cs} tg={tg} loading={statusLoading} lastNew={lastNew} />
 
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
-          <form
-            role="search"
-            onSubmit={(ev) => {
-              ev.preventDefault();
-              const v = qInput.trim();
-              if (v === q) load(v, cat, scope);
-              else setQ(v);
-            }}
-            className="relative min-w-0 flex-1"
-          >
-            <Input
-              icon={Search}
-              value={qInput}
-              onChange={(ev) => setQInput(ev.target.value)}
-              placeholder={t("searchPlaceholder")}
-              className="!pr-10"
-              aria-label={t("searchAria")}
-            />
-            {qInput && (
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="focus-ring absolute right-2.5 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-fg-muted hover:bg-surface-2 hover:text-fg"
-                aria-label={t("clear")}
-              >
-                <X className="h-4 w-4" aria-hidden />
-              </button>
-            )}
-          </form>
-          <Select
-            value={cat}
-            onChange={(ev) => setCat(ev.target.value)}
-            aria-label={t("categoryAria")}
-            className="lg:w-56"
-          >
-            <option value="">{t("allCategories")}</option>
-            {categories.map((c) => (
-              <option key={c.slug} value={c.slug}>
-                {c.name}
-              </option>
-            ))}
-          </Select>
-          <div
-            role="group"
-            aria-label={ts("label")}
-            className="inline-flex shrink-0 overflow-hidden rounded-lg border border-border bg-surface"
-          >
-            {SCOPES.map((s) => (
-              <button
-                key={s}
-                type="button"
-                aria-pressed={scope === s}
-                onClick={() => setScope(s)}
-                className={cn(
-                  "focus-ring h-10 flex-1 px-3 text-sm font-medium transition-colors",
-                  scope === s ? "bg-primary text-primary-fg" : "text-fg-muted hover:bg-surface-2 hover:text-fg",
-                )}
-              >
-                {ts(s)}
-              </button>
-            ))}
-          </div>
+        <EventFilterBar
+          filters={filters}
+          scope={scope}
+          qInput={qInput}
+          onQInput={setQInput}
+          onChange={setFilters}
+          onReset={resetAll}
+          facets={facets}
+        />
+
+        <div className="text-sm text-fg-muted" aria-live="polite">
+          {loading ? <Skeleton className="h-4 w-36" /> : <span className="font-medium text-fg">{t("eventsCount", { count: total })}</span>}
         </div>
 
-        <div className="text-xs text-fg-muted">
-          {loading ? (
-            <Skeleton className="h-4 w-36" />
-          ) : (
-            <span>
-              {t("results", { count: total })}
-              {q && <span className="font-mono"> · &quot;{q}&quot;</span>}
-            </span>
-          )}
-        </div>
-
-        {error && <ErrorBanner message={error} action={
-          <Button variant="secondary" size="sm" onClick={() => load(q, cat, scope)}>{tc("retry")}</Button>
-        } />}
+        {error && (
+          <ErrorBanner
+            message={error}
+            action={
+              <Button variant="secondary" size="sm" onClick={() => load()}>
+                {tc("retry")}
+              </Button>
+            }
+          />
+        )}
 
         {loading ? (
           <FeedSkeleton />
         ) : items.length === 0 ? (
           !error && (
             <Card>
-              {q ? (
+              {filtered ? (
                 <EmptyState
                   icon={Search}
-                  title={t("emptySearchTitle", { q })}
-                  description={t("emptySearchDesc")}
+                  title={t("emptyFilteredTitle")}
+                  description={t("emptyFilteredDesc")}
                   action={
-                    <Button variant="secondary" size="sm" icon={X} onClick={clearSearch}>
-                      {t("clearSearch")}
+                    <Button variant="secondary" size="sm" icon={X} onClick={resetAll}>
+                      {t("resetFilters")}
                     </Button>
                   }
                 />
@@ -329,11 +338,7 @@ export default function EventsPage() {
                 <EmptyState
                   icon={Radar}
                   title={t("emptyTitle")}
-                  description={
-                    <>
-                      {t("emptyWhat")} {cat || scope !== "regional" ? t("emptyWhyFilters") : t("emptyWhySince")}
-                    </>
-                  }
+                  description={t("emptyNoneDesc")}
                   action={
                     isAdmin ? (
                       <Button variant="secondary" size="sm" icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
@@ -356,7 +361,15 @@ export default function EventsPage() {
                 </div>
                 <ul className="space-y-3">
                   {g.items.map(({ e, idx }) => (
-                    <EventCard key={`${e.id ?? e.url}-${idx}`} e={e} query={q} />
+                    <EventCard
+                      key={`${e.id ?? e.url}-${idx}`}
+                      e={e}
+                      query={filters.q ?? ""}
+                      onFilter={addFilter}
+                      isAdmin={isAdmin}
+                      categories={categories}
+                      onUpdated={updateItem}
+                    />
                   ))}
                 </ul>
               </section>
@@ -378,5 +391,13 @@ export default function EventsPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={<FeedSkeleton />}>
+      <EventsView />
+    </Suspense>
   );
 }

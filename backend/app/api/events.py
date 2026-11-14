@@ -154,6 +154,50 @@ async def localize(db, rows, lang: str | None) -> list[EventItemOut]:
     return items
 
 
+class FacetItem(BaseModel):
+    value: str
+    label: str | None = None
+    count: int
+
+
+class Facets(BaseModel):
+    sources: list[FacetItem]
+    countries: list[FacetItem]
+    source_langs: list[FacetItem]
+    channels: list[FacetItem]
+    severities: list[FacetItem]
+    scopes: list[FacetItem]
+
+
+@router.get("/facets", response_model=Facets)
+async def facets(current_user: CurrentUser, db: DbSession) -> Facets:
+    """Filtr paneli uchun mavjud qiymatlar va hodisalar soni (barcha saqlangan hodisalar bo'yicha)."""
+    async def grouped(col, limit: int = 200):
+        rows = (await db.execute(
+            select(col, func.count(EventRecord.id)).group_by(col).order_by(func.count(EventRecord.id).desc()).limit(limit)
+        )).all()
+        return [FacetItem(value=str(v), count=n) for v, n in rows if v is not None]
+
+    country = func.unnest(EventRecord.countries).label("c")
+    sub = select(country).subquery()
+    countries = [FacetItem(value=c, count=n) for c, n in (await db.execute(
+        select(sub.c.c, func.count()).group_by(sub.c.c).order_by(func.count().desc())
+    )).all()]
+    src_rows = (await db.execute(
+        select(EventRecord.source_id, Source.name, func.count(EventRecord.id))
+        .join(Source, Source.id == EventRecord.source_id)
+        .group_by(EventRecord.source_id, Source.name).order_by(func.count(EventRecord.id).desc()).limit(300)
+    )).all()
+    return Facets(
+        sources=[FacetItem(value=str(i), label=name, count=n) for i, name, n in src_rows],
+        countries=countries,
+        source_langs=await grouped(EventRecord.lang),
+        channels=await grouped(EventRecord.channel),
+        severities=await grouped(EventRecord.severity),
+        scopes=await grouped(EventRecord.scope),
+    )
+
+
 class EventUpdate(BaseModel):
     category: str
 

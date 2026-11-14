@@ -16,6 +16,11 @@ export function clearToken() {
   meCache = null;
 }
 
+/** /me keshini tozalash (rol o'zgarganda). */
+export function invalidateMe() {
+  meCache = null;
+}
+
 // --- Til: cookie (next-intl o'qiydi) va backend'ga Accept-Language ---
 const LOCALE_COOKIE = "NEXT_LOCALE";
 
@@ -324,11 +329,22 @@ export type CollectorStatus = {
 // --- Saytdagi ogohlantirishlar (🔔) ---
 export type NotificationItem = EventItem & { id: number; first_seen: string; is_new: boolean };
 
+/** Adminlar uchun tizim ogohlantirishi (matni `kind` bo'yicha tarjima qilinadi). */
+export type SystemAlert = {
+  id: number;
+  kind: "source_down" | string;
+  source_id: number | null;
+  data: { source?: string; status?: string; since?: string | null; error?: string; http_status?: number | null };
+  created_at: string;
+  is_new: boolean;
+};
+
 export type NotificationsResponse = {
   unread: number;
   categories: string[];
   seen_at: string | null;
   items: NotificationItem[];
+  system?: SystemAlert[];
 };
 
 export async function getNotifications(limit = 20, lang?: string): Promise<NotificationsResponse> {

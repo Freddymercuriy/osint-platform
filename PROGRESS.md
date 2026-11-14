@@ -77,6 +77,48 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 7: admin bo'limi va Events sahifasi (2026-11-15)
+- **Backend**: `GET|PATCH /api/admin/users` (rol admin/analyst, faollik; oxirgi faol adminni pasaytirish/o'chirish — 409
+  `last_admin`); `admin_alerts` jadvali (`0010_admin_alerts`) — manba `SOURCE_DOWN_ALERT_HOURS` (3) soatdan beri
+  down/blocked bo'lsa housekeeping bir marta ogohlantirish yaratadi, manba tiklanganda yopiladi; `/api/notifications`
+  adminlarga `system` ro'yxatini qaytaradi (o'qilmaganlarga qo'shiladi); `GET /api/events/facets` — filtr paneli uchun
+  manbalar, davlatlar, asl tillar, kanallar, jiddiylik, scope (soni bilan).
+- **Frontend** (`lib/adminApi.ts` — tiplangan admin mijozi; `/dashboard/admin` qobig'i — faqat admin, tablar):
+  - **Manbalar** (`/dashboard/admin/sources`): holatlar bo'yicha xulosa qatori (bosilsa filtr), filtrlar URL'da (status,
+    kind, enabled, nom), jadval (tur, kategoriya, til, interval, holat + izoh, oxirgi muvaffaqiyat, kechikish, 24 soatlik
+    elementlar, 7 kunlik uptime, keyingi yig'ish), kalit yo'q bo'lsa o'zgaruvchi nomi bilan ishora; "Sinash" (dry run:
+    HTTP, kechikish, elementlar, filtrdan o'tganlar, 3 namuna), "Hozir yig'ish", tarix (xato matni bilan), yoqish/o'chirish
+    (tasdiq bilan), o'chirish (hodisalar qolishi aytiladi), yaratish/tahrirlash paneli (ulagichning config maydonlari +
+    "Advanced JSON", saqlashdan oldin sinash, server xatolari maydon yonida; `telegram_user` uchun akkaunt chatlaridan
+    tanlash), JSON eksport/import.
+  - **Kategoriyalar**: tartiblash (Up/Down, klaviatura), yaratish/tahrirlash (slug faqat yaratishda, nom/tavsif uz/ru/en,
+    jiddiylik, 18 rang — nom va belgi bilan, ikon tanlash, notify, saqlash muddati, yoqilganlik), qoidalar muharriri
+    (stem'lar tillar bo'yicha, pattern/exclude — har qator brauzerda tekshiriladi, weight, min_score), o'chirish
+    ("Other" ga o'tadi), qayta tasniflash — avval dry run (o'tishlar jadvali, namunalar), keyin alohida "Qo'llash".
+  - **Tizim**: yig'uvchi (lock, tsikl, urinishlar, holatlar → manbalar sahifasiga havola, 30 s da yangilanadi), tarjima
+    (kalit yo'qligi tushuntiriladi, oylik belgilar, holat × til jadvali, xatolar, "Qayta urinish", "Navbatni ishlatish"),
+    Telegram (sessiya bekor qilingan bo'lsa qayta login buyrug'i nusxalanadigan ko'rinishda), foydalanuvchilar (rol,
+    faollik — tasdiq bilan, 409 xabari ko'rsatiladi).
+  - **Events** qayta qurildi: filtr paneli — kategoriyalar, jiddiylik, davlatlar, kanal, manba (qidiriladigan), scope,
+    asl til, sana (24 soat / 7 / 30 / 90 kun / ixtiyoriy), matn; hammasi URL'da (API bilan bir xil nomlar), faol filtr
+    chiplari + "Hammasini tozalash", kartadagi kategoriya/jiddiylik/davlat/manba chipi bosilsa filtr qo'shiladi;
+    adminlar uchun kartada "Kategoriyani o'zgartirish" (qayta tasniflashdan qulflanishi aytiladi); mobil — "Filtrlar (N)" paneli.
+  - Qo'ng'iroq: adminlarga "Tizim" bo'limi (manba N soatdan beri ishlamayapti / bloklangan).
+- 4 ta `ui-designer` subagent parallel (manbalar, kategoriyalar, tizim, Events); backend, API mijozi, admin qobig'i,
+  qo'ng'iroq va integratsiya — asosiy sessiyada. Subagentlar haqiqiy manba/kategoriya/foydalanuvchini o'zgartirmadi —
+  vaqtinchalik "QA test" obyektlarida sinab, keyin o'chirdi.
+- Tekshirildi: ✅ backend testlar (users: ro'yxat, rol, oxirgi admin 409, 404; ogohlantirish: 4 soatlik down → 1 ta,
+  takrorlanmaydi, analyst ko'rmaydi, tiklanishda yopiladi; fasetlar); ✅ `tsc`; ✅ i18n 825 kalit × 3 til;
+  ✅ subagentlar brauzerda: manba yaratish → sinash → hozir yig'ish → tarix → tahrirlash → o'chirish; kategoriya
+  yaratish/regex xatosi/tartib/o'chirish, qayta tasniflash dry run (57 hodisa, 0 o'zgarish); Events URL filtrlari
+  (`?category=leak&severity=high,medium` → 6 hodisa, 3 chip; 360px skrollsiz); ✅ backend 235 pytest;
+  ✅ smoke matritsasi 108/108 (6 asosiy + 3 admin sahifa × light/dark × uz/ru/en × desktop/360px), analyst bilan 28/28
+  (admin sahifalari analyst'ga "faqat adminlar" holatini ko'rsatadi).
+- Shu commitga Bosqich 8 uchun tayyorlangan statistika backend'i ham kirgan (`api/stats_v2.py`, `0011_stats_indexes`,
+  `tests/test_stats.py`) — tafsilotlari Bosqich 8 yozuvida.
+- ⚠️ Tekshirilmadi: Telegram chat tanlagich (sessiya bekor — 409 xabari ko'rsatiladi), JSON import brauzerda,
+  "Kategoriyani o'zgartirish" haqiqiy hodisada (ataylab), Events sana filtri kun aniqligida ("24 soat" = kechagi sanadan).
+
 ### v2 — Bosqich 6: interfeys — Light / Dark / System, uz / ru / en (2026-11-15)
 - Avval `docs/design-system.md` va `.claude/agents/ui-designer.md` qayta yozildi (faqat qorong'i / faqat o'zbekcha
   qoidalar olib tashlandi); `frontend.md`, `backend.md`, `database.md`, `osint-collector.md` v2 ga moslandi.

@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CheckCheck, ExternalLink } from "lucide-react";
+import { AlertTriangle, Bell, CheckCheck, ExternalLink } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -106,10 +106,32 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
           </div>
 
           <div className="max-h-[26rem] overflow-y-auto">
-            {!data?.items.length ? (
+            {!!data?.system?.length && (
+              <div className="border-b border-border bg-surface-2/60">
+                <div className="px-4 pt-2 text-xs font-medium text-fg-subtle">{t("system")}</div>
+                {data.system.map((a) => (
+                  <Link
+                    key={`sys-${a.id}`}
+                    href="/dashboard/admin/sources"
+                    onClick={() => setOpen(false)}
+                    className="focus-ring flex items-start gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-surface-2"
+                  >
+                    <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
+                    <span className="min-w-0 flex-1 text-fg">
+                      {t(a.data.status === "blocked" ? "sourceBlocked" : "sourceDown", {
+                        source: a.data.source ?? "?",
+                        since: a.data.since ? f.dateTime(a.data.since) : "—",
+                      })}
+                    </span>
+                    {a.is_new && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-danger" aria-hidden />}
+                  </Link>
+                ))}
+              </div>
+            )}
+            {!data?.items.length && !data?.system?.length ? (
               <EmptyState icon={Bell} title={t("empty")} description={t("emptyHint")} />
             ) : (
-              data.items.map((n) => (
+              data?.items.map((n) => (
                 <a
                   key={n.id}
                   href={n.url}

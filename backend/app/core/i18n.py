@@ -525,5 +525,17 @@ MESSAGES: dict[str, dict[str, str]] = {
         "uz": "... va yana {n} ta. Platformada ko'ring.",
         "ru": "... и ещё {n}. Смотрите на платформе.",
         "en": "... and {n} more. See them on the platform."},
+    "user_not_found": {
+        "uz": "Foydalanuvchi topilmadi",
+        "ru": "Пользователь не найден",
+        "en": "User not found"},
+    "last_admin": {
+        "uz": "Oxirgi faol administratorni o'zgartirib yoki o'chirib bo'lmaydi",
+        "ru": "Нельзя изменить или отключить последнего активного администратора",
+        "en": "The last active administrator cannot be demoted or deactivated"},
+    "alert_not_found": {
+        "uz": "Ogohlantirish topilmadi",
+        "ru": "Уведомление не найдено",
+        "en": "Alert not found"},
 }
 # fmt: on

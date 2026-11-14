@@ -27,7 +27,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection
 
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal, engine
-from app.models import Category, Source, SourceRun
+from app.models import AdminAlert, Category, Source, SourceRun
 from app.services.connectors import get_connector
 from app.services.connectors.base import (
     AuthMissing,
@@ -209,6 +209,7 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
             source.status = _health_after_success(source, duration, source.newest_item_at, now, failures_recent)
             source.consecutive_failures = 0
             source.down_since = None
+            await resolve_alerts(db, source_id, now)
             source.last_success_at = now
             source.last_error = None
             source.last_http_status = result.http_status
@@ -359,8 +360,40 @@ async def translation_tick() -> dict:
     return {"planned": planned, "stats": stats}
 
 
+async def resolve_alerts(db, source_id: int, now: datetime) -> None:
+    await db.execute(update(AdminAlert).where(
+        AdminAlert.kind == "source_down", AdminAlert.source_id == source_id, AdminAlert.resolved_at.is_(None)
+    ).values(resolved_at=now))
+
+
+async def raise_down_alerts(db, now: datetime | None = None) -> int:
+    """Yoqilgan manba `source_down_alert_hours` dan beri down/blocked bo'lsa — adminlarga ogohlantirish (bir marta)."""
+    now = now or datetime.now(UTC)
+    limit = now - timedelta(hours=max(1, settings.source_down_alert_hours))
+    open_ids = set((await db.scalars(
+        select(AdminAlert.source_id).where(AdminAlert.kind == "source_down", AdminAlert.resolved_at.is_(None))
+    )).all())
+    rows = (await db.scalars(select(Source).where(
+        Source.enabled, Source.status.in_(("down", "blocked")), Source.down_since <= limit,
+    ))).all()
+    created = 0
+    for s in rows:
+        if s.id in open_ids:
+            continue
+        db.add(AdminAlert(kind="source_down", source_id=s.id, created_at=now, data={
+            "source": s.name, "status": s.status, "since": s.down_since.isoformat() if s.down_since else None,
+            "error": (s.last_error or "")[:300], "http_status": s.last_http_status,
+        }))
+        created += 1
+    await db.commit()
+    return created
+
+
 async def housekeeping() -> None:
     async with AsyncSessionLocal() as db:
+        alerts = await raise_down_alerts(db)
+        if alerts:
+            log.warning("%d ta manba uzoq vaqt ishlamayapti — adminlarga ogohlantirish", alerts)
         purged = await pipeline.purge_expired(db, datetime.now(UTC))
     if purged:
         log.info("Retention: %d ta eski hodisa o'chirildi", purged)

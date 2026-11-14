@@ -1,3 +1,4 @@
+from app.models.alert import AdminAlert
 from app.models.category import Category
 from app.models.event import EventRecord
 from app.models.notification import NotificationState
@@ -10,4 +11,5 @@ from app.models.user import User
 __all__ = [
     "User", "SearchJob", "Result", "EventRecord", "NotificationState", "TgObservation",
     "Category", "Source", "SourceRun", "EventTranslation", "TranslationCache", "TranslationUsage",
+    "AdminAlert",
 ]
