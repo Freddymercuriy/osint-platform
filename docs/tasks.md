@@ -68,6 +68,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ `EVENTS_SINCE` — lenta boshlanish sanasi (eski hodisalar yig'ilmaydi va o'chiriladi)
 - ✅ Bloklangan saytlar Google News RSS orqali (`google_news` feed turi); leak kuzatuvchilar (Dark Web Informer, HIBP)
 - ✅ Takror yangiliklarni kesish (sarlavha o'xshashligi)
+- ✅ Takror voqealar til/sinonimdan qat'i nazar (`events/dedup.py`), bazani tozalash skripti (`scripts/dedup_events.py`); jahon yangiliklari shovqini
 - ⬜ Qo'shimcha manbalar: intelforums.cc (qaror kutilmoqda), Reddit (API kaliti kerak)
 
 ## Keyingi — Kengaytirish

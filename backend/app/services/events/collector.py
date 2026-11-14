@@ -21,7 +21,6 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
-import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -31,6 +30,7 @@ from app.core.config import settings
 from app.core.db import AsyncSessionLocal
 from app.models import EventRecord
 from app.services.events.aggregator import GOOGLE_NEWS_TAG, EventItem, collect_all
+from app.services.events.dedup import TitleSig, same_story, signature
 
 log = logging.getLogger("osint.events")
 
@@ -107,23 +107,11 @@ async def _purge_expired(db, cutoff: datetime | None, since: datetime | None = N
 
 
 # ---------------------------------------------------------------- takror yangiliklar
-# Bitta voqeani o'nlab nashr deyarli bir xil sarlavha bilan bosadi (ayniqsa Google News orqali).
-# Sarlavhalar so'z to'plami bo'yicha solishtiriladi; yaqin sanadagi o'xshash yangilik yozilmaydi.
+# Bitta voqeani o'nlab nashr turlicha sarlavha (va tilda) bosadi, ayniqsa Google News orqali.
+# Sarlavha imzolari (`dedup.signature`) solishtiriladi; yaqin sanadagi o'sha voqea yozilmaydi.
 DEDUP_CATEGORIES = ("news",)
 DEDUP_WINDOW = timedelta(days=3)  # shu oraliqdagi sarlavhalargina solishtiriladi
 DEDUP_LOOKBACK = timedelta(days=14)  # bazadan qancha orqaga qarash
-DEDUP_THRESHOLD = 0.5  # Jaccard o'xshashligi
-
-
-def title_tokens(title: str) -> frozenset[str]:
-    """Sarlavhaning "o'zak" so'zlari: 4+ harfli so'zlarning birinchi 5 harfi (qo'pol stemming)."""
-    return frozenset(w[:5] for w in re.findall(r"\w{4,}", title.lower()))
-
-
-def similar_titles(a: frozenset[str], b: frozenset[str]) -> bool:
-    if len(a) < 3 or len(b) < 3:
-        return False
-    return len(a & b) / len(a | b) >= DEDUP_THRESHOLD
 
 
 def _aware(when: datetime | None, default: datetime) -> datetime:
@@ -134,7 +122,7 @@ def _aware(when: datetime | None, default: datetime) -> datetime:
 
 def drop_similar(
     candidates: list[EventItem],
-    known: list[tuple[frozenset[str], datetime]],
+    known: list[tuple[TitleSig, datetime]],
     now: datetime,
 ) -> list[EventItem]:
     """`known` (bazadagi yaqin yangiliklar) ga yoki bir-biriga o'xshash yangiliklarni tashlaydi.
@@ -151,10 +139,10 @@ def drop_similar(
         if item.category not in DEDUP_CATEGORIES:
             kept.append(item)
             continue
-        tokens, when = title_tokens(item.title), _aware(item.published, now)
-        if any(abs(when - w) <= DEDUP_WINDOW and similar_titles(tokens, t) for t, w in known):
+        sig, when = signature(item.title), _aware(item.published, now)
+        if any(abs(when - w) <= DEDUP_WINDOW and same_story(sig, s) for s, w in known):
             continue
-        known.append((tokens, when))
+        known.append((sig, when))
         kept.append(item)
     return kept
 
@@ -211,7 +199,7 @@ async def run_once() -> int:
 
                 # Takror yangiliklar: bazadagi yaqin sarlavhalar va shu to'plam ichida
                 fresh = {uid: i for uid, i in uids.items() if uid not in existing}
-                known: list[tuple[frozenset[str], datetime]] = []
+                known: list[tuple[TitleSig, datetime]] = []
                 if any(i.category in DEDUP_CATEGORIES for i in fresh.values()):
                     rows = (await db.execute(
                         select(EventRecord.title, EventRecord.published, EventRecord.first_seen)
@@ -220,7 +208,7 @@ async def run_once() -> int:
                             EventRecord.first_seen >= started - DEDUP_LOOKBACK,
                         )
                     )).all()
-                    known = [(title_tokens(t), _aware(p or f, started)) for t, p, f in rows]
+                    known = [(signature(t), _aware(p or f, started)) for t, p, f in rows]
                 unique_ids = {id(i) for i in drop_similar(list(fresh.values()), known, started)}
 
                 new_records: list[EventRecord] = []

@@ -267,6 +267,12 @@ FOREIGN_MARKERS: tuple[str, ...] = (
     r"russia", r"moscow", r"kremlin", r"china\b", r"chinese", r"north korea", r"south korea",
     r"german", r"britain", r"british", r"france", r"french", r"ukrain", r"israel", r"iran\b",
     r"iranian", r"japan", r"india\b", r"indian\b", r"europe", r"worldwide",
+    # jahon miqyosidagi shaxs / kompaniyalar — mahalliy sayt qayta bosgan jahon yangiligi belgisi
+    # ("Дуров предложил взломать его аккаунт", "Binance возместила ... при взломе").
+    # Ataylab YO'Q: telegram, whatsapp, google, apple, microsoft — mahalliy firibgarlik va
+    # zaiflik xabarlarida ham uchraydi.
+    r"дуров", r"durov", r"binance", r"bybit", r"coinbase", r"илон\w* маск", r"маск\b", r"musk\b",
+    r"openai", r"трамп", r"trump",
 )
 
 

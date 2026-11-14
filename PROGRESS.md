@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta **2026-11-10** dan boshlanadi (`EVENTS_SINCE`); 63 manba (undan oldin: Bosqich 11 — hisobot eksporti, retention)
+**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta **2026-11-10** dan boshlanadi (`EVENTS_SINCE`); 63 manba; takror voqealar til/sinonimdan qat'i nazar kesiladi (`events/dedup.py`)
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
@@ -69,6 +69,32 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### 2026-11-14, 3-sessiya (lenta sayqali: takror voqealar va shovqin)
+Oldingi sessiyada qayd etilgan ikki kamchilik yopildi (kod: `events/dedup.py`, `feeds.FOREIGN_MARKERS`):
+- **Takror voqealar** — yangi modul `services/events/dedup.py`: sarlavha "imzo"ga aylanadi — muhim so'zlar til va sinonimdan
+  qat'i nazar tushunchaga keltiriladi (`хакеры`/`hackers`/`взломали` → `#HACK`, `Таджикистана`/`Tajik` → `#TJ`,
+  `украли`/`похитили`/`steal` → `#STEAL`, `ИИ`/`AI` → `#AI` ...), qolganlari 5 harfli o'zak, bog'lovchilar tashlanadi.
+  Bitta voqea = barcha tokenlar bo'yicha Jaccard ≥ 0.5 **yoki** ≥ 4 umumiy tushuncha va tushunchalar Jaccard ≥ 0.5
+  (ruscha ↔ inglizcha sarlavhalar ham birlashadi). **Veto:** ikkalasida davlat bor, umumiysi yo'q (UZ ≠ KZ); ikkalasida soha bor,
+  umumiysi yo'q (bank ≠ klinika) — avvalgi qoida bularni birlashtirib yuborardi. Oyna (3 kun) va tartib (to'g'ridan-to'g'ri manba,
+  keyin eng eski) o'zgarmadi. Sozlash: `dedup.py` dagi `_TOPICS`/`_SECTORS`/`_COUNTRIES`, `*_THRESHOLD`.
+- **Bazadagi eski takrorlar** — `backend/scripts/dedup_events.py` (`docker-compose exec backend python scripts/dedup_events.py`
+  — faqat ko'rsatadi; `--apply` — o'chiradi). Ishlatildi: 40 yangilikdan **12 tasi o'chirildi** (Tojikiston hujjatlari voqeasi
+  13 → 2, Turla/KZ pochta 2 → 1, Zamin.uz EN/RU 2 → 1). Oldingi holat nusxasi (46 qator):
+  `~/osint-events-backup-2026-11-14-dedup.sql` (repodan tashqarida).
+- **Shovqin** — `FOREIGN_MARKERS` ga jahon miqyosidagi shaxs/kompaniyalar qo'shildi (Дуров, Binance, Bybit, Coinbase, Маск,
+  OpenAI, Трамп): mahalliy sayt bosgan jahon yangiligi, mintaqa so'zi bo'lmasa tashlanadi. `telegram`/`google`/`apple` ataylab
+  qo'shilmadi (mahalliy firibgarlik va zaiflik xabarlarida uchraydi). Bazadagi 2 ta shunday yozuv (Дуров, Binance) o'chirildi.
+  "Russian hackers breach Romania emails" (CyberNews) **qoldirildi** — bu Turla voqeasi, Qozog'iston davlat pochtasi ham nishon.
+- Hozir bazada: 26 yangilik + 6 Telegram. Restartdan keyingi yig'ish: 62 element, **0 yangi** (o'chirilgan takror va shovqin qaytmadi).
+- Tekshirildi: ✅ haqiqiy 40 sarlavhada quruq yurgizish (noto'g'ri birlashgan juftlik yo'q); ✅ 12 ta juftlik testi (bank/klinika,
+  UZ/KZ, UZCERT zaiflik e'lonlari birlashmaydi; RU↔EN bir voqea birlashadi); ✅ shovqin filtri 9 ta holat; ✅ yig'uvchi xatosiz.
+- ⚠️ Tekshirilmadi / cheklov: yangi voqea kelgandagi jonli yo'l (bu tsiklda yangi yozuv bo'lmadi); bir davlatda 3 kun ichida
+  deyarli bir xil yozilgan ikki XIL voqea (soha so'zisiz) hamon birlashishi mumkin; butunlay boshqacha yozilgan nusxalar qoladi
+  (Forbes Kazakhstan — 3 ta, Tojikiston — 2 ta); Telegram postlari yangiliklar bilan solishtirilmaydi; o'chirilgan takrorlar
+  soni saqlanmaydi ("N ta manba yozdi" ko'rsatkichi yo'q — kerak bo'lsa `events` ga ustun qo'shish kerak).
+- Eslatma: sessiya boshida backend konteyneri o'chiq edi (`Exit 255`, kompyuter qayta yoqilgan) → `docker-compose start backend`.
+
 ### 2026-11-14, 2-sessiya davomi-3 (`EVENTS_SINCE` → 2026-11-10)
 - Foydalanuvchi: "11.10.2026 dan boshlab yig'sin" → **10-noyabr** deb tushunildi (assistent taklif qilgan `2026-11-10` ga javob edi;
   agar 11-oktabr nazarda tutilgan bo'lsa — `backend/.env` da `EVENTS_SINCE=2026-10-11` + `docker-compose restart backend`).
@@ -89,7 +115,7 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
   Reuters, The Record va boshqa istalgan nashr). `Feed.min_interval=1800` — fon yig'uvchi ham 30 daqiqada bir martadan ko'p so'ramaydi.
 - **Leak kuzatuvchilar** (forumlarning o'zi emas, faqat xulosa/metadata; kategoriya `leak` → 🔔): Dark Web Informer RSS,
   Have I Been Pwned RSS — `region_filter` bilan.
-- **Takror yangiliklar** (`collector.drop_similar`): `news` kategoriyasida sarlavhalar so'z to'plami (4+ harfli so'zlarning birinchi
+- **Takror yangiliklar** (`collector.drop_similar`; qoida keyin kuchaytirildi — yuqorida "3-sessiya"): `news` kategoriyasida sarlavhalar so'z to'plami (4+ harfli so'zlarning birinchi
   5 harfi) bo'yicha solishtiriladi — Jaccard ≥ 0.5 va sanalar farqi ≤ 3 kun bo'lsa takror; bazadagi so'nggi 14 kunlik sarlavhalar bilan
   ham. To'g'ridan-to'g'ri manba Google nusxasidan, eski sana yangisidan ustun. Sinovda 44 → 26.
   ⚠️ Cheklov: deyarli bir xil sarlavhali ikki XIL voqea (masalan "xakerlar bank saytini buzdi" / "...vazirlik saytini buzdi", 3 kun ichida)
@@ -284,7 +310,7 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
 
 - [x] **Hisobot eksporti (JSON / PDF) + Events retention (Bosqich 11, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya")
 
-- [x] **Events: Markaziy Osiyo + kiber/leak filtri, `EVENTS_SINCE` (Bosqich 12, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya davomi")
+- [x] **Events: Markaziy Osiyo + kiber/leak filtri, `EVENTS_SINCE` (Bosqich 12, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya davomi", "3-sessiya")
 
 ## ⚠️ Docker eslatmasi (muhim)
 - `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz
