@@ -10,15 +10,15 @@ export default function UsernameSearchPage() {
       kind="username"
       icon={AtSign}
       tone="cyan"
-      title="Username qidiruv"
-      description="Taxallusni 13 ta ochiq saytda bir vaqtda tekshiradi va mavjud profillarni topadi."
-      placeholder="masalan: torvalds"
-      examples={["torvalds", "durov", "elonmusk"]}
+      title="Telegram username"
+      description="Telegram akkauntini username yoki ID bo'yicha tekshiradi: ID, usernamelar, username o'zgarishlari va siz bilan umumiy guruhlar."
+      placeholder="masalan: @botfather, t.me/telegram yoki 93372553"
+      examples={["botfather", "telegram", "93372553"]}
       checks={[
-        "13 ta ochiq sayt va platforma",
-        "Profil mavjudligi (HTTP javob)",
-        "To'g'ridan-to'g'ri profil havolasi",
-        "Noaniq javoblarni alohida belgilash",
+        "Akkaunt ID'si, turi va belgilar (bot, premium, scam)",
+        "Faol usernamelar, bio, shaxsiy kanal",
+        "Username tarixi — platforma har qidiruvda yozib boradi",
+        "Umumiy guruhlar va ulardagi xabarlar soni",
       ]}
       inputMono
       search={searchUsername}

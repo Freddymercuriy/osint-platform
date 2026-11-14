@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta **2026-11-10** dan boshlanadi (`EVENTS_SINCE`); 63 manba; takror voqealar til/sinonimdan qat'i nazar kesiladi (`events/dedup.py`)
+**Bosqich:** 13 — Username moduli endi faqat Telegram (akkaunt ID'si, username tarixi, umumiy guruhlar). Undan oldin: Bosqich 12 — Events lentasi (Markaziy Osiyo + kiber/leak, `EVENTS_SINCE=2026-11-10`, 63 manba, takror voqealarni kesish)
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
@@ -68,6 +68,39 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### 2026-11-14, 3-sessiya davomi (Bosqich 13: username moduli → faqat Telegram)
+Foydalanuvchi talabi: *"username bo'yicha qidirish faqat Telegram orqali bo'lsin; ID'ni bilgan holda username qachon
+o'zgartirilganini topish; qaysi guruhlarga a'zo ekanini chiqarish"*.
+- **`POST /api/search/username`** endi `services/collectors/telegram_account.py` (`TelegramAccountCollector`) — foydalanuvchining
+  o'z Telegram akkaunti (Telethon) orqali. Kirish: `@nom`, `nom`, `t.me/nom` yoki raqamli ID (`93372553`, `id93372553`,
+  `-100…`). 13 saytli eski `collectors/username.py` repoda qoldi, lekin **ulanmagan**.
+- Natija qatorlari: **Telegram akkaunt** (ID, tur: foydalanuvchi/bot/kanal/guruh, ochiq ism, belgilar: premium/tasdiqlangan/
+  scam/fake/o'chirilgan) · **Username** (barcha faol usernamelar) · **Bio / Tavsif** · **Shaxsiy kanal** ·
+  **Username tarixi** · **Username avvalgi egasi** · **Guruh: …** (har bir umumiy guruh: ochiq/yopiq, a'zolar soni, shu akkaunt
+  yozgan xabarlar soni va birinchi/oxirgi sanasi — dastlabki 15 guruh uchun).
+- **Username tarixi** — Telegram o'tgan o'zgarishlarni **bermaydi**. Yangi jadval `tg_observations` (`models/telegram.py`): har
+  qidiruvda ID + usernamelar holati yoziladi; o'zgarmagan bo'lsa `last_seen` yangilanadi, o'zgargan bo'lsa yangi qator.
+  O'zgarish vaqti = ikki kuzatuv oralig'i ("@eski → @yangi: 12 noy va 14 noy oralig'ida"). Shuning uchun tarix **faqat birinchi
+  qidiruvdan boshlab** va qidiruvlar orasidagi aniqlikda. ID bo'yicha qidiruv username o'zgargan bo'lsa ham akkauntni topadi
+  (sessiya keshidagi access_hash orqali) — o'zgarishni aynan shu aniqlaydi. Jurnalda ism/telefon/bio **saqlanmaydi**.
+- **Guruhlar** — faqat `messages.GetCommonChats`: sizning akkauntingiz ham a'zo bo'lgan guruhlar. Boshqa odamning barcha guruhlari
+  ro'yxatini Telegram hech kimga bermaydi.
+- **Ataylab qilinmadi** (foydalanuvchi "unsensured versiya" so'ragan): sizib chiqqan bazalar va odamlarni ommaviy kuzatib yig'ilgan
+  uchinchi tomon bazalari/botlari ulanmadi ("faqat ochiq manbalar" qoidasi); telefon raqami va "oxirgi marta ko'rilgan" o'qilmaydi.
+  "Margaret" → Maigret deb tushunildi; u Telegram uchun faqat `t.me/<nom>` borligini tekshiradi, shuning uchun ishlatilmadi.
+- ID cheklovi: Telegram ID bo'yicha faqat akkaunt avval "ko'rgan" obyektni ochadi (umumiy guruhda uchragan yoki username bilan
+  qidirilgan). Noma'lum ID → "Noaniq" qatori va tushuntirish.
+- UI: `/dashboard/username` sarlavha/tavsif/namunalar, `lib/modules.ts`, landing kartasi. Natijalar to'ri mobil ekranda
+  gorizontal skroll berardi (uzun bio) → `grid-cols-1` (`SearchModule.tsx`); bio endi karta matnida.
+- Tekshirildi: ✅ jonli API — bot (`botfather`), kanal (`t.me/telegram`), ID (uch xil yozuvda), bo'sh username, yaroqsiz kirish
+  (422), noma'lum ID; ✅ umumiy guruhlar va xabar sanoqlari (guruh moderator botlari bilan: 15 / 2 / 5 guruh, 0.9–4.2 s);
+  ✅ username o'zgarishi, avvalgi egasi, "username boshqa akkauntda" — jurnalga sun'iy yozuvlar bilan (keyin jurnal tozalandi);
+  ✅ `tsc`, smoke 22/22, brauzerda qidiruv → natija (desktop + mobil 360px).
+- ⚠️ Tekshirilmadi: haqiqiy username o'zgarishi (faqat sun'iy yozuv bilan); oddiy foydalanuvchi akkaunti (faqat bot va kanalda
+  sinaldi — umumiy guruhlar yo'li bir xil); Telegram flood-wait holati (kodi bor, yuzaga kelmadi); 100 dan ko'p umumiy guruh.
+- Keyingi qadam (foydalanuvchi qarori kerak): **kuzatuv ro'yxati** — qidirilgan ID'larni fon yig'uvchi kuniga bir marta qayta
+  tekshirsa, username o'zgarish vaqti bir kun aniqligida chiqadi. Hozir faqat qo'lda qidirilganda yoziladi.
 
 ### 2026-11-14, 3-sessiya (lenta sayqali: takror voqealar va shovqin)
 Oldingi sessiyada qayd etilgan ikki kamchilik yopildi (kod: `events/dedup.py`, `feeds.FOREIGN_MARKERS`):
@@ -311,6 +344,8 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
 - [x] **Hisobot eksporti (JSON / PDF) + Events retention (Bosqich 11, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya")
 
 - [x] **Events: Markaziy Osiyo + kiber/leak filtri, `EVENTS_SINCE` (Bosqich 12, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya davomi", "3-sessiya")
+
+- [x] **Username moduli → faqat Telegram (Bosqich 13, 2026-11-14)** — tafsilotlar yuqorida ("3-sessiya davomi")
 
 ## ⚠️ Docker eslatmasi (muhim)
 - `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz

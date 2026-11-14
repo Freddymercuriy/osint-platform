@@ -21,7 +21,7 @@ from app.services.collectors.base import BaseCollector
 from app.services.collectors.domain import DomainCollector
 from app.services.collectors.email import EmailCollector
 from app.services.collectors.phone import PhoneCollector
-from app.services.collectors.username import UsernameCollector
+from app.services.collectors.telegram_account import TelegramAccountCollector
 
 router = APIRouter(prefix="/api/search", tags=["search"])
 
@@ -79,7 +79,8 @@ async def _run_and_save(
 
 @router.post("/username", response_model=SearchResponse)
 async def search_username(data: SearchRequest, current_user: CurrentUser, db: DbSession):
-    return await _run_and_save(UsernameCollector(), "username", data, current_user, db)
+    """Username moduli — faqat Telegram (username yoki ID): akkaunt, username tarixi, umumiy guruhlar."""
+    return await _run_and_save(TelegramAccountCollector(db), "username", data, current_user, db)
 
 
 @router.post("/email", response_model=SearchResponse)

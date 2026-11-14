@@ -1,6 +1,7 @@
 from app.models.event import EventRecord
 from app.models.notification import NotificationState
 from app.models.search import Result, SearchJob
+from app.models.telegram import TgObservation
 from app.models.user import User
 
-__all__ = ["User", "SearchJob", "Result", "EventRecord", "NotificationState"]
+__all__ = ["User", "SearchJob", "Result", "EventRecord", "NotificationState", "TgObservation"]

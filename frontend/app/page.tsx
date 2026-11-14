@@ -58,11 +58,11 @@ const FEATURES: Feature[] = [
     icon: AtSign,
     tone: "violet",
     eyebrow: "Username",
-    title: "Username qidiruv",
-    description: "Bitta taxallusni 13 ta mashhur saytda bir zumda tekshiring.",
+    title: "Telegram username",
+    description: "Telegram akkauntini username yoki ID bo'yicha tekshiring: username tarixi va umumiy guruhlar.",
     points: [
-      { icon: ScanSearch, label: "13 sayt" },
-      { icon: Users, label: "Profil havolalari" },
+      { icon: ScanSearch, label: "Telegram" },
+      { icon: Users, label: "Umumiy guruhlar" },
     ],
   },
   {

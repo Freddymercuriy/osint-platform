@@ -14,7 +14,7 @@ export type ModuleMeta = {
 
 /** Tekshiruv modullari — butun UI'da bir xil nom, rang va ikon (sidebar, dashboard, tarix). */
 export const MODULES: ModuleMeta[] = [
-  { kind: "username", href: "/dashboard/username", label: "Username", title: "Username qidiruv", desc: "13 ta ochiq saytda profil izlash", icon: AtSign, tone: "cyan" },
+  { kind: "username", href: "/dashboard/username", label: "Username", title: "Telegram username", desc: "ID, username tarixi, umumiy guruhlar", icon: AtSign, tone: "cyan" },
   { kind: "email", href: "/dashboard/email", label: "Email", title: "Email tekshiruvi", desc: "Sintaksis, MX server, Gravatar", icon: Mail, tone: "violet" },
   { kind: "phone", href: "/dashboard/phone", label: "Telefon", title: "Telefon tekshiruvi", desc: "Davlat, operator, raqam turi", icon: Phone, tone: "emerald" },
   { kind: "domain", href: "/dashboard/domain", label: "Domen / IP", title: "Domen / IP / WHOIS", desc: "DNS, WHOIS, subdomenlar, ASN", icon: Globe, tone: "sky" },

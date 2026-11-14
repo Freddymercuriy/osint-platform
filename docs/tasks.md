@@ -71,6 +71,12 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Takror voqealar til/sinonimdan qat'i nazar (`events/dedup.py`), bazani tozalash skripti (`scripts/dedup_events.py`); jahon yangiliklari shovqini
 - ⬜ Qo'shimcha manbalar: intelforums.cc (qaror kutilmoqda), Reddit (API kaliti kerak)
 
+## Bosqich 13 — Username moduli: faqat Telegram ✅
+- ✅ `TelegramAccountCollector`: username / ID → akkaunt, usernamelar, bio, shaxsiy kanal
+- ✅ Username tarixi — o'z kuzatuv jurnali (`tg_observations`); avvalgi egasi
+- ✅ Umumiy guruhlar va ulardagi xabarlar soni
+- ⬜ Kuzatuv ro'yxati: qidirilgan ID'larni fon rejimida qayta tekshirish (qaror kutilmoqda)
+
 ## Keyingi — Kengaytirish
 - ⬜ Rate limiting, natijalarni keshlash
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
