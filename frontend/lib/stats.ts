@@ -1,4 +1,4 @@
-import { getToken, handle, type EventItem } from "@/lib/api";
+import { getToken, handle, type EventItem, apiFetch } from "@/lib/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -16,7 +16,7 @@ export type Overview = {
 };
 
 export async function getOverview(days = 14): Promise<Overview> {
-  const res = await fetch(`${API_URL}/api/stats/overview?days=${days}`, {
+  const res = await apiFetch(`${API_URL}/api/stats/overview?days=${days}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<Overview>(res);

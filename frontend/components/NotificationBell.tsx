@@ -1,48 +1,54 @@
 "use client";
 
-import { Bell, BellRing, CheckCheck, ExternalLink } from "lucide-react";
+import { Bell, CheckCheck, ExternalLink } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion, SPRING } from "@/components/motion";
-import { CategoryBadge, EmptyState, timeAgo } from "@/components/ui";
+import { CategoryBadge, EmptyState } from "@/components/ui";
 import { getNotifications, markNotificationsRead, type NotificationsResponse } from "@/lib/api";
 import { cn } from "@/lib/cn";
+import { useFormat } from "@/lib/format";
 
-const POLL_MS = 60_000; // har daqiqada tekshiradi
+const POLL_MS = 60_000;
 
 export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: (n: number) => void }) {
+  const t = useTranslations("notifications");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const f = useFormat();
   const [data, setData] = useState<NotificationsResponse | null>(null);
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
-  const prevUnread = useRef<number | null>(null);
-  const [ring, setRing] = useState(0); // har o'sishda qo'ng'iroq bir marta silkinadi
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   const load = useCallback(async () => {
     try {
-      const res = await getNotifications(20);
+      const res = await getNotifications(20, locale);
       setData(res);
-      if (prevUnread.current !== null && res.unread > prevUnread.current) setRing((r) => r + 1);
-      else if (prevUnread.current === null && res.unread > 0) setRing(1);
-      prevUnread.current = res.unread;
       onUnreadChange?.(res.unread);
-      document.title = res.unread > 0 ? `(${res.unread}) OSINT Platform` : "OSINT Platform";
+      const app = tc("appName");
+      document.title = res.unread > 0 ? `(${res.unread}) ${app}` : app;
     } catch {
       /* tarmoq xatosi — keyingi tsiklda qayta urinadi */
     }
-  }, [onUnreadChange]);
+  }, [onUnreadChange, locale, tc]);
 
   useEffect(() => {
     load();
-    const t = setInterval(load, POLL_MS);
-    return () => clearInterval(t);
+    const id = setInterval(() => document.visibilityState === "visible" && load(), POLL_MS);
+    return () => clearInterval(id);
   }, [load]);
 
   useEffect(() => {
+    if (!open) return;
     function onClick(e: MouseEvent) {
       if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
     }
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (e.key === "Escape") {
+        setOpen(false);
+        btnRef.current?.focus();
+      }
     }
     document.addEventListener("mousedown", onClick);
     document.addEventListener("keydown", onKey);
@@ -50,7 +56,7 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
       document.removeEventListener("mousedown", onClick);
       document.removeEventListener("keydown", onKey);
     };
-  }, []);
+  }, [open]);
 
   async function markRead() {
     await markNotificationsRead();
@@ -58,95 +64,74 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
   }
 
   const unread = data?.unread ?? 0;
-  const Icon = unread > 0 ? BellRing : Bell;
 
   return (
     <div className="relative" ref={boxRef}>
       <button
+        ref={btnRef}
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        aria-label="Ogohlantirishlar"
+        aria-label={t("open")}
+        aria-expanded={open}
+        aria-haspopup="dialog"
         className={cn(
-          "relative grid h-10 w-10 place-items-center rounded-xl border transition",
-          open
-            ? "border-brand-cyan/40 bg-brand-cyan/10 text-brand-cyan"
-            : "border-white/10 bg-white/[0.03] text-slate-300 hover:border-white/20 hover:bg-white/[0.06]",
+          "focus-ring relative grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg",
+          open && "bg-surface-2 text-fg",
         )}
       >
-        <Icon key={ring} className={cn("h-[18px] w-[18px]", unread > 0 && "text-red-300", ring > 0 && "animate-bell-ring")} />
+        <Bell className="h-4 w-4" aria-hidden />
         {unread > 0 && (
-          <>
-            <span className="absolute right-0 -top-1 h-5 min-w-5 animate-pulse-ring rounded-full bg-red-500/60" />
-            <motion.span
-              key={unread}
-              initial={{ scale: 0.4, y: 4 }}
-              animate={{ scale: 1, y: 0 }}
-              transition={SPRING}
-              className="absolute right-0 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-ink-950"
-            >
-              {unread > 99 ? "99+" : unread}
-            </motion.span>
-          </>
+          <span className="absolute right-0 top-0 grid h-4 min-w-4 -translate-y-1/3 translate-x-1/3 place-items-center rounded-full bg-danger px-1 text-[10px] font-bold leading-none text-bg">
+            {unread > 99 ? "99+" : unread}
+          </span>
         )}
       </button>
 
-      <AnimatePresence>
       {open && (
-        <motion.div
-          initial={{ opacity: 0, y: -8, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -6, scale: 0.97, transition: { duration: 0.15 } }}
-          transition={SPRING}
-          style={{ transformOrigin: "top right" }}
-          className="glass absolute right-0 z-50 mt-3 w-[27rem] max-w-[calc(100vw-2rem)] overflow-hidden !bg-ink-900/95"
+        <div
+          role="dialog"
+          aria-label={t("title")}
+          className="card absolute right-0 z-50 mt-2 w-[26rem] max-w-[calc(100vw-2rem)] animate-fade-in overflow-hidden shadow-lg"
         >
-          <div className="flex items-center justify-between border-b border-white/[0.06] px-4 py-3">
+          <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3">
             <div>
-              <div className="text-sm font-semibold text-white">Ogohlantirishlar</div>
-              <div className="text-[11px] text-slate-500">
-                {unread > 0 ? `${unread} ta yangi` : "Hammasi o'qilgan"} · {data?.categories.join(", ")}
-              </div>
+              <div className="text-sm font-semibold text-fg">{t("title")}</div>
+              {unread > 0 && <div className="text-xs text-fg-muted">{t("unread", { count: unread })}</div>}
             </div>
             {unread > 0 && (
-              <button
-                onClick={markRead}
-                className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs text-brand-cyan hover:bg-brand-cyan/10"
-              >
-                <CheckCheck className="h-3.5 w-3.5" /> Hammasini o'qildi
+              <button type="button" onClick={markRead} className="focus-ring inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs text-primary hover:bg-primary-soft">
+                <CheckCheck className="h-3.5 w-3.5" aria-hidden /> {t("markAllRead")}
               </button>
             )}
           </div>
 
           <div className="max-h-[26rem] overflow-y-auto">
             {!data?.items.length ? (
-              <EmptyState icon={Bell} title="Hozircha ogohlantirish yo'q" description="Yangi leak yoki ransomware topilsa shu yerda chiqadi." />
+              <EmptyState icon={Bell} title={t("empty")} description={t("emptyHint")} />
             ) : (
-              data.items.map((n, i) => (
-                <motion.a
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.04 * Math.min(i, 10), duration: 0.3 }}
+              data.items.map((n) => (
+                <a
                   key={n.id}
                   href={n.url}
                   target="_blank"
                   rel="noreferrer"
                   className={cn(
-                    "group block border-b border-white/[0.04] px-4 py-3 transition last:border-0 hover:bg-white/[0.04]",
-                    n.is_new && "bg-gradient-to-r from-red-500/[0.07] to-transparent",
+                    "focus-ring group block border-b border-border px-4 py-3 transition-colors last:border-0 hover:bg-surface-2",
+                    n.is_new && "bg-primary-soft/60",
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    {n.is_new && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-red-400" />}
+                    {n.is_new && <span className="sr-only">{t("new")}</span>}
+                    {n.is_new && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-danger" aria-hidden />}
                     <CategoryBadge category={n.category} />
-                    <span className="truncate text-[11px] text-slate-500">{n.source}</span>
-                    <span className="ml-auto shrink-0 text-[11px] text-slate-500">{timeAgo(n.first_seen)}</span>
+                    <span className="truncate text-xs text-fg-subtle">{n.source}</span>
+                    <span className="ml-auto shrink-0 text-xs text-fg-subtle">{f.ago(n.first_seen)}</span>
                   </div>
                   <div className="mt-1.5 flex items-start gap-2">
-                    <span className="line-clamp-2 flex-1 text-sm leading-snug text-slate-200 group-hover:text-white">
-                      {n.title}
-                    </span>
-                    <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-600 group-hover:text-slate-400" />
+                    <span className="line-clamp-2 flex-1 text-sm leading-snug text-fg">{n.title}</span>
+                    <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-fg-subtle" aria-hidden />
                   </div>
-                </motion.a>
+                </a>
               ))
             )}
           </div>
@@ -154,13 +139,12 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
           <Link
             href="/dashboard/events"
             onClick={() => setOpen(false)}
-            className="block border-t border-white/[0.06] px-4 py-2.5 text-center text-xs text-slate-400 transition hover:bg-white/[0.04] hover:text-white"
+            className="focus-ring block border-t border-border px-4 py-2.5 text-center text-sm text-primary transition-colors hover:bg-surface-2"
           >
-            Barcha hodisalarni ko'rish →
+            {t("allEvents")} →
           </Link>
-        </motion.div>
+        </div>
       )}
-      </AnimatePresence>
     </div>
   );
 }

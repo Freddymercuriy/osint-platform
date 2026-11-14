@@ -3,15 +3,17 @@ from __future__ import annotations
 import phonenumbers
 from phonenumbers import carrier, geocoder, timezone
 
+from app.core.i18n import current_lang, t
 from app.services.collectors.base import BaseCollector, CollectResult
 
-_NUMBER_TYPE_LABELS = {
-    phonenumbers.PhoneNumberType.MOBILE: "Mobil",
-    phonenumbers.PhoneNumberType.FIXED_LINE: "Statsionar",
-    phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE: "Statsionar yoki mobil",
-    phonenumbers.PhoneNumberType.TOLL_FREE: "Bepul (toll-free)",
-    phonenumbers.PhoneNumberType.VOIP: "VoIP",
-    phonenumbers.PhoneNumberType.PREMIUM_RATE: "Premium",
+# raqam turi → katalog kodi
+_NUMBER_TYPE_CODES = {
+    phonenumbers.PhoneNumberType.MOBILE: "c_pt_mobile",
+    phonenumbers.PhoneNumberType.FIXED_LINE: "c_pt_fixed",
+    phonenumbers.PhoneNumberType.FIXED_LINE_OR_MOBILE: "c_pt_fixed_or_mobile",
+    phonenumbers.PhoneNumberType.TOLL_FREE: "c_pt_toll_free",
+    phonenumbers.PhoneNumberType.VOIP: "c_pt_voip",
+    phonenumbers.PhoneNumberType.PREMIUM_RATE: "c_pt_premium",
 }
 
 
@@ -22,6 +24,7 @@ class PhoneCollector(BaseCollector):
 
     async def run(self, query: str) -> list[CollectResult]:
         raw = query.strip()
+        lang = current_lang()
         results: list[CollectResult] = []
 
         try:
@@ -30,10 +33,10 @@ class PhoneCollector(BaseCollector):
         except phonenumbers.NumberParseException as exc:
             return [
                 CollectResult(
-                    source="Parsing",
+                    source=t("c_phone_parsing_src", lang),
                     type="phone",
                     value=raw,
-                    detail=f"Raqamni o'qib bo'lmadi: {exc}. Xalqaro formatda kiriting, masalan +998901234567",
+                    detail=t("c_phone_unparsable", lang, error=exc),
                     status="error",
                     confidence=0.0,
                 )
@@ -45,20 +48,20 @@ class PhoneCollector(BaseCollector):
 
         results.append(
             CollectResult(
-                source="Yaroqlilik",
+                source=t("c_phone_valid_src", lang),
                 type="phone",
                 value=e164,
-                detail="Raqam yaroqli" if valid else "Raqam yaroqsiz ko'rinadi",
+                detail=t("c_phone_valid" if valid else "c_phone_invalid", lang),
                 status="found" if valid else "not_found",
                 confidence=1.0 if valid else 0.3,
             )
         )
         results.append(
             CollectResult(
-                source="Format",
+                source=t("c_phone_format_src", lang),
                 type="phone",
                 value=e164,
-                detail=f"Xalqaro: {intl}",
+                detail=t("c_phone_intl", lang, number=intl),
                 status="found",
                 confidence=1.0,
             )
@@ -68,10 +71,10 @@ class PhoneCollector(BaseCollector):
         if country:
             results.append(
                 CollectResult(
-                    source="Hudud",
+                    source=t("c_phone_region_src", lang),
                     type="geo",
                     value=str(num.country_code),
-                    detail=f"Davlat/hudud: {country} (kod +{num.country_code})",
+                    detail=t("c_phone_region", lang, country=country, code=num.country_code),
                     status="found",
                     confidence=0.9,
                 )
@@ -81,23 +84,23 @@ class PhoneCollector(BaseCollector):
         if carrier_name:
             results.append(
                 CollectResult(
-                    source="Operator",
+                    source=t("c_phone_carrier_src", lang),
                     type="carrier",
                     value=carrier_name,
-                    detail=f"Operator: {carrier_name}",
+                    detail=t("c_phone_carrier", lang, name=carrier_name),
                     status="found",
                     confidence=0.7,
                 )
             )
 
         number_type = phonenumbers.number_type(num)
-        type_label = _NUMBER_TYPE_LABELS.get(number_type, "Noma'lum")
+        type_label = t(_NUMBER_TYPE_CODES.get(number_type, "c_pt_unknown"), lang)
         results.append(
             CollectResult(
-                source="Raqam turi",
+                source=t("c_phone_type_src", lang),
                 type="line_type",
                 value=type_label,
-                detail=f"Tur: {type_label}",
+                detail=t("c_phone_type", lang, label=type_label),
                 status="found",
                 confidence=0.7,
             )
@@ -107,7 +110,7 @@ class PhoneCollector(BaseCollector):
         if zones:
             results.append(
                 CollectResult(
-                    source="Vaqt mintaqasi",
+                    source=t("c_phone_tz_src", lang),
                     type="timezone",
                     value=", ".join(zones),
                     detail=", ".join(zones),

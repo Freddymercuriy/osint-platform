@@ -2,97 +2,40 @@
 
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useState } from "react";
-import {
-  ArrowLeft,
-  AtSign,
-  Bell,
-  Check,
-  Eye,
-  EyeOff,
-  Lock,
-  Mail,
-  Radar,
-  ShieldCheck,
-  UserPlus,
-  type LucideIcon,
-} from "lucide-react";
-import { Button, Card, ErrorBanner, IconBox, Input, Label, LiveDot, Logo } from "@/components/ui";
-import type { Tone } from "@/lib/categories";
-import { cn } from "@/lib/cn";
-import { login, register } from "@/lib/api";
-
-const VALUE_PROPS: { icon: LucideIcon; tone: Tone; title: string; text: string }[] = [
-  {
-    icon: Radar,
-    tone: "cyan",
-    title: "Tahdidlar monitoringi",
-    text: "Kiberxavfsizlik va leak hodisalari — Markaziy Osiyo bo'yicha filtrlangan.",
-  },
-  {
-    icon: AtSign,
-    tone: "violet",
-    title: "Identifikator tekshiruvi",
-    text: "Username, email va telefon raqamini bir necha soniyada tekshiring.",
-  },
-  {
-    icon: Bell,
-    tone: "fuchsia",
-    title: "Tezkor ogohlantirishlar",
-    text: "Yangi hodisa paydo bo'lishi bilan xabardor bo'ling.",
-  },
-];
-
-function MiniRadar() {
-  return (
-    <div className="relative h-40 w-40">
-      <div className="absolute inset-0 rounded-full bg-brand-cyan/10 blur-2xl" />
-      <div className="absolute inset-0 overflow-hidden rounded-full border border-cyan-400/25 bg-ink-900/60 shadow-glow">
-        <div
-          className="absolute inset-0 animate-spin-slow rounded-full"
-          style={{
-            animationDuration: "5s",
-            background:
-              "conic-gradient(from 0deg, rgba(34,211,238,0) 0deg, rgba(34,211,238,0) 280deg, rgba(34,211,238,.08) 320deg, rgba(34,211,238,.45) 359deg, rgba(34,211,238,0) 360deg)",
-          }}
-        />
-        <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" fill="none">
-          {[46, 32, 18].map((r) => (
-            <circle key={r} cx="50" cy="50" r={r} stroke="rgba(34,211,238,.2)" strokeWidth=".6" />
-          ))}
-          <path d="M50 4V96M4 50H96" stroke="rgba(34,211,238,.14)" strokeWidth=".6" />
-        </svg>
-        <span className="absolute left-[68%] top-[30%] inline-flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-red-500" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-        </span>
-        <span className="absolute left-[30%] top-[64%] inline-flex h-2 w-2">
-          <span
-            className="absolute inline-flex h-full w-full animate-pulse-ring rounded-full bg-cyan-400"
-            style={{ animationDelay: ".9s" }}
-          />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-400" />
-        </span>
-        <div className="absolute left-1/2 top-1/2 h-2.5 w-2.5 -translate-x-1/2 -translate-y-1/2 rounded-full bg-brand-gradient shadow-glow" />
-      </div>
-    </div>
-  );
-}
+import { useEffect, useState } from "react";
+import { Eye, EyeOff, Lock, Mail, UserPlus, LockKeyhole } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { Button, ButtonLink, Card, EmptyState, ErrorBanner, Input, Label, Skeleton } from "@/components/ui";
+import { AuthShell } from "@/components/auth/AuthShell";
+import { getAuthConfig, login, register } from "@/lib/api";
 
 export default function RegisterPage() {
+  const t = useTranslations("auth");
+  const c = useTranslations("common");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const lengthOk = password.length >= 8;
+  const [open, setOpen] = useState<boolean | null>(null);
+  const [configError, setConfigError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getAuthConfig()
+      .then((cfg) => setOpen(cfg.registration_open))
+      .catch((err) => {
+        setConfigError(err instanceof Error ? err.message : c("error"));
+        setOpen(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     if (password.length < 8) {
-      setError("Parol kamida 8 belgidan iborat bo'lishi kerak");
+      setError(t("passwordTooShort"));
       return;
     }
     setLoading(true);
@@ -101,90 +44,49 @@ export default function RegisterPage() {
       await login(email, password);
       router.push("/dashboard");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+      setError(err instanceof Error ? err.message : c("error"));
     } finally {
       setLoading(false);
     }
   }
 
   return (
-    <main className="relative grid min-h-screen overflow-hidden lg:grid-cols-2">
-      {/* brand panel */}
-      <aside className="relative hidden flex-col justify-between overflow-hidden border-r border-white/[0.06] bg-ink-900/40 p-10 lg:flex xl:p-14">
-        <div className="pointer-events-none absolute -left-32 -top-32 h-[28rem] w-[28rem] rounded-full bg-brand-cyan/10 blur-[100px]" />
-        <div className="pointer-events-none absolute -bottom-40 right-0 h-[30rem] w-[30rem] rounded-full bg-brand-violet/15 blur-[110px]" />
-
-        <Link href="/" className="relative w-fit animate-fade-in">
-          <Logo />
-        </Link>
-
-        <div className="relative">
-          <div className="animate-fade-in" style={{ animationDelay: "80ms" }}>
-            <MiniRadar />
+    <AuthShell>
+      <Card className="animate-fade-in p-6 sm:p-8">
+        {open === null ? (
+          <div className="space-y-4" aria-busy="true">
+            <Skeleton className="h-8 w-2/3" />
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
+            <Skeleton className="h-11 w-full" />
           </div>
-          <h2
-            className="mt-8 max-w-md animate-fade-in text-3xl font-semibold leading-tight tracking-tight text-white xl:text-4xl"
-            style={{ animationDelay: "140ms" }}
-          >
-            Tahdidlarni <span className="text-gradient">birinchi bo'lib</span> ko'ring.
-          </h2>
-          <ul className="mt-8 space-y-4">
-            {VALUE_PROPS.map((v, i) => (
-              <li
-                key={v.title}
-                className="flex animate-fade-in items-start gap-3"
-                style={{ animationDelay: `${220 + i * 80}ms` }}
-              >
-                <IconBox icon={v.icon} tone={v.tone} />
-                <div>
-                  <div className="text-sm font-medium text-white">{v.title}</div>
-                  <div className="mt-0.5 max-w-sm text-sm text-slate-400">{v.text}</div>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="relative flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
-          <LiveDot tone="emerald" />
-          Monitoring faol · Markaziy Osiyo
-        </div>
-      </aside>
-
-      {/* form side */}
-      <section className="relative flex flex-col items-center justify-center px-4 py-10 sm:px-6">
-        <div className="pointer-events-none absolute left-1/2 top-1/3 h-80 w-80 -translate-x-1/2 rounded-full bg-brand-violet/10 blur-[100px] lg:hidden" />
-
-        <div className="relative w-full max-w-md">
-          <div className="mb-8 flex items-center justify-between lg:hidden">
-            <Link href="/">
-              <Logo />
-            </Link>
+        ) : open === false ? (
+          <div className="space-y-4">
+            {configError && <ErrorBanner message={configError} />}
+            <EmptyState
+              icon={LockKeyhole}
+              title={t("closedTitle")}
+              description={t("closedText")}
+              action={<ButtonLink href="/login">{t("signIn")}</ButtonLink>}
+            />
           </div>
+        ) : (
+          <>
+            <h1 className="text-2xl font-semibold tracking-tight">{t("registerTitle")}</h1>
+            <p className="mt-1.5 text-sm text-fg-muted">{t("registerSubtitle")}</p>
 
-          <Link
-            href="/"
-            className="mb-6 hidden w-fit items-center gap-1.5 text-sm text-slate-500 transition hover:text-slate-300 lg:inline-flex"
-          >
-            <ArrowLeft className="h-4 w-4" /> Bosh sahifa
-          </Link>
-
-          <Card glow className="animate-fade-in p-6 sm:p-8">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">Yangi hisob</div>
-            <h1 className="mt-1.5 text-2xl font-semibold tracking-tight text-white sm:text-3xl">Ro'yxatdan o'tish</h1>
-            <p className="mt-1.5 text-sm text-slate-400">Bir daqiqada hisob oching va monitoringni boshlang.</p>
-
-            <form onSubmit={onSubmit} className="mt-7 space-y-5">
+            <form onSubmit={onSubmit} className="mt-6 space-y-5">
               {error && <ErrorBanner message={error} />}
 
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("email")}</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   required
                   autoComplete="email"
-                  placeholder="siz@misol.uz"
+                  placeholder={t("emailPlaceholder")}
                   icon={Mail}
                   inputSize="lg"
                   value={email}
@@ -193,14 +95,16 @@ export default function RegisterPage() {
               </div>
 
               <div>
-                <Label htmlFor="password">Parol</Label>
+                <Label htmlFor="password">{t("password")}</Label>
                 <div className="relative">
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     required
+                    minLength={8}
                     autoComplete="new-password"
-                    placeholder="Kamida 8 belgi"
+                    aria-describedby="password-hint"
                     icon={Lock}
                     inputSize="lg"
                     className="!pr-12"
@@ -210,53 +114,31 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    aria-label={showPassword ? "Parolni yashirish" : "Parolni ko'rsatish"}
-                    className="absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-slate-500 transition hover:bg-white/[0.06] hover:text-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60"
+                    aria-label={showPassword ? t("hidePassword") : t("showPassword")}
+                    className="focus-ring absolute right-2 top-1/2 grid h-8 w-8 -translate-y-1/2 place-items-center rounded-lg text-fg-muted transition-colors hover:bg-surface-2 hover:text-fg"
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" aria-hidden /> : <Eye className="h-4 w-4" aria-hidden />}
                   </button>
                 </div>
-                <div className="mt-2.5 flex items-center gap-2">
-                  <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
-                    <div
-                      className={cn(
-                        "h-full rounded-full transition-all duration-300",
-                        lengthOk ? "bg-emerald-400" : "bg-brand-gradient",
-                      )}
-                      style={{ width: `${Math.min(100, (password.length / 8) * 100)}%` }}
-                    />
-                  </div>
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-1 font-mono text-[11px] tabular-nums",
-                      lengthOk ? "text-emerald-300" : "text-slate-500",
-                    )}
-                  >
-                    {lengthOk && <Check className="h-3 w-3" />}
-                    {Math.min(password.length, 8)}/8
-                  </span>
-                </div>
+                <p id="password-hint" className="mt-1.5 text-xs text-fg-muted">
+                  {t("passwordHint")}
+                </p>
               </div>
 
               <Button type="submit" size="lg" loading={loading} icon={UserPlus} className="w-full">
-                {loading ? "Yaratilmoqda..." : "Hisob yaratish"}
+                {loading ? t("creating") : t("createAccount")}
               </Button>
             </form>
 
-            <div className="mt-6 border-t border-white/[0.06] pt-5 text-center text-sm text-slate-500">
-              Hisob bormi?{" "}
-              <Link href="/login" className="font-medium text-cyan-300 transition hover:text-cyan-200">
-                Kirish
+            <div className="mt-6 border-t border-border pt-5 text-center text-sm text-fg-muted">
+              {t("haveAccount")}{" "}
+              <Link href="/login" className="focus-ring rounded font-medium text-primary hover:underline">
+                {t("signIn")}
               </Link>
             </div>
-          </Card>
-
-          <p className="mt-6 flex items-center justify-center gap-1.5 text-center text-xs text-slate-600">
-            <ShieldCheck className="h-3.5 w-3.5" />
-            Faqat qonuniy va axloqiy maqsadlar uchun
-          </p>
-        </div>
-      </section>
-    </main>
+          </>
+        )}
+      </Card>
+    </AuthShell>
   );
 }

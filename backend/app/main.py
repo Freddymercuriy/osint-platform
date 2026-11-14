@@ -7,6 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api import admin_categories, admin_sources, admin_translations, auth, events, notifications, search, stats, telegram
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal, engine
+from app.core.errors import register_error_handlers
+from app.core.i18n import LangMiddleware
 from app.services.admin_roles import sync_admin_roles
 from app.services.events import scheduler as events_scheduler
 
@@ -48,6 +50,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(LangMiddleware)  # Accept-Language → current_lang()
+register_error_handlers(app)
 
 app.include_router(auth.router)
 app.include_router(search.router)

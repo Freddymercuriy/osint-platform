@@ -7,10 +7,11 @@ import re
 from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import case, func, select
 
+from app.core.errors import api_error
 from app.api.deps import AdminUser, DbSession
 from app.models import Category, EventRecord, Source, SourceRun
 from app.services.connectors import CONNECTORS, get_connector
@@ -161,20 +162,20 @@ async def _category_id(db, slug: str | None) -> int | None:
         return None
     cid = await db.scalar(select(Category.id).where(Category.slug == slug))
     if cid is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Kategoriya topilmadi: {slug}")
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "category_slug_not_found", slug=slug)
     return cid
 
 
 async def _validate(kind: str, config: dict) -> None:
     connector = get_connector(kind)
     if connector is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Noma'lum manba turi: {kind}")
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "source_kind_unknown", kind=kind)
     try:
         connector.validate_config(config)
         for url in connector.target_urls(_view_like(kind, config)):
             await assert_public_url(url)
     except ConfigError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "config_invalid", message=str(exc)) from exc
     except ConnectorError:  # DNS hozir topilmadi va h.k. — saqlashga to'sqinlik qilmaydi (sog'liqda ko'rinadi)
         pass
 
@@ -229,7 +230,7 @@ async def _out(db, rows: list[Source]) -> list[SourceOut]:
 async def _get(db, source_id: int) -> Source:
     s = await db.get(Source, source_id)
     if s is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Manba topilmadi")
+        raise api_error(status.HTTP_404_NOT_FOUND, "source_not_found")
     return s
 
 
@@ -319,7 +320,7 @@ async def import_sources(data: ImportIn, _: AdminUser, db: DbSession) -> dict[st
 @router.post("/sources", response_model=SourceOut, status_code=status.HTTP_201_CREATED)
 async def create_source(data: SourceIn, _: AdminUser, db: DbSession) -> SourceOut:
     if await db.scalar(select(Source.id).where(Source.name == data.name)):
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu nomli manba bor")
+        raise api_error(status.HTTP_409_CONFLICT, "source_name_taken")
     await _validate(data.kind, data.config)
     s = Source(**data.model_dump(exclude={"category"}), category_id=await _category_id(db, data.category),
                status="never_run" if data.enabled else "disabled")
@@ -342,7 +343,7 @@ async def update_source(source_id: int, data: SourceUpdate, _: AdminUser, db: Db
     changes = data.model_dump(exclude_unset=True)
     if "name" in changes and changes["name"] != s.name:
         if await db.scalar(select(Source.id).where(Source.name == changes["name"])):
-            raise HTTPException(status.HTTP_409_CONFLICT, "Bu nomli manba bor")
+            raise api_error(status.HTTP_409_CONFLICT, "source_name_taken")
     if "config" in changes and changes["config"] != s.config:
         await _validate(s.kind, changes["config"])
         s.etag = s.last_modified = None
@@ -407,10 +408,10 @@ async def test_source(source_id: int, _: AdminUser, db: DbSession) -> TestOut:
 async def run_source_now(source_id: int, _: AdminUser, db: DbSession) -> RunNowOut:
     await _get(db, source_id)
     if source_id in scheduler.state.active:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu manba hozir yig'ilmoqda")
+        raise api_error(status.HTTP_409_CONFLICT, "source_busy")
     r = await scheduler._guarded_run(source_id, manual=True)
     if r is None:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu manba hozir yig'ilmoqda")
+        raise api_error(status.HTTP_409_CONFLICT, "source_busy")
     return RunNowOut(ok=r.ok, outcome=r.outcome, status=r.status, http_status=r.http_status,
                      duration_ms=r.duration_ms, items=r.items, passed=r.passed, new=r.new, merged=r.merged,
                      error=r.error, next_run_at=r.next_run_at)

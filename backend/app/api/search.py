@@ -1,8 +1,10 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 from sqlalchemy import delete, select
 
+from app.core.errors import api_error
+from app.core.i18n import CodedValueError
 from app.api.deps import CurrentUser, DbSession
 from app.core.config import settings
 from app.models import Result, SearchJob
@@ -55,8 +57,10 @@ async def _run_and_save(
 ) -> SearchResponse:
     try:
         results = await collector.run(data.query)
-    except ValueError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+    except CodedValueError as exc:
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.code, **exc.params) from exc
+    except ValueError as exc:  # kodsiz (kutilmagan) yaroqsiz so'rov
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid_query", message=str(exc)) from exc
 
     job = SearchJob(user_id=user.id, kind=kind, query=data.query.strip())
     for r in results:
@@ -142,7 +146,7 @@ async def _own_job(job_id: int, user: User, db: DbSession) -> SearchJob:
         select(SearchJob).where(SearchJob.id == job_id, SearchJob.user_id == user.id)
     )
     if job is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Qidiruv topilmadi")
+        raise api_error(status.HTTP_404_NOT_FOUND, "search_not_found")
     return job
 
 

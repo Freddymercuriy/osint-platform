@@ -1,26 +1,19 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { useFormat } from "@/lib/format";
 
-/**
- * Bitta qatorli ustunli grafik (vaqt bo'yicha).
- * dataviz qoidalari: bitta rang (#3987e5, dark surface'da validatsiyadan o'tgan), ingichka ustunlar,
- * baseline'ga tayangan 4px yumaloq uch, ustunlar orasida bo'shliq, sokin grid, hover tooltip.
- * Bitta qator — legend yo'q, sarlavha nomlaydi.
- */
+/** Bitta qatorli ustunli grafik. Ranglar tokenlardan (--chart-1), tema bilan almashadi. */
 
 export type ColumnDatum = {
-  key: string; // noyob kalit (sana)
+  key: string;
   label: string; // o'q yorlig'i (qisqa)
   fullLabel: string; // tooltip sarlavhasi
   value: number;
-  breakdown?: { label: string; value: number }[]; // tooltip ichidagi tafsilot
+  breakdown?: { label: string; value: number }[];
 };
 
-const SERIES = "#3987e5";
-const SERIES_HOVER = "#6da7ec";
-
-/** Eng katta qiymatdan sal yuqori "chiroyli" shkala cho'qqisi (yarmi ham butun son bo'ladi). */
+/** Eng katta qiymatdan sal yuqori "chiroyli" shkala cho'qqisi. */
 function niceMax(v: number): number {
   if (v <= 4) return 4;
   const p = Math.pow(10, Math.floor(Math.log10(v)));
@@ -32,36 +25,36 @@ function niceMax(v: number): number {
 export default function ColumnChart({
   data,
   height = 220,
-  valueLabel = "hodisa",
+  valueLabel,
+  ariaLabel,
 }: {
   data: ColumnDatum[];
   height?: number;
-  valueLabel?: string;
+  valueLabel: string;
+  ariaLabel: string;
 }) {
+  const f = useFormat();
   const [hover, setHover] = useState<number | null>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
 
-  const W = 640; // viewBox kengligi (responsive — SVG 100% ga cho'ziladi)
-  const pad = { top: 12, right: 8, bottom: 26, left: 32 };
+  const W = 640;
+  const pad = { top: 12, right: 8, bottom: 26, left: 36 };
   const innerW = W - pad.left - pad.right;
   const innerH = height - pad.top - pad.bottom;
 
   const max = useMemo(() => niceMax(Math.max(0, ...data.map((d) => d.value))), [data]);
   const ticks = [0, max / 2, max];
   const slot = innerW / Math.max(1, data.length);
-  const gap = Math.max(2, slot * 0.28); // ustunlar orasida bo'shliq
+  const gap = Math.max(2, slot * 0.28);
   const barW = Math.max(3, slot - gap);
   const labelEvery = data.length > 16 ? 3 : data.length > 10 ? 2 : 1;
-
   const y = (v: number) => pad.top + innerH - (v / max) * innerH;
 
   const h = hover !== null ? data[hover] : null;
   const tipLeftPct = hover !== null ? ((pad.left + slot * hover + slot / 2) / W) * 100 : 0;
 
   return (
-    <div ref={wrapRef} className="relative w-full" onMouseLeave={() => setHover(null)}>
-      <svg viewBox={`0 0 ${W} ${height}`} className="h-auto w-full" role="img" aria-label="Kunlik hodisalar grafigi">
-        {/* Grid + y o'qi */}
+    <div className="relative w-full" onMouseLeave={() => setHover(null)}>
+      <svg viewBox={`0 0 ${W} ${height}`} className="h-auto w-full" role="img" aria-label={ariaLabel}>
         {ticks.map((t) => (
           <g key={t}>
             <line
@@ -69,11 +62,11 @@ export default function ColumnChart({
               x2={W - pad.right}
               y1={y(t)}
               y2={y(t)}
-              stroke="rgba(148,163,184,0.12)"
+              className="stroke-border"
               strokeDasharray={t === 0 ? undefined : "3 4"}
             />
-            <text x={pad.left - 8} y={y(t) + 4} textAnchor="end" className="fill-slate-500 font-mono" fontSize="10">
-              {Math.round(t)}
+            <text x={pad.left - 8} y={y(t) + 4} textAnchor="end" className="fill-fg-muted font-mono" fontSize="10">
+              {f.number(Math.round(t))}
             </text>
           </g>
         ))}
@@ -86,25 +79,23 @@ export default function ColumnChart({
           const active = hover === i;
           return (
             <g key={d.key}>
-              {/* Hover maydoni — ustundan kattaroq */}
               <rect
                 x={pad.left + slot * i}
                 y={pad.top}
                 width={slot}
                 height={innerH}
-                fill={active ? "rgba(148,163,184,0.06)" : "transparent"}
+                className={active ? "fill-surface-2" : "fill-transparent"}
                 onMouseEnter={() => setHover(i)}
                 onFocus={() => setHover(i)}
+                onBlur={() => setHover(null)}
                 tabIndex={0}
-                aria-label={`${d.fullLabel}: ${d.value} ${valueLabel}`}
+                aria-label={`${d.fullLabel}: ${f.number(d.value)} ${valueLabel}`}
               />
               {d.value > 0 && (
                 <path
                   pointerEvents="none"
-                  className="animate-bar-grow"
-                  style={{ animationDelay: `${i * 45}ms`, transition: "fill .2s" }}
-                  fill={active ? SERIES_HOVER : SERIES}
-                  // Faqat yuqori burchaklar yumaloq — pastki qismi baseline'ga tayanadi
+                  className="fill-[rgb(var(--chart-1))]"
+                  style={{ opacity: hover === null || active ? 1 : 0.6, transition: "opacity .15s" }}
                   d={`M${x},${top + bh} V${top + r} Q${x},${top} ${x + r},${top} H${x + barW - r} Q${x + barW},${top} ${x + barW},${top + r} V${top + bh} Z`}
                 />
               )}
@@ -113,7 +104,7 @@ export default function ColumnChart({
                   x={x + barW / 2}
                   y={height - 8}
                   textAnchor="middle"
-                  className={active ? "fill-slate-200" : "fill-slate-500"}
+                  className={active ? "fill-fg" : "fill-fg-muted"}
                   fontSize="10"
                 >
                   {d.label}
@@ -126,21 +117,21 @@ export default function ColumnChart({
 
       {h && (
         <div
-          className="pointer-events-none absolute top-0 z-10 w-48 -translate-x-1/2 rounded-xl border border-white/10 bg-ink-900/95 px-3 py-2.5 text-xs shadow-2xl backdrop-blur"
+          className="pointer-events-none absolute top-0 z-10 w-48 -translate-x-1/2 rounded-lg border border-border-strong bg-surface px-3 py-2.5 text-xs shadow-lg"
           style={{ left: `clamp(6rem, ${tipLeftPct}%, calc(100% - 6rem))` }}
         >
-          <div className="text-slate-400">{h.fullLabel}</div>
+          <div className="text-fg-muted">{h.fullLabel}</div>
           <div className="mt-0.5 flex items-baseline gap-1.5">
-            <span className="h-2 w-2 rounded-sm" style={{ background: SERIES }} />
-            <span className="font-mono text-base font-semibold text-white">{h.value}</span>
-            <span className="text-slate-400">{valueLabel}</span>
+            <span className="h-2 w-2 rounded-sm bg-[rgb(var(--chart-1))]" />
+            <span className="font-mono text-base font-semibold text-fg">{f.number(h.value)}</span>
+            <span className="text-fg-muted">{valueLabel}</span>
           </div>
           {h.breakdown && h.breakdown.length > 0 && (
-            <div className="mt-1.5 space-y-0.5 border-t border-white/[0.06] pt-1.5">
+            <div className="mt-1.5 space-y-0.5 border-t border-border pt-1.5">
               {h.breakdown.map((b) => (
-                <div key={b.label} className="flex justify-between text-slate-400">
-                  <span>{b.label}</span>
-                  <span className="font-mono text-slate-200">{b.value}</span>
+                <div key={b.label} className="flex justify-between gap-2 text-fg-muted">
+                  <span className="truncate">{b.label}</span>
+                  <span className="font-mono text-fg">{f.number(b.value)}</span>
                 </div>
               ))}
             </div>

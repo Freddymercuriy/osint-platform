@@ -6,6 +6,7 @@ from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
 from app.models import Category, EventRecord, NotificationState
+from app.api.events import localize
 from app.schemas import EventItemOut
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -32,6 +33,7 @@ async def list_notifications(
     current_user: CurrentUser,
     db: DbSession,
     limit: int = Query(20, ge=1, le=100),
+    lang: str | None = Query(None, pattern="^(en|ru|uz)$", description="Ko'rsatish tili"),
 ) -> NotificationsResponse:
     # Ogohlantiriladigan kategoriyalar — bazadan (categories.notify). Baseline hodisalar ogohlantirish bermaydi.
     cats = list((await db.scalars(
@@ -48,12 +50,10 @@ async def list_notifications(
     rows = (await db.scalars(
         select(EventRecord).where(base).order_by(EventRecord.first_seen.desc()).limit(limit)
     )).all()
+    localized = await localize(db, rows, lang)
     items = [
-        NotificationItem(
-            **EventItemOut.model_validate(r).model_dump(),
-            is_new=seen_at is None or r.first_seen > seen_at,
-        )
-        for r in rows
+        NotificationItem(**it.model_dump(), is_new=seen_at is None or r.first_seen > seen_at)
+        for it, r in zip(localized, rows, strict=True)
     ]
     return NotificationsResponse(unread=unread, categories=cats, seen_at=seen_at, items=items)
 

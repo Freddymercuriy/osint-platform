@@ -1,12 +1,13 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
 from app.core.config import settings
+from app.core.errors import api_error
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import User
 from app.schemas import Token, UserCreate, UserOut, UserUpdate
@@ -28,10 +29,10 @@ async def auth_config() -> AuthConfig:
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def register(data: UserCreate, db: DbSession) -> User:
     if not settings.registration_allowed:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Ro'yxatdan o'tish yopiq")
+        raise api_error(status.HTTP_403_FORBIDDEN, "registration_closed")
     exists = await db.scalar(select(User).where(func.lower(User.email) == data.email.lower()))
     if exists:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu email allaqachon ro'yxatdan o'tgan")
+        raise api_error(status.HTTP_409_CONFLICT, "email_taken")
     users_before = await db.scalar(select(func.count(User.id))) or 0
     user = User(
         email=data.email,
@@ -52,9 +53,9 @@ async def login(
     # OAuth2 formasi 'username' maydonini ishlatadi — bu yerda email
     user = await db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email yoki parol noto'g'ri")
+        raise api_error(status.HTTP_401_UNAUTHORIZED, "invalid_credentials")
     if not user.is_active:
-        raise HTTPException(status.HTTP_403_FORBIDDEN, "Akkaunt o'chirilgan")
+        raise api_error(status.HTTP_403_FORBIDDEN, "account_disabled")
     token = create_access_token(subject=str(user.id))
     return Token(access_token=token)
 

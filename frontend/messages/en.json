@@ -1,0 +1,455 @@
+{
+  "auth": {
+    "backHome": "Home",
+    "email": "Email",
+    "emailPlaceholder": "you@example.com",
+    "password": "Password",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
+    "loginTitle": "Sign in",
+    "loginSubtitle": "Sign in to your account.",
+    "signIn": "Sign in",
+    "signingIn": "Signing in...",
+    "noAccount": "No account yet?",
+    "createAccount": "Create account",
+    "registerTitle": "Create account",
+    "registerSubtitle": "Register with your email and a password.",
+    "passwordHint": "At least 8 characters.",
+    "passwordTooShort": "Password must be at least 8 characters.",
+    "creating": "Creating...",
+    "haveAccount": "Already have an account?",
+    "closedTitle": "Registration is closed",
+    "closedText": "New accounts cannot be created right now. If you already have one, sign in or contact the administrator."
+  },
+  "channel": {
+    "label": "Channel",
+    "news": "News",
+    "telegram_channel": "Telegram channel",
+    "telegram_group": "Telegram group",
+    "api": "Threat-intel API"
+  },
+  "checks": {
+    "modules": {
+      "username": {
+        "label": "Username",
+        "title": "Telegram username",
+        "desc": "ID, username history, shared groups",
+        "pageDesc": "Checks a Telegram account by username or ID: ID, usernames, username changes and shared groups."
+      },
+      "email": {
+        "label": "Email",
+        "title": "Email check",
+        "desc": "Syntax, MX server, Gravatar",
+        "pageDesc": "Checks the address syntax, MX records (mail server) and the Gravatar profile."
+      },
+      "phone": {
+        "label": "Phone",
+        "title": "Phone check",
+        "desc": "Country, carrier, number type",
+        "pageDesc": "Identifies the number's country, carrier, type and time zone (offline)."
+      },
+      "domain": {
+        "label": "Domain / IP",
+        "title": "Domain / IP / WHOIS",
+        "desc": "DNS, WHOIS, subdomains, ASN",
+        "pageDesc": "Collects DNS records, WHOIS, subdomains and network (ASN) data for a domain or IP."
+      },
+      "unknown": {
+        "label": "Other",
+        "title": "Other",
+        "desc": "",
+        "pageDesc": ""
+      }
+    },
+    "username": {
+      "placeholder": "e.g. @botfather, t.me/telegram or 93372553",
+      "checks": {
+        "0": "Account ID, type and flags (bot, premium, scam)",
+        "1": "Active usernames, bio, personal channel",
+        "2": "Username history, recorded by the platform on every search",
+        "3": "Shared groups and message counts in them"
+      }
+    },
+    "email": {
+      "placeholder": "e.g. user@gmail.com",
+      "checks": {
+        "0": "Syntax validity",
+        "1": "MX records (mail server)",
+        "2": "Public Gravatar profile"
+      }
+    },
+    "phone": {
+      "placeholder": "e.g. +998901234567",
+      "checks": {
+        "0": "Country and region",
+        "1": "Mobile carrier",
+        "2": "Number type (mobile / landline)",
+        "3": "Time zone"
+      }
+    },
+    "domain": {
+      "placeholder": "e.g. kun.uz or 8.8.8.8",
+      "checks": {
+        "0": "DNS: A / AAAA, NS, MX",
+        "1": "Mail protection: SPF and DMARC",
+        "2": "WHOIS / RDAP: registrar, dates, status",
+        "3": "Subdomains (Certificate Transparency)",
+        "4": "Hosting: ASN, network, country",
+        "5": "For IPs: reverse DNS (PTR) and network owner"
+      }
+    },
+    "search": {
+      "searching": "Searching",
+      "examples": "Examples",
+      "scanning": "Checking sources…",
+      "target": "Target",
+      "emptyTitle": "Start a search",
+      "publicOnly": "Only public sources are used.",
+      "checked": "Checked",
+      "checkedHint": "sources",
+      "foundHint": "matches",
+      "unclearHint": "no response or error",
+      "foundRatio": "Share of found",
+      "exportReport": "Export report",
+      "filters": "Result filters",
+      "noFilterTitle": "No results in this filter",
+      "noFilterDesc": "Pick another filter or run a new search.",
+      "recent": "Recent searches",
+      "historyError": "Could not load history.",
+      "historyEmpty": "No searches yet.",
+      "fullHistory": "Full history",
+      "whatChecked": "What is checked",
+      "disclaimer": "Public sources only. Results are approximate — verify manually before drawing conclusions."
+    },
+    "export": {
+      "jsonAria": "Download the report as a JSON file",
+      "jsonTitle": "Download JSON report",
+      "pdfAria": "Print the report or save it as PDF (opens in a new window)",
+      "pdfTitle": "Print / PDF",
+      "downloadError": "Could not download the report"
+    }
+  },
+  "common": {
+    "appName": "OSINT Platform",
+    "tagline": "Cyber-threat monitoring for Central Asia",
+    "loading": "Loading…",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close",
+    "search": "Search",
+    "refresh": "Refresh",
+    "all": "All",
+    "none": "None",
+    "yes": "Yes",
+    "no": "No",
+    "open": "Open",
+    "copy": "Copy",
+    "copied": "Copied",
+    "showMore": "Show more",
+    "showLess": "Show less",
+    "loadMore": "Load more",
+    "back": "Back",
+    "logout": "Sign out",
+    "error": "Something went wrong",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "networkError": "Cannot reach the server. Check your connection or that the backend is running.",
+    "publicSourcesOnly": "Public sources only",
+    "skipToContent": "Skip to content",
+    "menu": "Menu",
+    "notTranslated": "Not translated yet — original text",
+    "showOriginal": "Show original",
+    "showTranslation": "Show translation",
+    "items": "{count, plural, one {# item} other {# items}}",
+    "role_admin": "Administrator",
+    "role_analyst": "Analyst",
+    "status_found": "Found",
+    "status_not_found": "Not found",
+    "status_unclear": "Unclear"
+  },
+  "country": {
+    "label": "Country",
+    "UZ": "Uzbekistan",
+    "KZ": "Kazakhstan",
+    "KG": "Kyrgyzstan",
+    "TJ": "Tajikistan",
+    "TM": "Turkmenistan"
+  },
+  "dashboard": {
+    "title": "Overview",
+    "description": "A summary of collected cyber-threat events, their sources and your recent checks.",
+    "openEvents": "Open events",
+    "kpi": {
+      "total": "Total events",
+      "totalHint": "stored in the database",
+      "last24h": "Last 24 hours",
+      "last24hHint": "newly collected",
+      "topCategory": "Top category",
+      "topCategoryHint": "{count, plural, one {# event} other {# events}}",
+      "noData": "no data yet",
+      "searches": "Your checks",
+      "searchesHint": "all time"
+    },
+    "daily": {
+      "title": "Daily events",
+      "subtitle": "Last {days} days, by event date, all sources",
+      "unit": "events",
+      "emptyTitle": "No events yet",
+      "emptyText": "The daily chart appears once the collectors save their first events."
+    },
+    "view": {
+      "label": "View",
+      "chart": "Chart",
+      "table": "Table"
+    },
+    "table": {
+      "date": "Date",
+      "total": "Total"
+    },
+    "categories": {
+      "title": "Categories",
+      "subtitle": "All events in the database",
+      "emptyTitle": "No categories with data",
+      "emptyText": "Categories appear here when events are classified."
+    },
+    "critical": {
+      "title": "Critical events",
+      "subtitle": "Latest ransomware and leaks",
+      "all": "All events",
+      "emptyTitle": "No critical events",
+      "emptyText": "Ransomware and leak events will be listed here when found.",
+      "external": "Opens the source in a new tab"
+    },
+    "sources": {
+      "title": "Most active sources",
+      "subtitle": "By number of events",
+      "emptyTitle": "No sources yet",
+      "emptyText": "Sources appear after the first events are collected."
+    },
+    "modules": {
+      "title": "Check modules",
+      "myChecks": "Your checks",
+      "count": "{count, plural, one {# check} other {# checks}}"
+    }
+  },
+  "events": {
+    "title": "Events",
+    "description": "Cyber-security events about Central Asia from public sources, in one feed.",
+    "refreshing": "Collecting…",
+    "searchPlaceholder": "Search: bank, .uz, Tashkent, uzcard…",
+    "searchAria": "Search events",
+    "clear": "Clear",
+    "categoryAria": "Filter by category",
+    "allCategories": "All categories",
+    "results": "{count, plural, one {# result} other {# results}}",
+    "untitled": "Untitled",
+    "noDate": "No date",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "openSource": "Open source",
+    "alsoReported": "{count, plural, one {Also reported by # source} other {Also reported by # sources}}",
+    "actorHint": "Ransomware group / actor",
+    "feedEnd": "End of feed",
+    "newEvents": "{count, plural, one {# new event} other {# new events}}",
+    "noNew": "No new events",
+    "collectorError": "Collector error: {error}",
+    "collectNow": "Collect now",
+    "emptyTitle": "No events yet",
+    "emptyWhat": "This feed shows Central Asia cyber-security events from the connected public sources.",
+    "emptyWhySince": "Nothing matching has appeared since the feed start date; new items show up here automatically.",
+    "emptyWhyFilters": "The current category or scope filters may be too narrow — try All categories or the All scope.",
+    "emptySearchTitle": "Nothing found for \"{q}\"",
+    "emptySearchDesc": "Try another keyword or change the category or scope.",
+    "clearSearch": "Clear search",
+    "status": {
+      "unknown": "Collector status unknown",
+      "live": "Live monitoring",
+      "stopped": "Collector stopped",
+      "every": "every {minutes} min",
+      "last": "last",
+      "never": "not yet",
+      "inDb": "stored:",
+      "since": "since {date}",
+      "sinceHint": "The feed starts on {date}; earlier events are not stored.",
+      "retention": "keep {days} d",
+      "retentionHint": "Events older than {days} days are deleted automatically.",
+      "keepHint": "Always kept: {list}.",
+      "lastNew": "+{count} in last run"
+    },
+    "tg": {
+      "chats": "{count, plural, one {# chat} other {# chats}}",
+      "allChats": "all chats",
+      "regionFilter": "region filter",
+      "notConnected": "Telegram not connected"
+    }
+  },
+  "history": {
+    "title": "Search history",
+    "description": "Every check you have run: review results, get a report, repeat a search or delete it.",
+    "clear": "Clear history",
+    "clearModule": "Clear {module} history",
+    "clearConfirm": "Delete for sure?",
+    "clearConfirmAria": "Confirm clearing history",
+    "warnAll": "History of all modules will be deleted. Press again to confirm.",
+    "warnModule": "Only the {module} module history will be deleted. Press again to confirm.",
+    "filterLabel": "Filter by module",
+    "searchPlaceholder": "Search by query...",
+    "searchAria": "Search history by query",
+    "loadingAria": "Loading",
+    "emptyFilteredTitle": "Nothing found",
+    "emptyFilteredDesc": "No entries match this filter or search text. Change the filter or clear the text.",
+    "clearFilters": "Clear filters",
+    "emptyTitle": "History is empty",
+    "emptyDesc": "Run your first check and it will appear here.",
+    "noResults": "No results were saved for this search.",
+    "foundChecked": "Found / checked",
+    "rerun": "Repeat",
+    "rerunTitle": "Repeat search",
+    "rerunAria": "Repeat search: {query}",
+    "deleteAria": "Delete: {query}",
+    "deleteTitle": "Delete",
+    "deleteConfirmAria": "Confirm deletion",
+    "deleteConfirmTitle": "Confirm",
+    "sure": "Sure?",
+    "cancel": "Cancel",
+    "expandAria": "Show results",
+    "collapseAria": "Hide results",
+    "expandTitle": "View results",
+    "collapseTitle": "Close",
+    "resultsFailed": "Could not load results",
+    "deleteFailed": "Could not delete",
+    "loadFailed": "Could not load history",
+    "clearFailed": "Could not clear history",
+    "loadMore": "Load more"
+  },
+  "landing": {
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "heroTitle": "Cyber-threat monitoring for Central Asia",
+    "heroText": "The platform collects threat data from public sources, filters what concerns Central Asia and shows it in one feed: ransomware, data leaks, phishing and vulnerabilities.",
+    "featuresTitle": "What the platform does",
+    "features": {
+      "events": {
+        "title": "Events feed",
+        "text": "Reports on ransomware, leaks, phishing and vulnerabilities with source, time and category."
+      },
+      "username": {
+        "title": "Telegram username check",
+        "text": "Check a Telegram account by its username."
+      },
+      "email": {
+        "title": "Email check",
+        "text": "Address format, domain and public signals."
+      },
+      "phone": {
+        "title": "Phone and domain check",
+        "text": "Country and carrier from a number, public information about a domain."
+      }
+    },
+    "audienceTitle": "Who it is for",
+    "audience": {
+      "analysts": {
+        "title": "Analysts",
+        "text": "To track and analyse threats in the region."
+      },
+      "security": {
+        "title": "Security teams",
+        "text": "To learn about events affecting your organisation sooner."
+      },
+      "journalists": {
+        "title": "Researchers and journalists",
+        "text": "To quickly verify facts from public sources."
+      }
+    },
+    "footer": "Public sources only. For lawful and ethical use."
+  },
+  "locale": {
+    "label": "Language",
+    "uz": "Uzbek",
+    "ru": "Russian",
+    "en": "English"
+  },
+  "nav": {
+    "overview": "Overview",
+    "events": "Events",
+    "checks": "Checks",
+    "username": "Telegram username",
+    "email": "Email",
+    "phone": "Phone",
+    "domain": "Domain / IP",
+    "history": "History",
+    "admin": "Admin",
+    "sources": "Sources",
+    "categories": "Categories",
+    "system": "System",
+    "collector": "Collector",
+    "collectorRunning": "running",
+    "collectorStopped": "stopped",
+    "eventsInDb": "Stored: {count}"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "open": "Open notifications",
+    "unread": "{count} unread",
+    "markAllRead": "Mark all as read",
+    "empty": "No notifications yet",
+    "emptyHint": "New events in alert categories (such as ransomware and leaks) will appear here.",
+    "allEvents": "All events",
+    "new": "New"
+  },
+  "report": {
+    "title": "Check report",
+    "generatedAt": "Generated",
+    "reportNo": "Report",
+    "target": "Target",
+    "module": "Module",
+    "checkedAt": "Checked at",
+    "summary": "Summary",
+    "checked": "Checked",
+    "found": "Found",
+    "notFound": "Not found",
+    "unclear": "Unclear",
+    "results": "Results",
+    "noResults": "No results were saved for this search.",
+    "source": "Source",
+    "status": "Status",
+    "result": "Result",
+    "notice": "This report is based only on data from open (public) sources and has no legal force.",
+    "back": "Search history",
+    "print": "Print / PDF",
+    "pdfHint": "For a PDF, press \"Print / PDF\" and choose \"Save as PDF\" instead of a printer.",
+    "loadFailed": "Could not load the report",
+    "invalidId": "Invalid report number",
+    "loadingAria": "Loading report"
+  },
+  "scope": {
+    "label": "Scope",
+    "regional": "Central Asia",
+    "global": "Global",
+    "all": "All"
+  },
+  "severity": {
+    "label": "Severity",
+    "critical": "Critical",
+    "high": "High",
+    "medium": "Medium",
+    "low": "Low",
+    "info": "Info"
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "time": {
+    "justNow": "just now",
+    "minutesAgo": "{count, plural, one {# minute} other {# minutes}} ago",
+    "hoursAgo": "{count, plural, one {# hour} other {# hours}} ago",
+    "daysAgo": "{count, plural, one {# day} other {# days}} ago",
+    "inMinutes": "in {count, plural, one {# minute} other {# minutes}}",
+    "inHours": "in {count, plural, one {# hour} other {# hours}}"
+  }
+}

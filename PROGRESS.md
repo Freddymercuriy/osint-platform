@@ -77,6 +77,42 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 6: interfeys — Light / Dark / System, uz / ru / en (2026-11-15)
+- Avval `docs/design-system.md` va `.claude/agents/ui-designer.md` qayta yozildi (faqat qorong'i / faqat o'zbekcha
+  qoidalar olib tashlandi); `frontend.md`, `backend.md`, `database.md`, `osint-collector.md` v2 ga moslandi.
+- **Tokenlar**: `app/globals.css` — `:root` (light) va `.dark` qiymatlari (bg, surface, surface-2, border, fg, fg-muted,
+  fg-subtle, primary (yagona aksent), ring, success/warning/danger/info, chart-1..8); `app/tones.css` — 18 ta `.tone-*`
+  (`scripts/gen-tones.mjs` Tailwind palitrasidan yaratadi); `tailwind.config.ts` tokenlarni bog'laydi, `darkMode: class`.
+  `ink-*`, `slate-*`, `white/…`, `brand-*`, `dark:` — kodda qolmadi (grep bilan tekshirildi; istisno: `/report` qog'ozi
+  ataylab yorug'). `scripts/contrast-check.mjs`: barcha token juftliklari va 36 tone ≥ 4.5:1 ikkala temada.
+- **Tema**: `next-themes` (standart System, miltillashsiz), `ThemeToggle` (3 holat) yuqori panelda, login/register va
+  landingda. Bezak olib tashlandi: aurora, to'r fon, radar, scramble/reveal, tilt/magnit/float, spotlight, sheen,
+  harakatlanuvchi gradient, count-up; `framer-motion` bog'liqligi o'chirildi.
+- **Til**: `next-intl` 4.15 (URL prefikssiz): `i18n/request.ts` — cookie `NEXT_LOCALE` → `Accept-Language` → uz;
+  `users.locale` bilan sinxron (`LocaleSwitcher` → cookie + `PATCH /api/auth/me`; boshqa qurilmada tanlangan til kirishda
+  qo'llanadi). `messages/{uz,ru,en}.json` — 349 kalit × 3 til (ICU ko'plik, rus tili one/few/many);
+  `npm run test:i18n` kalitlar bir xilligini va ICU sintaksisini tekshiradi. `lib/format.ts` (`useFormat`) — o'zbekcha oy
+  nomlari qo'lda, ru/en `Intl`, vaqt Toshkent zonasida. Kategoriya nomlari bazadan (`useCategories`), hodisa matni
+  `?lang=` bilan interfeys tilida + "Asl matn" tugmasi; bildirishnomalar ham (`/api/notifications?lang=`).
+- **Navigatsiya**: Umumiy ko'rinish · Hodisalar · Tekshiruvlar · Admin (faqat admin; sahifalari Bosqich 7 da).
+  Har sahifa: sarlavha + bitta gap + asosiy amal; bo'sh holatlar nima chiqishini va nega bo'shligini aytadi.
+  Kirish: "asosiy mazmunga o'tish" havolasi, fokus halqalari, Esc bilan yopiladigan menyu/oyna.
+- **Backend** (subagent): `core/i18n.py` (160 kod × uz/ru/en, `Accept-Language` middleware), `core/errors.py` —
+  javob `{"detail": <tarjima>, "code": ...}` (422 da `code: validation_error`); `app/api/*` dagi barcha `HTTPException`
+  koddli xatoga o'tdi (statuslar o'zgarmadi); tekshiruv modullari natija yorliqlari so'rov tilida (mantiq o'zgarmagan,
+  saqlangan natijalar tegilmagan); Telegram ogohlantirish matni admin tilida. Frontend har so'rovda `Accept-Language`
+  yuboradi va `ApiError(code)` o'qiydi.
+- Sahifalarni 5 ta `ui-designer` subagent parallel o'tkazdi (landing/auth, tekshiruvlar, tarix/hisobot, dashboard, Events);
+  umumiy komponentlar, qobiq, i18n/tema infratuzilmasi va integratsiya — asosiy sessiyada.
+- Tekshirildi: ✅ backend 223 pytest (yangi 36: Accept-Language, coded xatolar 3 tilda, katalog to'liqligi va
+  placeholder'lar, tekshiruv yorliqlari ru/en); ✅ jonli: login xatosi uz/ru/en, telefon tekshiruvi ruscha yorliqlar;
+  ✅ `tsc`, `NEXT_DIST_DIR=.next-build npm run build` (13 route); ✅ smoke matritsasi 72/72 (6 asosiy sahifa × light/dark ×
+  uz/ru/en × desktop/360px) va dark/en'da barcha 22 sahifa; ✅ kontrast; ✅ i18n kalitlari.
+  360px'dagi gorizontal skroll (landing/login yuqori paneli, dashboard to'ri) topilib tuzatildi.
+- ⚠️ Tekshirilmadi / cheklov: ekran o'qigichlar bilan haqiqiy sinov; dashboard "kritik hodisalar" sarlavhalari hali asl tilda
+  (statistika API Bosqich 8 da yangilanadi); admin formalaridagi Pydantic validator xatolari (api_key_env, rang, qoida)
+  422 ro'yxati sifatida — matni o'zbekcha; ulagich `ConfigError` matnlari ru/en da o'zbekcha qism bilan.
+
 ### v2 — Bosqich 5: tarjima — en / ru / uz (2026-11-14)
 - Jadvallar (`0009_translations`): `event_translations` (hodisa × til: title, summary, provider
   `source|template|translit|google|cache|none`, status `done|pending|failed|skipped`, xato, urinishlar, keyingi urinish),

@@ -5,10 +5,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
+from fastapi import APIRouter, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import func, select
 
+from app.core.errors import api_error
 from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.models import Category, EventRecord
 from app.services.events.categories import apply_category_severity, move_events_to_other, reclassify
@@ -132,7 +133,7 @@ async def _counts(db) -> dict[int, int]:
 async def _get(db, category_id: int) -> Category:
     c = await db.get(Category, category_id)
     if c is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Kategoriya topilmadi")
+        raise api_error(status.HTTP_404_NOT_FOUND, "category_not_found")
     return c
 
 
@@ -164,7 +165,7 @@ async def admin_get(category_id: int, _: AdminUser, db: DbSession) -> CategoryAd
 @router.post("/api/admin/categories", response_model=CategoryAdminOut, status_code=status.HTTP_201_CREATED)
 async def admin_create(data: CategoryIn, _: AdminUser, db: DbSession) -> CategoryAdminOut:
     if await db.scalar(select(Category.id).where(Category.slug == data.slug)):
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu slug band")
+        raise api_error(status.HTTP_409_CONFLICT, "slug_taken")
     c = Category(**data.model_dump(), is_system=False)
     db.add(c)
     await db.commit()
@@ -177,7 +178,7 @@ async def admin_update(category_id: int, data: CategoryUpdate, _: AdminUser, db:
     c = await _get(db, category_id)
     changes = data.model_dump(exclude_unset=True)
     if c.slug == FALLBACK and changes.get("enabled") is False:
-        raise HTTPException(status.HTTP_409_CONFLICT, "'other' — zaxira kategoriya, o'chirib bo'lmaydi")
+        raise api_error(status.HTTP_409_CONFLICT, "category_other_protected")
     for k, v in changes.items():
         setattr(c, k, v)
     if "severity" in changes:
@@ -192,7 +193,7 @@ async def admin_delete(category_id: int, _: AdminUser, db: DbSession) -> dict[st
     """Hodisalari `other` ga o'tadi. Tizim kategoriyalarini faqat o'chirib (disable) qo'yish mumkin."""
     c = await _get(db, category_id)
     if c.is_system:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Tizim kategoriyasini o'chirib bo'lmaydi — faqat disable")
+        raise api_error(status.HTTP_409_CONFLICT, "category_system_protected")
     moved = await move_events_to_other(db, c)
     await db.delete(c)
     await db.commit()
@@ -207,7 +208,7 @@ class ReorderIn(BaseModel):
 async def admin_reorder(data: ReorderIn, _: AdminUser, db: DbSession) -> list[CategoryAdminOut]:
     rows = {c.id: c for c in (await db.scalars(select(Category))).all()}
     if set(data.ids) - set(rows) or len(set(data.ids)) != len(data.ids):
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Noma'lum yoki takroriy ID")
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "ids_invalid")
     for i, cid in enumerate(data.ids):
         rows[cid].sort_order = (i + 1) * 10
     other = next((c for c in rows.values() if c.slug == FALLBACK), None)

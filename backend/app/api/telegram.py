@@ -1,8 +1,10 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 from pydantic import BaseModel
 
 from app.api.deps import AdminUser
 from app.core.config import settings
+from app.core.errors import api_error
+from app.core.i18n import current_lang, t
 from app.services import telegram_user as tg
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
@@ -35,7 +37,7 @@ async def tg_status(current_user: AdminUser) -> TgStatus:
     )
     if not base["configured"]:
         return TgStatus(**base, authorized=False,
-                        message="TG_API_ID / TG_API_HASH backend/.env da yo'q")
+                        message=t("tg_env_missing", current_lang()))
     try:
         client = await tg.get_client()
         me = await client.get_me()
@@ -44,7 +46,7 @@ async def tg_status(current_user: AdminUser) -> TgStatus:
                             x for x in [me.first_name, me.last_name,
                                         f"(@{me.username})" if me.username else None] if x
                         ) or str(me.id),
-                        message="Ulangan ✅")
+                        message=t("tg_connected", current_lang()))
     except tg.TelegramNotConfigured as exc:
         return TgStatus(**base, authorized=False, message=str(exc))
 
@@ -54,5 +56,5 @@ async def tg_chats(current_user: AdminUser) -> list[TgChat]:
     try:
         chats = await tg.list_chats()
     except tg.TelegramNotConfigured as exc:
-        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        raise api_error(status.HTTP_409_CONFLICT, "telegram_not_configured", message=str(exc)) from exc
     return [TgChat(id=c.id, title=c.title, username=c.username, kind=c.kind) for c in chats]

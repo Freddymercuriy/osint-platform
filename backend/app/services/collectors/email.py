@@ -6,6 +6,7 @@ import dns.asyncresolver
 import httpx
 from email_validator import EmailNotValidError, validate_email
 
+from app.core.i18n import current_lang, t
 from app.services.collectors.base import BaseCollector, CollectResult
 
 _USER_AGENT = (
@@ -21,6 +22,7 @@ class EmailCollector(BaseCollector):
 
     async def run(self, query: str) -> list[CollectResult]:
         email = query.strip()
+        lang = current_lang()
         results: list[CollectResult] = []
 
         # 1) Sintaksis
@@ -30,10 +32,10 @@ class EmailCollector(BaseCollector):
             domain = info.domain
             results.append(
                 CollectResult(
-                    source="Sintaksis",
+                    source=t("c_email_syntax_src", lang),
                     type="email",
                     value=normalized,
-                    detail="To'g'ri formatdagi email",
+                    detail=t("c_email_syntax_ok", lang),
                     status="found",
                     confidence=1.0,
                 )
@@ -41,7 +43,7 @@ class EmailCollector(BaseCollector):
         except EmailNotValidError as exc:
             results.append(
                 CollectResult(
-                    source="Sintaksis",
+                    source=t("c_email_syntax_src", lang),
                     type="email",
                     value=email,
                     detail=str(exc),
@@ -57,7 +59,7 @@ class EmailCollector(BaseCollector):
             hosts = sorted(str(r.exchange).rstrip(".") for r in answers)
             results.append(
                 CollectResult(
-                    source="MX (pochta serveri)",
+                    source=t("c_email_mx_src", lang),
                     type="dns",
                     value=domain,
                     detail=", ".join(hosts[:3]) + (" ..." if len(hosts) > 3 else ""),
@@ -68,10 +70,10 @@ class EmailCollector(BaseCollector):
         except Exception:
             results.append(
                 CollectResult(
-                    source="MX (pochta serveri)",
+                    source=t("c_email_mx_src", lang),
                     type="dns",
                     value=domain,
-                    detail="MX yozuvi topilmadi — domen email qabul qilmasligi mumkin",
+                    detail=t("c_email_mx_none", lang),
                     status="not_found",
                     confidence=0.0,
                 )
@@ -93,7 +95,7 @@ class EmailCollector(BaseCollector):
                         type="profile",
                         value=normalized,
                         url=profile_url,
-                        detail="Gravatar avatari mavjud",
+                        detail=t("c_gravatar_yes", lang),
                         status="found",
                         confidence=0.8,
                     )
@@ -104,7 +106,7 @@ class EmailCollector(BaseCollector):
                         source="Gravatar",
                         type="profile",
                         value=normalized,
-                        detail="Gravatar topilmadi",
+                        detail=t("c_gravatar_no", lang),
                         status="not_found",
                         confidence=0.0,
                     )
@@ -115,7 +117,7 @@ class EmailCollector(BaseCollector):
                     source="Gravatar",
                     type="profile",
                     value=normalized,
-                    detail="Gravatar'ga ulanib bo'lmadi",
+                    detail=t("c_gravatar_err", lang),
                     status="error",
                     confidence=0.0,
                 )

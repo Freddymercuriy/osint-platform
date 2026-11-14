@@ -1,83 +1,40 @@
 "use client";
 
 /**
- * OSINT Platform dizayn tizimi — umumiy komponentlar.
- * Qo'llanma: docs/design-system.md
+ * Umumiy komponentlar — faqat semantik tokenlar (Light/Dark/System). Qo'llanma: docs/design-system.md
  */
 
 import { CheckCircle2, CircleHelp, Loader2, XCircle, type LucideIcon } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { forwardRef } from "react";
-import { CountUp } from "@/components/motion";
 import { cn } from "@/lib/cn";
-import { categoryMeta, type Tone } from "@/lib/categories";
+import { SEVERITY_TONE, type Tone } from "@/lib/categories";
+import { useCategories } from "@/lib/useCategories";
 
-/* ------------------------------------------------------------------ tones */
-const TONE: Record<Tone, string> = {
-  cyan: "border-cyan-400/25 bg-cyan-400/10 text-cyan-300",
-  sky: "border-sky-400/25 bg-sky-400/10 text-sky-300",
-  violet: "border-violet-400/25 bg-violet-400/10 text-violet-300",
-  fuchsia: "border-fuchsia-400/25 bg-fuchsia-400/10 text-fuchsia-300",
-  red: "border-red-400/30 bg-red-500/10 text-red-300",
-  orange: "border-orange-400/30 bg-orange-500/10 text-orange-300",
-  amber: "border-amber-400/30 bg-amber-500/10 text-amber-300",
-  emerald: "border-emerald-400/30 bg-emerald-500/10 text-emerald-300",
-  slate: "border-slate-400/20 bg-slate-400/10 text-slate-300",
-};
+export { useFormat } from "@/lib/format";
 
-export const TONE_TEXT: Record<Tone, string> = {
-  cyan: "text-cyan-300",
-  sky: "text-sky-300",
-  violet: "text-violet-300",
-  fuchsia: "text-fuchsia-300",
-  red: "text-red-300",
-  orange: "text-orange-300",
-  amber: "text-amber-300",
-  emerald: "text-emerald-300",
-  slate: "text-slate-300",
-};
-
-const TONE_ICON_BG: Record<Tone, string> = {
-  cyan: "from-cyan-400/25 to-cyan-400/5 text-cyan-300 ring-cyan-400/20",
-  sky: "from-sky-400/25 to-sky-400/5 text-sky-300 ring-sky-400/20",
-  violet: "from-violet-400/25 to-violet-400/5 text-violet-300 ring-violet-400/20",
-  fuchsia: "from-fuchsia-400/25 to-fuchsia-400/5 text-fuchsia-300 ring-fuchsia-400/20",
-  red: "from-red-500/25 to-red-500/5 text-red-300 ring-red-400/20",
-  orange: "from-orange-500/25 to-orange-500/5 text-orange-300 ring-orange-400/20",
-  amber: "from-amber-500/25 to-amber-500/5 text-amber-300 ring-amber-400/20",
-  emerald: "from-emerald-500/25 to-emerald-500/5 text-emerald-300 ring-emerald-400/20",
-  slate: "from-slate-400/20 to-slate-400/5 text-slate-300 ring-slate-400/15",
-};
-
-/* ------------------------------------------------------------------ Card */
-/** Sichqoncha joylashuvini CSS o'zgaruvchilariga yozadi (.spotlight yorug'ligi uchun). */
-export function trackPointer(e: React.MouseEvent<HTMLElement>) {
-  const r = e.currentTarget.getBoundingClientRect();
-  e.currentTarget.style.setProperty("--mx", `${e.clientX - r.left}px`);
-  e.currentTarget.style.setProperty("--my", `${e.clientY - r.top}px`);
+/* ------------------------------------------------------------------ tone yordamchilari */
+/** Nishon/yorliq: `tone-<rang>` + fon/matn/chegara tokenlari. */
+export function toneClass(tone: Tone) {
+  return `tone-${tone} border-tone-border bg-tone-bg text-tone-fg`;
 }
 
+/** Faqat matn rangi (tone). */
+export function toneText(tone: Tone) {
+  return `tone-${tone} text-tone-fg`;
+}
+
+/* ------------------------------------------------------------------ Card */
 export function Card({
   className,
   hover,
-  glow,
+  glow: _glow,
   children,
-  onMouseMove,
   ...rest
 }: React.HTMLAttributes<HTMLDivElement> & { hover?: boolean; glow?: boolean }) {
   return (
-    <div
-      className={cn("glass", hover && "glass-hover spotlight", glow && "gradient-border", className)}
-      onMouseMove={
-        hover
-          ? (e) => {
-              trackPointer(e);
-              onMouseMove?.(e);
-            }
-          : onMouseMove
-      }
-      {...rest}
-    >
+    <div className={cn("card", hover && "transition-colors hover:border-border-strong", className)} {...rest}>
       {children}
     </div>
   );
@@ -88,18 +45,18 @@ type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 type ButtonSize = "sm" | "md" | "lg";
 
 const BTN_VARIANT: Record<ButtonVariant, string> = {
-  primary:
-    "btn-sheen bg-brand-gradient text-white shadow-glow hover:brightness-110 hover:shadow-[0_0_0_1px_rgba(34,211,238,.35),0_10px_50px_-6px_rgba(34,211,238,.55)] disabled:shadow-none",
-  secondary:
-    "border border-white/10 bg-white/[0.04] text-slate-200 hover:border-white/20 hover:bg-white/[0.08]",
-  ghost: "text-slate-400 hover:bg-white/[0.06] hover:text-slate-100",
-  danger: "border border-red-400/30 bg-red-500/10 text-red-300 hover:bg-red-500/20",
+  primary: "bg-primary text-primary-fg shadow-sm hover:bg-primary/90",
+  secondary: "border border-border bg-surface text-fg hover:bg-surface-2",
+  ghost: "text-fg-muted hover:bg-surface-2 hover:text-fg",
+  danger: "tone-red border border-tone-border bg-tone-bg text-tone-fg hover:brightness-95",
 };
 const BTN_SIZE: Record<ButtonSize, string> = {
   sm: "h-8 gap-1.5 rounded-lg px-3 text-xs",
-  md: "h-10 gap-2 rounded-xl px-4 text-sm",
-  lg: "h-12 gap-2 rounded-xl px-6 text-base",
+  md: "h-10 gap-2 rounded-lg px-4 text-sm",
+  lg: "h-11 gap-2 rounded-lg px-5 text-base",
 };
+const BTN_BASE =
+  "inline-flex select-none items-center justify-center font-medium transition-colors focus-ring disabled:cursor-not-allowed disabled:opacity-50";
 
 type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
   variant?: ButtonVariant;
@@ -109,24 +66,19 @@ type ButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
-  { variant = "primary", size = "md", loading, icon: Icon, className, children, disabled, ...rest },
+  { variant = "primary", size = "md", loading, icon: Icon, className, children, disabled, type = "button", ...rest },
   ref,
 ) {
   return (
     <button
       ref={ref}
+      type={type}
       disabled={disabled || loading}
-      className={cn(
-        "inline-flex select-none items-center justify-center font-medium transition duration-200 active:scale-[0.97]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        BTN_VARIANT[variant],
-        BTN_SIZE[size],
-        className,
-      )}
+      aria-busy={loading || undefined}
+      className={cn(BTN_BASE, BTN_VARIANT[variant], BTN_SIZE[size], className)}
       {...rest}
     >
-      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : Icon ? <Icon className="h-4 w-4" /> : null}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : Icon ? <Icon className="h-4 w-4" aria-hidden /> : null}
       {children}
     </button>
   );
@@ -149,22 +101,18 @@ export function ButtonLink({
   children: React.ReactNode;
 }) {
   return (
-    <Link
-      href={href}
-      className={cn(
-        "inline-flex items-center justify-center font-medium transition duration-200 active:scale-[0.97]",
-        BTN_VARIANT[variant],
-        BTN_SIZE[size],
-        className,
-      )}
-    >
-      {Icon && <Icon className="h-4 w-4" />}
+    <Link href={href} className={cn(BTN_BASE, BTN_VARIANT[variant], BTN_SIZE[size], className)}>
+      {Icon && <Icon className="h-4 w-4" aria-hidden />}
       {children}
     </Link>
   );
 }
 
-/* ------------------------------------------------------------------ Input */
+/* ------------------------------------------------------------------ Input / Select */
+const FIELD =
+  "w-full rounded-lg border border-border bg-surface text-fg placeholder:text-fg-subtle transition-colors " +
+  "hover:border-border-strong focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/30";
+
 type InputProps = React.InputHTMLAttributes<HTMLInputElement> & {
   icon?: LucideIcon;
   mono?: boolean;
@@ -178,27 +126,33 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="relative w-full">
       {Icon && (
-        <Icon className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-500" />
+        <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-fg-subtle" aria-hidden />
       )}
       <input
         ref={ref}
-        className={cn(
-          "w-full rounded-xl border border-white/10 bg-ink-900/80 text-slate-100 placeholder:text-slate-600",
-          "outline-none transition focus:border-brand-cyan/50 focus:ring-4 focus:ring-brand-cyan/10",
-          inputSize === "lg" ? "h-12 text-base" : "h-10 text-sm",
-          Icon ? "pl-10 pr-3.5" : "px-3.5",
-          mono && "font-mono",
-          className,
-        )}
+        className={cn(FIELD, inputSize === "lg" ? "h-11 text-base" : "h-10 text-sm", Icon ? "pl-9 pr-3" : "px-3",
+          mono && "font-mono", className)}
         {...rest}
       />
     </div>
+  );
+}
+);
+
+export const Select = forwardRef<HTMLSelectElement, React.SelectHTMLAttributes<HTMLSelectElement>>(function Select(
+  { className, children, ...rest },
+  ref,
+) {
+  return (
+    <select ref={ref} className={cn(FIELD, "h-10 px-3 text-sm", className)} {...rest}>
+      {children}
+    </select>
   );
 });
 
 export function Label({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-slate-400">
+    <label htmlFor={htmlFor} className="mb-1.5 block text-sm font-medium text-fg">
       {children}
     </label>
   );
@@ -210,61 +164,55 @@ export function Badge({
   icon: Icon,
   className,
   children,
+  title,
 }: {
   tone?: Tone;
   icon?: LucideIcon;
   className?: string;
   children: React.ReactNode;
+  title?: string;
 }) {
   return (
     <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium",
-        TONE[tone],
-        className,
-      )}
+      title={title}
+      className={cn("inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-medium", toneClass(tone), className)}
     >
-      {Icon && <Icon className="h-3 w-3" />}
+      {Icon && <Icon className="h-3 w-3" aria-hidden />}
       {children}
     </span>
   );
 }
 
-/** Events kategoriyasi uchun yorliq (rang + ikon + nom). */
+/** Kategoriya yorlig'i — nom (interfeys tilida), rang va ikon bazadan. */
 export function CategoryBadge({ category }: { category: string }) {
-  const m = categoryMeta(category);
+  const { bySlug } = useCategories();
+  const c = bySlug(category);
   return (
-    <Badge tone={m.tone} icon={m.icon}>
-      {m.label}
+    <Badge tone={c.tone} icon={c.Icon} title={c.description || undefined}>
+      {c.name}
     </Badge>
   );
 }
 
+/** Jiddiylik: critical / high / medium / low / info. */
+export function SeverityBadge({ severity }: { severity: string }) {
+  const t = useTranslations("severity");
+  const known = ["critical", "high", "medium", "low", "info"].includes(severity);
+  return <Badge tone={SEVERITY_TONE[severity] ?? "slate"}>{known ? t(severity) : severity}</Badge>;
+}
+
 /** Qidiruv natijasi holati: found / not_found / error. */
 export function StatusBadge({ status }: { status: string }) {
-  if (status === "found")
-    return (
-      <Badge tone="emerald" icon={CheckCircle2}>
-        Topildi
-      </Badge>
-    );
-  if (status === "not_found")
-    return (
-      <Badge tone="slate" icon={XCircle}>
-        Yo'q
-      </Badge>
-    );
-  return (
-    <Badge tone="amber" icon={CircleHelp}>
-      Noaniq
-    </Badge>
-  );
+  const t = useTranslations("common");
+  if (status === "found") return <Badge tone="green" icon={CheckCircle2}>{t("status_found")}</Badge>;
+  if (status === "not_found") return <Badge tone="slate" icon={XCircle}>{t("status_not_found")}</Badge>;
+  return <Badge tone="amber" icon={CircleHelp}>{t("status_unclear")}</Badge>;
 }
 
 /* ------------------------------------------------------------------ IconBox */
 export function IconBox({
   icon: Icon,
-  tone = "cyan",
+  tone = "blue",
   size = "md",
   className,
 }: {
@@ -273,46 +221,46 @@ export function IconBox({
   size?: "sm" | "md" | "lg";
   className?: string;
 }) {
-  const s = size === "lg" ? "h-12 w-12 rounded-2xl" : size === "sm" ? "h-8 w-8 rounded-lg" : "h-10 w-10 rounded-xl";
-  const i = size === "lg" ? "h-6 w-6" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
+  const s = size === "lg" ? "h-11 w-11 rounded-xl" : size === "sm" ? "h-8 w-8 rounded-lg" : "h-10 w-10 rounded-lg";
+  const i = size === "lg" ? "h-5 w-5" : size === "sm" ? "h-4 w-4" : "h-5 w-5";
   return (
-    <div className={cn("grid shrink-0 place-items-center bg-gradient-to-br ring-1", TONE_ICON_BG[tone], s, className)}>
+    <div className={cn("grid shrink-0 place-items-center border", toneClass(tone), s, className)} aria-hidden>
       <Icon className={i} />
     </div>
   );
 }
 
 /* ------------------------------------------------------------------ PageHeader */
+/** Har sahifa: sarlavha → bitta gap tavsif → asosiy amal. */
 export function PageHeader({
   icon,
-  tone = "cyan",
-  eyebrow,
+  tone = "blue",
   title,
+  description,
   subtitle,
   actions,
 }: {
   icon?: LucideIcon;
   tone?: Tone;
+  /** @deprecated v1 — ko'rsatilmaydi */
   eyebrow?: string;
   title: React.ReactNode;
+  description?: React.ReactNode;
+  /** @deprecated `description` ishlating */
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
+  const desc = description ?? subtitle;
   return (
-    <div className="mb-6 flex animate-fade-in flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-      <div className="flex items-start gap-4">
-        {icon && <IconBox icon={icon} tone={tone} size="lg" />}
-        <div>
-          {eyebrow && (
-            <div className="mb-1 font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">
-              {eyebrow}
-            </div>
-          )}
-          <h1 className="text-2xl font-semibold tracking-tight text-white sm:text-3xl">{title}</h1>
-          {subtitle && <p className="mt-1.5 max-w-2xl text-sm text-slate-400">{subtitle}</p>}
+    <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        {icon && <IconBox icon={icon} tone={tone} />}
+        <div className="min-w-0">
+          <h1 className="text-xl font-semibold tracking-tight text-fg sm:text-2xl">{title}</h1>
+          {desc && <p className="mt-1 max-w-2xl text-sm text-fg-muted">{desc}</p>}
         </div>
       </div>
-      {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+      {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </div>
   );
 }
@@ -322,7 +270,7 @@ export function StatTile({
   label,
   value,
   icon,
-  tone = "cyan",
+  tone = "blue",
   hint,
   loading,
   stacked,
@@ -333,35 +281,28 @@ export function StatTile({
   tone?: Tone;
   hint?: React.ReactNode;
   loading?: boolean;
-  /** Tor (2 ustunli) to'rda: mobil ekranda ikonka yorliq ustiga chiqadi, yorliq ikonka ostiga tushmaydi. */
   stacked?: boolean;
 }) {
   return (
-    <Card hover className={cn("relative h-full overflow-hidden", stacked ? "p-4 sm:p-5" : "p-5")}>
-      <div
-        className={cn(
-          "flex items-start justify-between gap-3",
-          stacked && "flex-col-reverse justify-end sm:flex-row sm:justify-between",
-        )}
-      >
+    <Card className={cn("h-full min-w-0", stacked ? "p-4" : "p-5")}>
+      <div className={cn("flex items-start justify-between gap-3", stacked && "flex-col-reverse sm:flex-row")}>
         <div className="min-w-0">
-          <div className="text-xs font-medium uppercase tracking-wider text-slate-500">{label}</div>
+          <div className="break-words text-sm text-fg-muted">{label}</div>
           {loading ? (
             <div className="skeleton mt-2 h-8 w-20" />
           ) : (
-            <div className="mt-1.5 font-mono text-3xl font-semibold tabular-nums text-white">
-              {typeof value === "number" ? <CountUp value={value} /> : value}
-            </div>
+            <div className="mt-1 text-2xl font-semibold tabular-nums text-fg">{value}</div>
           )}
-          {hint && <div className="mt-1 text-xs text-slate-500">{hint}</div>}
+          {hint && <div className="mt-1 text-xs text-fg-subtle">{hint}</div>}
         </div>
-        <IconBox icon={icon} tone={tone} />
+        <IconBox icon={icon} tone={tone} size="sm" />
       </div>
     </Card>
   );
 }
 
-/* ------------------------------------------------------------------ states */
+/* ------------------------------------------------------------------ holatlar */
+/** Bo'sh holat: nima paydo bo'lishini va hozir nega bo'shligini aytadi. */
 export function EmptyState({
   icon: Icon,
   title,
@@ -370,122 +311,65 @@ export function EmptyState({
 }: {
   icon: LucideIcon;
   title: string;
-  description?: string;
+  description?: React.ReactNode;
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center px-6 py-14 text-center">
-      <div className="relative mb-4">
-        <div className="absolute inset-0 rounded-full bg-brand-cyan/10 blur-xl" />
-        <div className="relative grid h-14 w-14 place-items-center rounded-2xl border border-white/10 bg-ink-800 text-slate-400">
-          <Icon className="h-6 w-6" />
-        </div>
+    <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+      <div className="mb-3 grid h-12 w-12 place-items-center rounded-xl border border-border bg-surface-2 text-fg-subtle">
+        <Icon className="h-6 w-6" aria-hidden />
       </div>
-      <div className="font-medium text-slate-200">{title}</div>
-      {description && <p className="mt-1 max-w-sm text-sm text-slate-500">{description}</p>}
+      <div className="font-medium text-fg">{title}</div>
+      {description && <p className="mt-1 max-w-md text-sm text-fg-muted">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
 }
 
-export function ErrorBanner({ message }: { message: string }) {
+export function ErrorBanner({ message, action }: { message: string; action?: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-xl border border-red-400/25 bg-red-500/10 px-4 py-3 text-sm text-red-300">
-      <XCircle className="mt-0.5 h-4 w-4 shrink-0" />
-      <span>{message}</span>
+    <div role="alert" className={cn("flex items-start gap-2 rounded-lg border px-4 py-3 text-sm", toneClass("red"))}>
+      <XCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+      <span className="min-w-0 flex-1">{message}</span>
+      {action}
     </div>
   );
 }
 
-export function Spinner({ className }: { className?: string }) {
-  return <Loader2 className={cn("h-5 w-5 animate-spin text-brand-cyan", className)} />;
+export function Spinner({ className, label }: { className?: string; label?: string }) {
+  return (
+    <Loader2 role="status" aria-label={label ?? "loading"} className={cn("h-5 w-5 animate-spin text-primary", className)} />
+  );
 }
 
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("skeleton", className)} />;
+  return <div className={cn("skeleton", className)} aria-hidden />;
 }
 
-/** Yonib-o'chib turadigan "jonli" nuqta */
-export function LiveDot({ tone = "emerald" }: { tone?: "emerald" | "amber" | "red" | "cyan" }) {
-  const c = {
-    emerald: "bg-emerald-400",
-    amber: "bg-amber-400",
-    red: "bg-red-500",
-    cyan: "bg-cyan-400",
-  }[tone];
-  return (
-    <span className="relative inline-flex h-2.5 w-2.5">
-      <span className={cn("absolute inline-flex h-full w-full animate-pulse-ring rounded-full", c)} />
-      <span className={cn("relative inline-flex h-2.5 w-2.5 rounded-full", c)} />
-    </span>
-  );
+/** Holat nuqtasi (harakatsiz). */
+export function LiveDot({ tone = "green" }: { tone?: "green" | "emerald" | "amber" | "red" | "cyan" | "slate" }) {
+  const c = { green: "bg-success", emerald: "bg-success", amber: "bg-warning", red: "bg-danger", cyan: "bg-info", slate: "bg-fg-subtle" }[tone];
+  return <span className={cn("inline-block h-2 w-2 rounded-full", c)} aria-hidden />;
 }
 
 /* ------------------------------------------------------------------ Logo */
 export function Logo({ compact }: { compact?: boolean }) {
+  const t = useTranslations("common");
   return (
     <div className="flex items-center gap-2.5">
-      <div className="relative grid h-9 w-9 place-items-center rounded-xl bg-brand-gradient shadow-glow">
-        <svg viewBox="0 0 24 24" className="h-5 w-5 text-white" fill="none" stroke="currentColor" strokeWidth="2">
-          <circle cx="12" cy="12" r="9" opacity=".45" />
-          <circle cx="12" cy="12" r="5" opacity=".75" />
-          <path d="M12 12 L19 6" strokeLinecap="round" />
+      <div className="grid h-8 w-8 place-items-center rounded-lg bg-primary text-primary-fg" aria-hidden>
+        <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="12" cy="12" r="9" opacity=".5" />
+          <circle cx="12" cy="12" r="5" opacity=".8" />
           <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
         </svg>
       </div>
       {!compact && (
         <div className="leading-tight">
-          <div className="text-[15px] font-semibold tracking-tight text-white">
-            OSINT<span className="text-gradient">.uz</span>
-          </div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500">
-            threat intel
-          </div>
+          <div className="text-[15px] font-semibold tracking-tight text-fg">OSINT</div>
+          <div className="hidden text-xs text-fg-subtle sm:block">{t("tagline")}</div>
         </div>
       )}
     </div>
   );
-}
-
-/** Nisbiy vaqt: "5 daq oldin" */
-export function timeAgo(iso: string | null | undefined): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const diff = (Date.now() - d.getTime()) / 1000;
-  if (diff < 60) return "hozirgina";
-  if (diff < 3600) return `${Math.floor(diff / 60)} daq oldin`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)} soat oldin`;
-  if (diff < 86400 * 7) return `${Math.floor(diff / 86400)} kun oldin`;
-  return formatDate(d, { short: true });
-}
-
-/* Brauzerlarning ko'pida "uz-UZ" lokali to'liq emas ("2026 M09 22" chiqadi) — oy nomlarini o'zimiz beramiz. */
-const UZ_MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
-const UZ_MONTHS_SHORT = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
-const pad2 = (n: number) => String(n).padStart(2, "0");
-
-/** Sana: "22 sentabr 2026" (short: "22 sen 2026"). `year: false` — yilsiz. */
-export function formatDate(
-  value: Date | string | null | undefined,
-  opts: { short?: boolean; year?: boolean } = {},
-): string {
-  if (!value) return "";
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return "";
-  const month = (opts.short ? UZ_MONTHS_SHORT : UZ_MONTHS)[d.getMonth()];
-  return `${d.getDate()} ${month}${opts.year === false ? "" : ` ${d.getFullYear()}`}`;
-}
-
-/** Soat: "14:05" */
-export function formatTime(value: Date | string | null | undefined): string {
-  if (!value) return "";
-  const d = typeof value === "string" ? new Date(value) : value;
-  if (Number.isNaN(d.getTime())) return "";
-  return `${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
-}
-
-/** To'liq: "22 sentabr 2026, 14:05" */
-export function formatDateTime(value: Date | string | null | undefined): string {
-  const date = formatDate(value);
-  return date ? `${date}, ${formatTime(value)}` : "";
 }

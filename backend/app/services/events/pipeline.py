@@ -22,7 +22,8 @@ from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.models import Category, EventRecord, Source, SourceRun
+from app.core.i18n import DEFAULT_LANG, LANGS, t
+from app.models import Category, EventRecord, Source, SourceRun, User
 from app.models.category import SEVERITY_RANK
 from app.services.connectors.base import RawItem
 from app.services.connectors.google_news import GOOGLE_NEWS_TAG
@@ -274,15 +275,21 @@ async def purge_expired(db: AsyncSession, now: datetime) -> int:
 
 
 # ---------------------------------------------------------------- Telegram "Saved Messages" ogohlantirishi (ixtiyoriy)
-def format_alert(records: list[EventRecord]) -> str:
+def format_alert(records: list[EventRecord], lang: str = "uz") -> str:
     icons = {"leak": "🟠", "ransomware": "🔴"}
-    lines = [f"🚨 OSINT: Markaziy Osiyo bo'yicha {len(records)} ta yangi hodisa\n"]
+    lines = [t("alert_header", lang, n=len(records)) + "\n"]
     for r in records[:10]:
         lines.append(f"{icons.get(r.category, '•')} [{r.category}] {r.source}\n{r.title[:200]}\n"
                      f"{r.summary[:250]}\n{r.url}\n")
     if len(records) > 10:
-        lines.append(f"... va yana {len(records) - 10} ta. Platformada ko'ring.")
+        lines.append(t("alert_more", lang, n=len(records) - 10))
     return "\n".join(lines)
+
+
+async def _alert_lang(db: AsyncSession) -> str:
+    """Ogohlantirish tili: birinchi adminning `users.locale`i (yo'q bo'lsa uz)."""
+    loc = await db.scalar(select(User.locale).where(User.role == "admin").order_by(User.id).limit(1))
+    return loc if loc in LANGS else DEFAULT_LANG
 
 
 async def notify_new(db: AsyncSession, records: list[EventRecord]) -> int:
@@ -299,7 +306,7 @@ async def notify_new(db: AsyncSession, records: list[EventRecord]) -> int:
         return 0
     try:
         client = await tg.get_client()
-        await client.send_message("me", format_alert(to_send), link_preview=False)
+        await client.send_message("me", format_alert(to_send, await _alert_lang(db)), link_preview=False)
     except Exception as exc:  # ogohlantirish yiqilsa ham yig'ish davom etadi
         log.warning("Telegram ogohlantirish yuborilmadi: %s", exc)
         return 0

@@ -1,0 +1,455 @@
+{
+  "auth": {
+    "backHome": "Bosh sahifa",
+    "email": "Email",
+    "emailPlaceholder": "siz@misol.uz",
+    "password": "Parol",
+    "showPassword": "Parolni ko'rsatish",
+    "hidePassword": "Parolni yashirish",
+    "loginTitle": "Kirish",
+    "loginSubtitle": "Hisobingizga kiring.",
+    "signIn": "Kirish",
+    "signingIn": "Kirilmoqda...",
+    "noAccount": "Hisobingiz yo'qmi?",
+    "createAccount": "Hisob yaratish",
+    "registerTitle": "Hisob yaratish",
+    "registerSubtitle": "Email va parol bilan ro'yxatdan o'ting.",
+    "passwordHint": "Kamida 8 ta belgi.",
+    "passwordTooShort": "Parol kamida 8 ta belgidan iborat bo'lishi kerak.",
+    "creating": "Yaratilmoqda...",
+    "haveAccount": "Hisobingiz bormi?",
+    "closedTitle": "Ro'yxatdan o'tish yopiq",
+    "closedText": "Hozir yangi hisob ochib bo'lmaydi. Hisobingiz bo'lsa, tizimga kiring yoki administratorga murojaat qiling."
+  },
+  "channel": {
+    "label": "Kanal",
+    "news": "Yangiliklar",
+    "telegram_channel": "Telegram kanal",
+    "telegram_group": "Telegram guruh",
+    "api": "Threat-intel API"
+  },
+  "checks": {
+    "modules": {
+      "username": {
+        "label": "Username",
+        "title": "Telegram username",
+        "desc": "ID, username tarixi, umumiy guruhlar",
+        "pageDesc": "Telegram akkauntini username yoki ID bo'yicha tekshiradi: ID, usernamelar, username o'zgarishlari va umumiy guruhlar."
+      },
+      "email": {
+        "label": "Email",
+        "title": "Email tekshiruvi",
+        "desc": "Sintaksis, MX server, Gravatar",
+        "pageDesc": "Manzil sintaksisi, MX (pochta serveri) yozuvlari va Gravatar profilini tekshiradi."
+      },
+      "phone": {
+        "label": "Telefon",
+        "title": "Telefon tekshiruvi",
+        "desc": "Davlat, operator, raqam turi",
+        "pageDesc": "Raqamning davlati, operatori, turi va vaqt mintaqasini aniqlaydi (internetsiz)."
+      },
+      "domain": {
+        "label": "Domen / IP",
+        "title": "Domen / IP / WHOIS",
+        "desc": "DNS, WHOIS, subdomenlar, ASN",
+        "pageDesc": "Domen yoki IP bo'yicha DNS, WHOIS, subdomenlar va tarmoq (ASN) ma'lumotlarini yig'adi."
+      },
+      "unknown": {
+        "label": "Boshqa",
+        "title": "Boshqa",
+        "desc": "",
+        "pageDesc": ""
+      }
+    },
+    "username": {
+      "placeholder": "masalan: @botfather, t.me/telegram yoki 93372553",
+      "checks": {
+        "0": "Akkaunt ID'si, turi va belgilar (bot, premium, scam)",
+        "1": "Faol usernamelar, bio, shaxsiy kanal",
+        "2": "Username tarixi — platforma har qidiruvda yozib boradi",
+        "3": "Umumiy guruhlar va ulardagi xabarlar soni"
+      }
+    },
+    "email": {
+      "placeholder": "masalan: user@gmail.com",
+      "checks": {
+        "0": "Sintaksis to'g'riligi",
+        "1": "MX yozuvlari (pochta serveri)",
+        "2": "Gravatar ochiq profili"
+      }
+    },
+    "phone": {
+      "placeholder": "masalan: +998901234567",
+      "checks": {
+        "0": "Davlat va hudud",
+        "1": "Mobil operator",
+        "2": "Raqam turi (mobil / statsionar)",
+        "3": "Vaqt mintaqasi"
+      }
+    },
+    "domain": {
+      "placeholder": "masalan: kun.uz yoki 8.8.8.8",
+      "checks": {
+        "0": "DNS: A / AAAA, NS, MX",
+        "1": "Pochta himoyasi: SPF va DMARC",
+        "2": "WHOIS / RDAP: registrator, sanalar, holat",
+        "3": "Subdomenlar (Certificate Transparency)",
+        "4": "Hosting: ASN, tarmoq, davlat",
+        "5": "IP uchun: teskari DNS (PTR) va tarmoq egasi"
+      }
+    },
+    "search": {
+      "searching": "Qidirilmoqda",
+      "examples": "Namuna",
+      "scanning": "Manbalar tekshirilmoqda…",
+      "target": "Nishon",
+      "emptyTitle": "Qidiruvni boshlang",
+      "publicOnly": "Faqat ochiq manbalardan foydalaniladi.",
+      "checked": "Tekshirildi",
+      "checkedHint": "manba",
+      "foundHint": "mos kelish",
+      "unclearHint": "javob yo'q yoki xato",
+      "foundRatio": "Topilganlar ulushi",
+      "exportReport": "Hisobotni eksport qilish",
+      "filters": "Natija filtrlari",
+      "noFilterTitle": "Bu filtrda natija yo'q",
+      "noFilterDesc": "Boshqa filtrni tanlang yoki yangi qidiruv bajaring.",
+      "recent": "So'nggi qidiruvlar",
+      "historyError": "Tarixni yuklab bo'lmadi.",
+      "historyEmpty": "Hali qidiruv bajarilmagan.",
+      "fullHistory": "Butun tarix",
+      "whatChecked": "Nimalar tekshiriladi",
+      "disclaimer": "Faqat ochiq manbalar. Natijalar taxminiy — muhim xulosadan oldin qo'lda tasdiqlang."
+    },
+    "export": {
+      "jsonAria": "Hisobotni JSON fayl sifatida yuklash",
+      "jsonTitle": "JSON hisobotni yuklash",
+      "pdfAria": "Hisobotni chop etish yoki PDF sifatida saqlash (yangi oynada)",
+      "pdfTitle": "Chop etish / PDF",
+      "downloadError": "Hisobotni yuklab bo'lmadi"
+    }
+  },
+  "common": {
+    "appName": "OSINT Platform",
+    "tagline": "Markaziy Osiyo kibertahdidlari monitoringi",
+    "loading": "Yuklanmoqda…",
+    "retry": "Qayta urinish",
+    "save": "Saqlash",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "edit": "Tahrirlash",
+    "close": "Yopish",
+    "search": "Qidirish",
+    "refresh": "Yangilash",
+    "all": "Hammasi",
+    "none": "Yo'q",
+    "yes": "Ha",
+    "no": "Yo'q",
+    "open": "Ochish",
+    "copy": "Nusxa olish",
+    "copied": "Nusxa olindi",
+    "showMore": "Ko'proq ko'rsatish",
+    "showLess": "Kamroq ko'rsatish",
+    "loadMore": "Yana yuklash",
+    "back": "Orqaga",
+    "logout": "Chiqish",
+    "error": "Xatolik yuz berdi",
+    "sessionExpired": "Sessiya muddati tugadi. Qaytadan kiring.",
+    "networkError": "Server bilan aloqa yo'q. Internet yoki backend ishlayotganini tekshiring.",
+    "publicSourcesOnly": "Faqat ochiq manbalar",
+    "skipToContent": "Asosiy mazmunga o'tish",
+    "menu": "Menyu",
+    "notTranslated": "Hali tarjima qilinmagan — asl matn",
+    "showOriginal": "Asl matn",
+    "showTranslation": "Tarjima",
+    "items": "{count, plural, other {# ta}}",
+    "role_admin": "Administrator",
+    "role_analyst": "Tahlilchi",
+    "status_found": "Topildi",
+    "status_not_found": "Yo'q",
+    "status_unclear": "Noaniq"
+  },
+  "country": {
+    "label": "Davlat",
+    "UZ": "O'zbekiston",
+    "KZ": "Qozog'iston",
+    "KG": "Qirg'iziston",
+    "TJ": "Tojikiston",
+    "TM": "Turkmaniston"
+  },
+  "dashboard": {
+    "title": "Umumiy ko'rinish",
+    "description": "Yig'ilgan kiberxavf hodisalari, ularning manbalari va oxirgi tekshiruvlaringiz xulosasi.",
+    "openEvents": "Hodisalarni ochish",
+    "kpi": {
+      "total": "Jami hodisalar",
+      "totalHint": "bazada saqlangan",
+      "last24h": "So'nggi 24 soat",
+      "last24hHint": "yangi yig'ilgan",
+      "topCategory": "Asosiy kategoriya",
+      "topCategoryHint": "{count} ta hodisa",
+      "noData": "hozircha ma'lumot yo'q",
+      "searches": "Tekshiruvlaringiz",
+      "searchesHint": "butun davr"
+    },
+    "daily": {
+      "title": "Kunlik hodisalar",
+      "subtitle": "So'nggi {days} kun, hodisa sanasi bo'yicha, barcha manbalar",
+      "unit": "hodisa",
+      "emptyTitle": "Hozircha hodisa yo'q",
+      "emptyText": "Yig'uvchilar birinchi hodisalarni saqlagach, kunlik grafik shu yerda chiqadi."
+    },
+    "view": {
+      "label": "Ko'rinish",
+      "chart": "Grafik",
+      "table": "Jadval"
+    },
+    "table": {
+      "date": "Sana",
+      "total": "Jami"
+    },
+    "categories": {
+      "title": "Kategoriyalar",
+      "subtitle": "Bazadagi barcha hodisalar",
+      "emptyTitle": "Ma'lumotli kategoriya yo'q",
+      "emptyText": "Hodisalar tasniflangach, kategoriyalar shu yerda chiqadi."
+    },
+    "critical": {
+      "title": "Muhim hodisalar",
+      "subtitle": "So'nggi ransomware va leak'lar",
+      "all": "Barcha hodisalar",
+      "emptyTitle": "Muhim hodisa yo'q",
+      "emptyText": "Ransomware yoki leak topilsa, shu yerda chiqadi.",
+      "external": "Manba yangi oynada ochiladi"
+    },
+    "sources": {
+      "title": "Eng faol manbalar",
+      "subtitle": "Hodisalar soni bo'yicha",
+      "emptyTitle": "Hozircha manba yo'q",
+      "emptyText": "Birinchi hodisalar yig'ilgach, manbalar shu yerda chiqadi."
+    },
+    "modules": {
+      "title": "Tekshiruv modullari",
+      "myChecks": "Tekshiruvlaringiz",
+      "count": "{count} ta tekshiruv"
+    }
+  },
+  "events": {
+    "title": "Hodisalar",
+    "description": "Markaziy Osiyoga oid kiberxavfsizlik hodisalari ochiq manbalardan bitta lentada.",
+    "refreshing": "Yig'ilmoqda…",
+    "searchPlaceholder": "Qidirish: bank, .uz, Toshkent, uzcard…",
+    "searchAria": "Hodisalarni qidirish",
+    "clear": "Tozalash",
+    "categoryAria": "Kategoriya bo'yicha filtr",
+    "allCategories": "Barcha kategoriyalar",
+    "results": "{count} ta natija",
+    "untitled": "Sarlavhasiz",
+    "noDate": "Sanasiz",
+    "today": "Bugun",
+    "yesterday": "Kecha",
+    "openSource": "Manbani ochish",
+    "alsoReported": "Yana {count} ta manba xabar qilgan",
+    "actorHint": "Ransomware guruhi / aktor",
+    "feedEnd": "Lenta oxiri",
+    "newEvents": "{count} ta yangi hodisa",
+    "noNew": "Yangi hodisa yo'q",
+    "collectorError": "Yig'uvchi xatosi: {error}",
+    "collectNow": "Hozir yig'ish",
+    "emptyTitle": "Hozircha hodisalar yo'q",
+    "emptyWhat": "Bu yerda ulangan ochiq manbalardan Markaziy Osiyoga oid kiberxavfsizlik hodisalari chiqadi.",
+    "emptySearchTitle": "\"{q}\" bo'yicha hech narsa topilmadi",
+    "emptySearchDesc": "Boshqa kalit so'z bilan urinib ko'ring yoki kategoriya yoki qamrovni o'zgartiring.",
+    "clearSearch": "Qidiruvni tozalash",
+    "emptyWhySince": "Lenta boshlangan sanadan beri mos hodisa chiqmagan; yangilari shu yerda o'zi paydo bo'ladi.",
+    "emptyWhyFilters": "Kategoriya yoki qamrov filtri juda tor bo'lishi mumkin — \"Barcha kategoriyalar\" yoki \"Hammasi\" qamrovini tanlang.",
+    "status": {
+      "unknown": "Yig'uvchi holati noma'lum",
+      "live": "Jonli kuzatuv",
+      "stopped": "Yig'uvchi to'xtagan",
+      "every": "har {minutes} daqiqada",
+      "last": "oxirgi",
+      "never": "hali yo'q",
+      "inDb": "bazada:",
+      "since": "{date} dan boshlab",
+      "sinceHint": "Lenta {date} dan boshlanadi; undan oldingi hodisalar saqlanmaydi.",
+      "retention": "{days} kun saqlanadi",
+      "retentionHint": "{days} kundan eski hodisalar avtomatik o'chiriladi.",
+      "keepHint": "Doim saqlanadi: {list}.",
+      "lastNew": "oxirgi yig'ishda +{count}"
+    },
+    "tg": {
+      "chats": "{count} ta chat",
+      "allChats": "barcha chatlar",
+      "regionFilter": "hudud filtri",
+      "notConnected": "Telegram ulanmagan"
+    }
+  },
+  "history": {
+    "title": "Qidiruv tarixi",
+    "description": "Bajarilgan barcha tekshiruvlar: natijalarni qayta ko'ring, hisobot oling, qayta qidiring yoki o'chiring.",
+    "clear": "Tarixni tozalash",
+    "clearModule": "{module} tarixini tozalash",
+    "clearConfirm": "Aniq o'chirilsinmi?",
+    "clearConfirmAria": "Tarixni tozalashni tasdiqlash",
+    "warnAll": "Barcha modullar tarixi o'chiriladi. Tasdiqlash uchun yana bosing.",
+    "warnModule": "Faqat {module} moduli tarixi o'chiriladi. Tasdiqlash uchun yana bosing.",
+    "filterLabel": "Modul bo'yicha filtr",
+    "searchPlaceholder": "So'rov bo'yicha qidirish...",
+    "searchAria": "Tarixda so'rov bo'yicha qidirish",
+    "loadingAria": "Yuklanmoqda",
+    "emptyFilteredTitle": "Hech narsa topilmadi",
+    "emptyFilteredDesc": "Bu filtr yoki qidiruv matniga mos yozuv yo'q. Filtrni o'zgartirib yoki matnni tozalab ko'ring.",
+    "clearFilters": "Filtrlarni tozalash",
+    "emptyTitle": "Tarix hali bo'sh",
+    "emptyDesc": "Birinchi tekshiruvni bajaring, u shu yerda paydo bo'ladi.",
+    "noResults": "Bu qidiruvda natija saqlanmagan.",
+    "foundChecked": "Topildi / tekshirildi",
+    "rerun": "Qayta",
+    "rerunTitle": "Qayta qidirish",
+    "rerunAria": "Qayta qidirish: {query}",
+    "deleteAria": "O'chirish: {query}",
+    "deleteTitle": "O'chirish",
+    "deleteConfirmAria": "O'chirishni tasdiqlash",
+    "deleteConfirmTitle": "Tasdiqlash",
+    "sure": "Aniq?",
+    "cancel": "Bekor qilish",
+    "expandAria": "Natijalarni ochish",
+    "collapseAria": "Natijalarni yopish",
+    "expandTitle": "Natijalarni ko'rish",
+    "collapseTitle": "Yopish",
+    "resultsFailed": "Natijalarni yuklab bo'lmadi",
+    "deleteFailed": "O'chirib bo'lmadi",
+    "loadFailed": "Tarixni yuklab bo'lmadi",
+    "clearFailed": "Tarixni tozalab bo'lmadi",
+    "loadMore": "Yana yuklash"
+  },
+  "landing": {
+    "signIn": "Kirish",
+    "createAccount": "Hisob yaratish",
+    "heroTitle": "Markaziy Osiyo bo'yicha kiber tahdidlar monitoringi",
+    "heroText": "Platforma ochiq manbalardan kiber tahdidlarni yig'adi, Markaziy Osiyoga tegishlilarini ajratadi va bitta lentada ko'rsatadi: ransomware, ma'lumotlar sizib chiqishi, fishing va zaifliklar.",
+    "featuresTitle": "Platforma nimalarni qiladi",
+    "features": {
+      "events": {
+        "title": "Hodisalar lentasi",
+        "text": "Ransomware, sizib chiqishlar, fishing va zaifliklar haqidagi xabarlar manba, vaqt va kategoriya bilan."
+      },
+      "username": {
+        "title": "Telegram username tekshiruvi",
+        "text": "Telegram akkauntini username bo'yicha tekshiring."
+      },
+      "email": {
+        "title": "Email tekshiruvi",
+        "text": "Manzil formati, domen va ochiq belgilarni tekshiring."
+      },
+      "phone": {
+        "title": "Telefon va domen tekshiruvi",
+        "text": "Raqam bo'yicha davlat va operatorni, domen bo'yicha ochiq ma'lumotni aniqlang."
+      }
+    },
+    "audienceTitle": "Kim uchun",
+    "audience": {
+      "analysts": {
+        "title": "Tahlilchilar",
+        "text": "Mintaqadagi tahdidlarni kuzatish va tahlil qilish uchun."
+      },
+      "security": {
+        "title": "Xavfsizlik jamoalari",
+        "text": "Tashkilotga tegishli hodisalardan erta xabardor bo'lish uchun."
+      },
+      "journalists": {
+        "title": "Tadqiqotchilar va jurnalistlar",
+        "text": "Ochiq manbalardagi faktlarni tezda tekshirish uchun."
+      }
+    },
+    "footer": "Faqat ochiq manbalar. Qonuniy va axloqiy maqsadlar uchun."
+  },
+  "locale": {
+    "label": "Til",
+    "uz": "O'zbekcha",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "nav": {
+    "overview": "Umumiy ko'rinish",
+    "events": "Hodisalar",
+    "checks": "Tekshiruvlar",
+    "username": "Telegram username",
+    "email": "Email",
+    "phone": "Telefon",
+    "domain": "Domen / IP",
+    "history": "Tarix",
+    "admin": "Admin",
+    "sources": "Manbalar",
+    "categories": "Kategoriyalar",
+    "system": "Tizim",
+    "collector": "Yig'uvchi",
+    "collectorRunning": "ishlayapti",
+    "collectorStopped": "to'xtagan",
+    "eventsInDb": "Bazada: {count}"
+  },
+  "notifications": {
+    "title": "Ogohlantirishlar",
+    "open": "Ogohlantirishlarni ochish",
+    "unread": "{count} ta o'qilmagan",
+    "markAllRead": "Hammasini o'qildi deb belgilash",
+    "empty": "Hozircha ogohlantirish yo'q",
+    "emptyHint": "Ogohlantiriladigan kategoriyalarda (masalan ransomware, leak) yangi hodisa chiqsa shu yerda ko'rinadi.",
+    "allEvents": "Barcha hodisalar",
+    "new": "Yangi"
+  },
+  "report": {
+    "title": "Tekshiruv hisoboti",
+    "generatedAt": "Tuzilgan",
+    "reportNo": "Hisobot",
+    "target": "Nishon",
+    "module": "Modul",
+    "checkedAt": "Tekshirilgan vaqt",
+    "summary": "Xulosa",
+    "checked": "Tekshirildi",
+    "found": "Topildi",
+    "notFound": "Topilmadi",
+    "unclear": "Noaniq",
+    "results": "Natijalar",
+    "noResults": "Bu qidiruvda natija saqlanmagan.",
+    "source": "Manba",
+    "status": "Holat",
+    "result": "Natija",
+    "notice": "Hisobot faqat ochiq (public) manbalardagi ma'lumotlar asosida tuzilgan va yuridik kuchga ega emas.",
+    "back": "Qidiruv tarixi",
+    "print": "Chop etish / PDF",
+    "pdfHint": "PDF olish uchun «Chop etish / PDF» ni bosib, printer o'rniga «PDF sifatida saqlash» ni tanlang.",
+    "loadFailed": "Hisobotni yuklab bo'lmadi",
+    "invalidId": "Hisobot raqami noto'g'ri",
+    "loadingAria": "Hisobot yuklanmoqda"
+  },
+  "scope": {
+    "label": "Qamrov",
+    "regional": "Markaziy Osiyo",
+    "global": "Global",
+    "all": "Hammasi"
+  },
+  "severity": {
+    "label": "Jiddiylik",
+    "critical": "Kritik",
+    "high": "Yuqori",
+    "medium": "O'rta",
+    "low": "Past",
+    "info": "Ma'lumot"
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Yorug'",
+    "dark": "Qorong'i",
+    "system": "Tizim"
+  },
+  "time": {
+    "justNow": "hozirgina",
+    "minutesAgo": "{count} daqiqa oldin",
+    "hoursAgo": "{count} soat oldin",
+    "daysAgo": "{count} kun oldin",
+    "inMinutes": "{count} daqiqadan keyin",
+    "inHours": "{count} soatdan keyin"
+  }
+}

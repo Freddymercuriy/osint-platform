@@ -1,9 +1,10 @@
 from datetime import UTC, date, datetime, time, timedelta
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
+from app.core.errors import api_error
 from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core.config import settings
 from app.models import Category, EventRecord, EventTranslation, Source
@@ -162,10 +163,10 @@ async def update_event(event_id: int, data: EventUpdate, _: AdminUser, db: DbSes
     """Kategoriyani qo'lda o'zgartirish (`category_locked` — qayta tasniflash buni o'zgartirmaydi)."""
     ev = await db.get(EventRecord, event_id)
     if ev is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Hodisa topilmadi")
+        raise api_error(status.HTTP_404_NOT_FOUND, "event_not_found")
     cat = await db.scalar(select(Category).where(Category.slug == data.category))
     if cat is None:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, f"Kategoriya topilmadi: {data.category}")
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "category_slug_not_found", slug=data.category)
     ev.category, ev.category_id, ev.category_locked = cat.slug, cat.id, True
     ev.severity = effective_severity(cat.severity, (ev.extra or {}).get("severity_floor"))
     await db.commit()
