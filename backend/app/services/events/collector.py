@@ -21,6 +21,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import logging
+import re
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 
@@ -29,7 +30,7 @@ from sqlalchemy import delete, func, select
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal
 from app.models import EventRecord
-from app.services.events.aggregator import EventItem, collect_all
+from app.services.events.aggregator import GOOGLE_NEWS_TAG, EventItem, collect_all
 
 log = logging.getLogger("osint.events")
 
@@ -105,6 +106,59 @@ async def _purge_expired(db, cutoff: datetime | None, since: datetime | None = N
     return purged
 
 
+# ---------------------------------------------------------------- takror yangiliklar
+# Bitta voqeani o'nlab nashr deyarli bir xil sarlavha bilan bosadi (ayniqsa Google News orqali).
+# Sarlavhalar so'z to'plami bo'yicha solishtiriladi; yaqin sanadagi o'xshash yangilik yozilmaydi.
+DEDUP_CATEGORIES = ("news",)
+DEDUP_WINDOW = timedelta(days=3)  # shu oraliqdagi sarlavhalargina solishtiriladi
+DEDUP_LOOKBACK = timedelta(days=14)  # bazadan qancha orqaga qarash
+DEDUP_THRESHOLD = 0.5  # Jaccard o'xshashligi
+
+
+def title_tokens(title: str) -> frozenset[str]:
+    """Sarlavhaning "o'zak" so'zlari: 4+ harfli so'zlarning birinchi 5 harfi (qo'pol stemming)."""
+    return frozenset(w[:5] for w in re.findall(r"\w{4,}", title.lower()))
+
+
+def similar_titles(a: frozenset[str], b: frozenset[str]) -> bool:
+    if len(a) < 3 or len(b) < 3:
+        return False
+    return len(a & b) / len(a | b) >= DEDUP_THRESHOLD
+
+
+def _aware(when: datetime | None, default: datetime) -> datetime:
+    if when is None:
+        return default
+    return when if when.tzinfo else when.replace(tzinfo=UTC)
+
+
+def drop_similar(
+    candidates: list[EventItem],
+    known: list[tuple[frozenset[str], datetime]],
+    now: datetime,
+) -> list[EventItem]:
+    """`known` (bazadagi yaqin yangiliklar) ga yoki bir-biriga o'xshash yangiliklarni tashlaydi.
+
+    To'g'ridan-to'g'ri manba Google News'dan, eski sana yangisidan ustun.
+    `known` ro'yxati qabul qilinganlar bilan to'ldirib boriladi.
+    """
+    ordered = sorted(
+        candidates,
+        key=lambda i: (GOOGLE_NEWS_TAG in i.source, _aware(i.published, now)),
+    )
+    kept: list[EventItem] = []
+    for item in ordered:
+        if item.category not in DEDUP_CATEGORIES:
+            kept.append(item)
+            continue
+        tokens, when = title_tokens(item.title), _aware(item.published, now)
+        if any(abs(when - w) <= DEDUP_WINDOW and similar_titles(tokens, t) for t, w in known):
+            continue
+        known.append((tokens, when))
+        kept.append(item)
+    return kept
+
+
 def _format_alert(records: list[EventRecord]) -> str:
     icons = {"leak": "🟠", "ransomware": "🔴"}
     lines = [f"🚨 OSINT: Markaziy Osiyo bo'yicha {len(records)} ta yangi hodisa\n"]
@@ -155,9 +209,23 @@ async def run_once() -> int:
                     )).all()
                 ) if uids else set()
 
+                # Takror yangiliklar: bazadagi yaqin sarlavhalar va shu to'plam ichida
+                fresh = {uid: i for uid, i in uids.items() if uid not in existing}
+                known: list[tuple[frozenset[str], datetime]] = []
+                if any(i.category in DEDUP_CATEGORIES for i in fresh.values()):
+                    rows = (await db.execute(
+                        select(EventRecord.title, EventRecord.published, EventRecord.first_seen)
+                        .where(
+                            EventRecord.category.in_(DEDUP_CATEGORIES),
+                            EventRecord.first_seen >= started - DEDUP_LOOKBACK,
+                        )
+                    )).all()
+                    known = [(title_tokens(t), _aware(p or f, started)) for t, p, f in rows]
+                unique_ids = {id(i) for i in drop_similar(list(fresh.values()), known, started)}
+
                 new_records: list[EventRecord] = []
-                for uid, i in uids.items():
-                    if uid in existing:
+                for uid, i in fresh.items():
+                    if id(i) not in unique_ids:
                         continue
                     rec = EventRecord(
                         uid=uid, source=i.source[:128], category=i.category,

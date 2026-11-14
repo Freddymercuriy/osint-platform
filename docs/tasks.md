@@ -66,6 +66,8 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Manbalar 5 → 55 (mahalliy yangilik saytlari, UZCERT, xalqaro va rus tilidagi kiber-saytlar)
 - ✅ ransomware.live — 5 davlat, bitta so'rov
 - ✅ `EVENTS_SINCE` — lenta boshlanish sanasi (eski hodisalar yig'ilmaydi va o'chiriladi)
+- ✅ Bloklangan saytlar Google News RSS orqali (`google_news` feed turi); leak kuzatuvchilar (Dark Web Informer, HIBP)
+- ✅ Takror yangiliklarni kesish (sarlavha o'xshashligi)
 - ⬜ Qo'shimcha manbalar: intelforums.cc (qaror kutilmoqda), Reddit (API kaliti kerak)
 
 ## Keyingi — Kengaytirish

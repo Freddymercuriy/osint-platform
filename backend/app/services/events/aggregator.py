@@ -6,7 +6,7 @@ import re
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from time import mktime
+from calendar import timegm  # feedparser struct_time'lari UTC'da — mktime (lokal vaqt) emas
 
 import feedparser
 import httpx
@@ -150,6 +150,8 @@ def _is_cyber(text: str) -> bool:
 def _strip_own(text: str, feed: Feed) -> str:
     """Manbaning o'z domenini matndan olib tashlaydi ("... xabar beradi Tengrinews.kz" —
     bu `.kz` mintaqa belgisi emas, shunchaki manba imzosi)."""
+    if feed.kind != "rss":
+        return text
     host = re.sub(r"^https?://(?:www\.)?([^/]+).*$", r"\1", feed.url or "")
     if "." not in host:
         return text
@@ -211,8 +213,41 @@ async def _fetch_rss(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
         if not link or not title:
             continue
         tm = getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None)
-        published = datetime.fromtimestamp(mktime(tm), tz=UTC) if tm else None
+        published = datetime.fromtimestamp(timegm(tm), tz=UTC) if tm else None
         items.append(EventItem(feed.name, title, link, _clean(getattr(e, "summary", "")),
+                               published, feed.lang, feed.category))
+    return items
+
+
+# Google News nashri: til → (hl, gl, ceid)
+_GNEWS_EDITION = {"ru": ("ru", "KZ", "KZ:ru"), "en": ("en-US", "US", "US:en")}
+GOOGLE_NEWS_TAG = "(Google News)"
+
+
+async def _fetch_google_news(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
+    """Google News RSS qidiruvi (feed.url — so'rov). Faqat sarlavha, nashr nomi, sana va
+    Google havolasi olinadi — asl saytga murojaat qilinmaydi."""
+    hl, gl, ceid = _GNEWS_EDITION.get(feed.lang, _GNEWS_EDITION["en"])
+    resp = await client.get(
+        "https://news.google.com/rss/search",
+        params={"q": feed.url, "hl": hl, "gl": gl, "ceid": ceid},
+    )
+    resp.raise_for_status()
+    parsed = await asyncio.to_thread(feedparser.parse, resp.content)
+    items: list[EventItem] = []
+    for e in parsed.entries:
+        link, title = getattr(e, "link", ""), _unescape(getattr(e, "title", "")).strip()
+        if not link or not title:
+            continue
+        src = getattr(e, "source", None)
+        outlet = _unescape((src.get("title") if src else "") or "").strip() or feed.name
+        # Google sarlavha oxiriga " - Nashr" qo'shadi
+        if title.endswith(f" - {outlet}"):
+            title = title[: -len(outlet) - 3].rstrip()
+        tm = getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None)
+        published = datetime.fromtimestamp(timegm(tm), tz=UTC) if tm else None
+        # description — faqat sarlavhaning takrori, shuning uchun summary bo'sh
+        items.append(EventItem(f"{outlet} {GOOGLE_NEWS_TAG}"[:128], title, link, "",
                                published, feed.lang, feed.category))
     return items
 
@@ -336,6 +371,7 @@ _MAX_PARALLEL = 16  # bir vaqtdagi so'rovlar soni (manbalarni ortiqcha yuklamasl
 _FETCHERS = {
     "rss": _fetch_rss,
     "ransomware_live": _fetch_ransomware_live,
+    "google_news": _fetch_google_news,
     "telegram": _fetch_telegram,
     "telegram_user": _fetch_telegram_user,
 }
@@ -355,6 +391,7 @@ async def _fetch_cached(
     cached = _cache.get(feed.name)
     # ransomware.live kabi rate-limitli manbalar uchun ttl force'da ham hurmat qilinadi
     min_age = feed.ttl if not force else min(feed.ttl, 60)
+    min_age = max(min_age, feed.min_interval)
     if cached and now - cached[0] < min_age:
         return cached[1]
     fetcher = _FETCHERS.get(feed.kind)

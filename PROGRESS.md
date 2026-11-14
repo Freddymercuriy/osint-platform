@@ -49,7 +49,7 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   eski `uz_filter` endi shuning property'si). Mahalliy saytlar uchun qo'shimcha qoida: matnda chet el belgisi
   (`FOREIGN_MARKERS`: AQSH, FQB, KXDR, "global"...) bo'lib, mintaqa so'zi yo'q bo'lsa — yozuv tashlanadi (qayta bosilgan jahon
   yangiligi); manbaning o'z domeni ("...Tengrinews.kz") mintaqa belgisi hisoblanmaydi (`_strip_own`).
-- **Manbalar: 5 → 55** (`feeds.py`): UZ (Gazeta, Kun, Spot, Daryo, UzDaily, Nuz, **UZCERT** — filtrsiz), KZ (Tengrinews, Kursiv,
+- **Manbalar: 5 → 55** (keyin +8 = 63, pastga qarang) (`feeds.py`): UZ (Gazeta, Kun, Spot, Daryo, UzDaily, Nuz, **UZCERT** — filtrsiz), KZ (Tengrinews, Kursiv,
   Profit.kz, DigitalBusiness, Sputnik), KG (24.kg, Kaktus, AKIpress, Kloop, Kabar, Sputnik), TJ (Asia-Plus, Sputnik),
   TM (Turkmen.news, Хроника Туркменистана), CentralAsia.media; xalqaro kiber (The Hacker News, SecurityWeek, The Record,
   DataBreaches, Securelist, Security Affairs, HackRead, Krebs, Dark Reading, ... + Xakep, SecurityLab, Anti-Malware, Habr, Kaspersky).
@@ -68,6 +68,31 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### 2026-11-14, 2-sessiya davomi-2 (bloklangan saytlar uchun ikkilamchi manbalar)
+Foydalanuvchi so'radi: Cloudflare/403 beradigan saytlardan (BleepingComputer, CyberNews, Cyber Express, camonitor.kz, turkmenportal,
+breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga kirmasdan, ochiq ikkilamchi manbalar orqali:
+- **Yangi feed turi `google_news`** (`aggregator._fetch_google_news`): `Feed.url` = Google News qidiruv so'rovi. Faqat sarlavha, nashr
+  nomi, sana va Google havolasi olinadi; manba nomi `"<Nashr> (Google News)"`. Google to'liq matn bo'yicha qidiradi → mintaqa sharti
+  so'rovning o'zida. 6 ta feed: BleepingComputer, CyberNews, The Cyber Express (`site:` + 5 davlat, filtrsiz), Turkmenportal
+  (`site:` + kiber so'zlar + `cyber_filter`), umumiy **Google News (EN)** va **(RU)** (5 davlat × kiber so'zlar + `cyber_filter`;
+  Reuters, The Record va boshqa istalgan nashr). `Feed.min_interval=1800` — fon yig'uvchi ham 30 daqiqada bir martadan ko'p so'ramaydi.
+- **Leak kuzatuvchilar** (forumlarning o'zi emas, faqat xulosa/metadata; kategoriya `leak` → 🔔): Dark Web Informer RSS,
+  Have I Been Pwned RSS — `region_filter` bilan.
+- **Takror yangiliklar** (`collector.drop_similar`): `news` kategoriyasida sarlavhalar so'z to'plami (4+ harfli so'zlarning birinchi
+  5 harfi) bo'yicha solishtiriladi — Jaccard ≥ 0.5 va sanalar farqi ≤ 3 kun bo'lsa takror; bazadagi so'nggi 14 kunlik sarlavhalar bilan
+  ham. To'g'ridan-to'g'ri manba Google nusxasidan, eski sana yangisidan ustun. Sinovda 44 → 26.
+  ⚠️ Cheklov: deyarli bir xil sarlavhali ikki XIL voqea (masalan "xakerlar bank saytini buzdi" / "...vazirlik saytini buzdi", 3 kun ichida)
+  bittaga birlashib ketishi mumkin; turlicha yozilgan bir voqea esa alohida qoladi.
+- RSS sanalari endi `calendar.timegm` bilan (avval `mktime` — faqat konteyner UTC bo'lgani uchun to'g'ri chiqardi).
+- Ishlamadi / qo'shilmadi: camonitor.kz (Google News indeksida yo'q), DailyDarkWeb RSS (ulanmadi), Mastodon @BleepinComputer (404),
+  CISA (AQShga qaratilgan — kerak emas). breached.st / cracked.st / darkforums.as ga to'g'ridan-to'g'ri murojaat qilinmaydi.
+- Tekshirildi: ✅ jonli sinov — Google News (EN) 18 → 17, (RU) 27 → 24 filtrdan o'tdi (Tojikiston hujjatlari o'g'irlanishi, Forbes Kazakhstan'ga
+  hujum, O'zbekiston o'rmon xo'jaligi tizimiga hujum...), hammasi 10–13-noyabr → `EVENTS_SINCE` sabab lentaga tushmadi;
+  ✅ takror kesish birlik testlari; ✅ yig'uvchining yozish yo'li sun'iy yozuvlar bilan (Google nusxasi va eski sana tashlanadi,
+  bazadagi o'xshash sarlavha qayta yozilmaydi), sinov yozuvlari o'chirildi; ✅ restartdan keyin yig'uvchi xatosiz.
+- ⚠️ Tekshirilmadi: Google News havolasining brauzerda asl maqolaga yo'naltirishi; Google'ning tez-tez so'rovda cheklashi
+  (30 daq oraliq qo'yilgan); haqiqiy bugungi yozuvning UI'da ko'rinishi.
 
 ### 2026-11-14, 2-sessiya (Bosqich 11: hisobot eksporti + Events retention)
 - **Hisobot eksporti** — tarix sahifasidagi har qatorda va qidiruv natijasi kartasida `JSON` / `PDF` tugmalari

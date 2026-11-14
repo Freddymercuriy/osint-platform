@@ -13,6 +13,12 @@ class Feed:
       - "telegram_user"   — foydalanuvchi akkaunti orqali Telegram
       - "ransomware_live" — ransomware.live API (url = davlat kodlari, vergul bilan:
                             "UZ,KZ,KG,TJ,TM"); bitta /v2/recentvictims so'rovi
+      - "google_news"     — Google News RSS qidiruvi (url = qidiruv so'rovi, masalan
+                            'site:example.com (Uzbekistan OR Kazakhstan) when:7d').
+                            Bot-himoyasi tufayli to'g'ridan-to'g'ri o'qib bo'lmaydigan saytlar
+                            uchun: saytning o'ziga murojaat qilinmaydi, faqat Google indeksidagi
+                            sarlavha + havola olinadi. Google maqolaning to'liq matni bo'yicha
+                            qidiradi, shuning uchun so'rovdagi shart sarlavhada ko'rinmasligi mumkin.
 
     Filtrlar (title + summary bo'yicha):
       region_filter: True bo'lsa, faqat Markaziy Osiyo (UZ/KZ/KG/TJ/TM) kalit so'zlari
@@ -33,6 +39,7 @@ class Feed:
     region_filter: bool = False
     cyber_filter: bool = False
     ttl: int = 600  # kesh muddati (soniya)
+    min_interval: int = 0  # fon yig'uvchi (force) ham shundan tez-tez so'ramaydi (soniya)
     enabled: bool = True
 
     @property
@@ -270,6 +277,14 @@ FOREIGN_MARKERS: tuple[str, ...] = (
 # =========================================================================
 _INTL = 900  # xalqaro kiber-saytlar ttl
 
+# Google News so'rovlari uchun mintaqa / mavzu shartlari
+_GN_EVERY = 1800  # Google News'ni 30 daqiqada bir martadan ko'p so'ramaymiz
+_CA_EN = '(Uzbekistan OR Kazakhstan OR Kyrgyzstan OR Tajikistan OR Turkmenistan OR "Central Asia")'
+_CA_RU = "(Узбекистан OR Казахстан OR Кыргызстан OR Таджикистан OR Туркменистан)"
+_CYBER_EN = ('(hackers OR cyberattack OR ransomware OR "data breach" OR "data leak" OR phishing '
+             "OR malware)")
+_CYBER_RU = ('(хакеры OR кибератака OR "утечка данных" OR взлом OR фишинг OR кибербезопасность)')
+
 FEEDS: list[Feed] = [
     # --- Threat intel: bitta /v2/recentvictims so'rovi, 5 davlat bo'yicha filtr ---
     Feed("ransomware.live", "UZ,KZ,KG,TJ,TM", kind="ransomware_live", lang="en",
@@ -368,6 +383,29 @@ FEEDS: list[Feed] = [
          lang="ru", region_filter=True, ttl=_INTL),
     Feed("Kaspersky Daily (RU)", "https://www.kaspersky.ru/blog/feed/", lang="ru",
          region_filter=True, ttl=_INTL),
+
+    # --- Google News RSS orqali (saytning o'zi 403/Cloudflare beradi — unga murojaat qilinmaydi) ---
+    # Kiber-saytlar: mintaqa sharti so'rovning o'zida (Google to'liq matn bo'yicha qidiradi) → filtrsiz.
+    Feed("BleepingComputer", f"site:bleepingcomputer.com {_CA_EN} when:7d", kind="google_news",
+         lang="en", min_interval=_GN_EVERY),
+    Feed("CyberNews", f"site:cybernews.com {_CA_EN} when:7d", kind="google_news",
+         lang="en", min_interval=_GN_EVERY),
+    Feed("The Cyber Express", f"site:thecyberexpress.com {_CA_EN} when:7d", kind="google_news",
+         lang="en", min_interval=_GN_EVERY),
+    # Mahalliy sayt: mavzu sharti so'rovda + sarlavha bo'yicha mavzu filtri
+    Feed("Turkmenportal", f"site:turkmenportal.com {_CYBER_RU} when:7d", kind="google_news",
+         lang="ru", cyber_filter=True, min_interval=_GN_EVERY),
+    # Umumiy qidiruv: istalgan nashr (Reuters, The Record ...) — mintaqa so'rovda, mavzu sarlavhada
+    Feed("Google News (EN)", f"{_CA_EN} {_CYBER_EN} when:7d", kind="google_news",
+         lang="en", cyber_filter=True, min_interval=_GN_EVERY),
+    Feed("Google News (RU)", f"{_CA_RU} {_CYBER_RU} when:7d", kind="google_news",
+         lang="ru", cyber_filter=True, min_interval=_GN_EVERY),
+
+    # --- Leak kuzatuvchilar: forumlarning o'zi emas, ular haqidagi ochiq xulosa (faqat metadata) ---
+    Feed("Dark Web Informer", "https://darkwebinformer.com/rss/", lang="en", category="leak",
+         region_filter=True, ttl=_INTL),
+    Feed("Have I Been Pwned", "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches",
+         lang="en", category="leak", region_filter=True, ttl=_INTL),
 
     # --- Telegram: o'z akkauntingiz orqali (a'zo bo'lgan kanal/guruhlar) ---
     # Sozlash: backend/.env → TG_API_ID, TG_API_HASH, TG_CHATS ...; login: scripts/tg_login.py
