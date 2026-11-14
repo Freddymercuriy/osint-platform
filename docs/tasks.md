@@ -84,7 +84,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
 - ✅ Bosqich 3 — Manbalar: bazaga seed, Telegram chatlari alohida, yangi threat-intel manbalari
 - ✅ Bosqich 4 — Kategoriyalar (15 ta) CRUD va klassifikator, filtrlar
-- ⬜ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali
+- ✅ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali (kalit kutilmoqda)
 - ⬜ Bosqich 6 — Interfeys: Light/Dark/System, uz/ru/en
 - ⬜ Bosqich 7 — Admin bo'limi va Events sahifasi
 - ⬜ Bosqich 8 — Interaktiv statistika dashboard'i

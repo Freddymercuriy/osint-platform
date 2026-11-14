@@ -6,7 +6,7 @@ from sqlalchemy import func, or_, select
 
 from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core.config import settings
-from app.models import Category, EventRecord, Source
+from app.models import Category, EventRecord, EventTranslation, Source
 from app.schemas import EventItemOut, EventsResponse
 from app.services.events import scheduler
 from app.services.events.categories import effective_severity
@@ -85,8 +85,13 @@ def event_filters(
         f.append(when < _day_bound(date_to, end=True))
     if q and q.strip():
         like = f"%{like_escape(q.strip())}%"
+        in_translations = select(EventTranslation.id).where(
+            EventTranslation.event_id == EventRecord.id,
+            or_(EventTranslation.title.ilike(like, escape="\\"), EventTranslation.summary.ilike(like, escape="\\")),
+        ).exists()
         f.append(or_(EventRecord.title.ilike(like, escape="\\"), EventRecord.summary.ilike(like, escape="\\"),
-                     EventRecord.source.ilike(like, escape="\\"), EventRecord.actor.ilike(like, escape="\\")))
+                     EventRecord.source.ilike(like, escape="\\"), EventRecord.actor.ilike(like, escape="\\"),
+                     in_translations))
     return f
 
 
@@ -103,21 +108,49 @@ async def list_events(
     channel: list[str] | None = Query(None, description="news | telegram_channel | telegram_group | api"),
     source: list[str] | None = Query(None, description="Manba ID yoki nomi"),
     scope: str | None = Query(None, pattern="^(regional|global|all)$", description="Standart: regional"),
-    lang: list[str] | None = Query(None, description="Asl til"),
+    source_lang: list[str] | None = Query(None, description="Asl til filtri (en, ru, uz, kk ...)"),
     date_from: date | None = Query(None, description="YYYY-MM-DD (Toshkent vaqti)"),
     date_to: date | None = Query(None, description="YYYY-MM-DD, shu kun ham kiradi"),
+    lang: str | None = Query(None, pattern="^(en|ru|uz)$", description="Ko'rsatish tili: sarlavha/matn shu tilda"),
 ) -> EventsResponse:
-    """Bazadagi hodisalar; barcha filtrlar birlashadi."""
+    """Bazadagi hodisalar; barcha filtrlar birlashadi. `lang` — ko'rsatish tili (asl matn ham qaytadi)."""
     filters = event_filters(
         categories=_csv(category), severity=_csv(severity), countries=_csv(country), channel=_csv(channel),
-        sources=_csv(source), scope=scope, lang=_csv(lang), date_from=date_from, date_to=date_to, q=q,
+        sources=_csv(source), scope=scope, lang=_csv(source_lang), date_from=date_from, date_to=date_to, q=q,
     )
     order = func.coalesce(EventRecord.published, EventRecord.first_seen).desc()
     rows = (await db.scalars(
         select(EventRecord).where(*filters).order_by(order, EventRecord.id.desc()).offset(offset).limit(limit)
     )).all()
     total = await db.scalar(select(func.count(EventRecord.id)).where(*filters)) or 0
-    return EventsResponse(count=total, items=[EventItemOut.model_validate(r) for r in rows])
+    return EventsResponse(count=total, items=await localize(db, rows, lang))
+
+
+async def localize(db, rows, lang: str | None) -> list[EventItemOut]:
+    """Har hodisa: so'ralgan til → en → asl matn (sarlavha va matn alohida tanlanadi)."""
+    items = [EventItemOut.model_validate(r) for r in rows]
+    for it, r in zip(items, rows, strict=True):
+        it.source_lang = r.lang
+        it.original_title, it.original_summary = r.title, r.summary
+        it.display_lang = r.lang
+    if not lang or not rows:
+        return items
+    trs = (await db.scalars(
+        select(EventTranslation).where(EventTranslation.event_id.in_([r.id for r in rows]),
+                                       EventTranslation.lang.in_({lang, "en"}))
+    )).all()
+    by = {(t.event_id, t.lang): t for t in trs}
+    for it, r in zip(items, rows, strict=True):
+        want = by.get((r.id, lang))
+        it.translation_status = want.status if want else None
+        for cand in (want, by.get((r.id, "en"))):
+            if cand is not None and cand.status == "done" and cand.title:
+                it.title = cand.title
+                it.summary = cand.summary if cand.summary is not None else r.summary
+                it.display_lang = cand.lang
+                break
+        it.translated = it.display_lang != r.lang
+    return items
 
 
 class EventUpdate(BaseModel):

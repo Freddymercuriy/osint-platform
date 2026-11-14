@@ -77,6 +77,36 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 5: tarjima — en / ru / uz (2026-11-14)
+- Jadvallar (`0009_translations`): `event_translations` (hodisa × til: title, summary, provider
+  `source|template|translit|google|cache|none`, status `done|pending|failed|skipped`, xato, urinishlar, keyingi urinish),
+  `translation_cache` (sha256(manba til | maqsad til | matn) → tarjima), `translation_usage` (oy bo'yicha belgilar).
+- `services/i18n/text.py`: til aniqlash API'siz (yozuv + o'ziga xos harflar: uz-kirill ў қ ғ ҳ, qozoq ә ұ і һ,
+  tojik ҷ ӣ ӯ, qirg'iz ң ө ү; lotinda o'zbekcha so'zlar va UZCERT'ning ş/ç/ö) — `events.lang` aniqlangan tilga
+  yangilanadi (asli `extra.feed_lang`); o'zbek kirill → lotin rasmiy jadval bilan (ye/ts qoidalari); apostroflar ' ga.
+- `templates.py`: ransomware qurboni, CVE, breach, indikator, uzilish sarlavhalari uch tilda shablondan — Google'ga
+  yuborilmaydi (faqat erkin matn — summary).
+- `translator.py`: rasmiy Cloud Translation **Basic v2** (`POST …/language/translate/v2`, `q` ≤128, `format=text`,
+  kalit `X-Goog-Api-Key` sarlavhasida — URL/loglarda ko'rinmaydi); xato javoblari → kalit rad etildi / limit / xato.
+  `googletrans` kabi qiruvchi kutubxonalar ishlatilmadi. `FakeTranslator` — testlar uchun.
+- `worker.py`: `ensure_rows` (yangi va eski hodisalar uchun reja, har tsiklda), `process_pending` — jiddiylik bo'yicha
+  navbat, paketlar (≤128 satr, ≤25k belgi), kesh, sarlavha 300 / matn 600 belgigacha, oylik chegara
+  `TRANSLATE_MONTHLY_CHAR_LIMIT` (450 000), 3 urinish (5→10 daq), kalit rad etilsa 1 soat pauza, 429 da Retry-After;
+  o'zbekcha javob kirillda kelsa — lotinga. Manba `translate=false` bo'lsa — `skipped` (yopiq Telegram guruhlari).
+- API: `GET /api/events?lang=en|ru|uz` — sarlavha/matn shu tilda, zanjir: so'ralgan → en → asl; qo'shimcha
+  `original_title/summary`, `source_lang`, `display_lang`, `translated`, `translation_status`; matn qidiruvi tarjimalarda ham.
+  ⚠️ Bosqich 4 dagi asl til filtri `lang` → **`source_lang`** ga o'zgardi (`lang` endi ko'rsatish tili, spetsifikatsiya bo'yicha).
+  Admin: `GET /api/admin/translations` (navbat holati til bo'yicha, oy belgilari, chegara, kesh, oxirgi xatolar),
+  `POST …/retry-failed`, `POST …/run`.
+- Jonli (`~/osint-backups/osint-pre-phase5-*.sql`): 56 hodisa → reja: asl til nusxasi 40, shablon 11 (en), qolgani
+  `pending` (kalit yo'q); aniqlangan tillar: en 19, ru 18, uz 14, kk 5.
+- Tekshirildi: ✅ 187 pytest (til aniqlash 8 holat, transliteratsiya, normallashtirish, 5 shablon, reja: nusxa / translit /
+  shablon / skipped; navbat: jiddiylik tartibi, kesh (2-marta provayderga bormaydi), byudjet to'xtatadi, 3 urinishdan keyin
+  failed va retry, kalit rad etilganda pauza, 429; Google so'rov shakli va xato turlari (MockTransport), API: til zanjiri,
+  qidiruv tarjimada, admin endpointlar).
+- ⚠️ Tekshirilmadi: haqiqiy Google tarjimasi (kalit yo'q — `GOOGLE_TRANSLATE_API_KEY` kerak); `X-Goog-Api-Key` sarlavhasi
+  Google tomonidan qabul qilinishi (Google API'larining umumiy qoidasi, jonli sinalmagan).
+
 ### v2 — Bosqich 4: kategoriyalar va klassifikator (2026-11-14)
 - `services/events/classifier.py` — qoidalar ma'lumot sifatida (`categories.rules`: `stems` {til: [...]},
   `patterns`, `exclude`, `weight`, `min_score`); ball: sarlavhadagi stem 2, matndagi 1, pattern 3, × weight; tengda —

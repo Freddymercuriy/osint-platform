@@ -210,6 +210,7 @@ class HttpFetcher:
         last_modified: str | None = None,
         expect_html: bool = False,
         allow_not_modified: bool = False,
+        raise_errors: bool = True,
         **kwargs,
     ) -> httpx.Response:
         host = urlsplit(url).hostname or ""
@@ -241,7 +242,8 @@ class HttpFetcher:
             raise ConnectorError(f"Javob juda katta ({int(length) // 1024 // 1024} MB)", http_status=resp.status_code)
         if resp.status_code == 304 and allow_not_modified:
             return resp
-        raise_for_status(resp, expect_html=expect_html)
+        if raise_errors:
+            raise_for_status(resp, expect_html=expect_html)
         return resp
 
     async def get(self, url: str, **kwargs) -> httpx.Response:

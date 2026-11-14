@@ -189,7 +189,7 @@ async def test_event_filters_combine(client, analyst_headers, db):
     assert await ids("category=tg_group") == ["firibg"]  # v1 tab → kanal
     assert await ids(f"source={src.id}") == ["Фишинг"]
     assert await ids("source=RansomLook") == ["[akira"]
-    assert await ids("lang=uz&lang=ru") == ["firibg", "Фишинг"]
+    assert await ids("source_lang=uz&source_lang=ru") == ["firibg", "Фишинг"]
     d = (now - timedelta(days=5)).date().isoformat()
     assert len(await ids(f"date_from={d}")) == 2
     assert await ids(f"date_to={d}") == ["firibg"]

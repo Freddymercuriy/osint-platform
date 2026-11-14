@@ -340,6 +340,25 @@ async def _guarded_run(source_id: int, manual: bool = False) -> RunSummary | Non
         state.active.discard(source_id)
 
 
+def translator():
+    from app.services.i18n.translator import GoogleTranslator
+
+    return GoogleTranslator(settings.google_translate_api_key, _http())
+
+
+async def translation_tick() -> dict:
+    """Yangi hodisalar uchun tarjima rejasi + navbatdan bir qism (kalit bo'lsa)."""
+    from app.services.i18n import worker
+
+    async with AsyncSessionLocal() as db:
+        planned = await worker.ensure_rows(db)
+    stats = None
+    if settings.translate_enabled:
+        async with AsyncSessionLocal() as db:
+            stats = await worker.process_pending(db, translator())
+    return {"planned": planned, "stats": stats}
+
+
 async def housekeeping() -> None:
     async with AsyncSessionLocal() as db:
         purged = await pipeline.purge_expired(db, datetime.now(UTC))
@@ -392,6 +411,10 @@ async def _loop() -> None:
                 t = asyncio.create_task(_guarded_run(sid), name=f"source-{sid}")
                 tasks.add(t)
                 t.add_done_callback(tasks.discard)
+            try:
+                await translation_tick()
+            except Exception:
+                log.exception("Tarjima navbati xatosi")
             if time.monotonic() - state._last_housekeeping > HOUSEKEEPING_EVERY:
                 state._last_housekeeping = time.monotonic()
                 try:

@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin_categories, admin_sources, auth, events, notifications, search, stats, telegram
+from app.api import admin_categories, admin_sources, admin_translations, auth, events, notifications, search, stats, telegram
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal, engine
 from app.services.admin_roles import sync_admin_roles
@@ -57,6 +57,7 @@ app.include_router(notifications.router)
 app.include_router(stats.router)
 app.include_router(admin_sources.router)
 app.include_router(admin_categories.router)
+app.include_router(admin_translations.router)
 
 
 @app.get("/health", tags=["system"])

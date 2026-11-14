@@ -128,6 +128,13 @@ class EventItemOut(BaseModel):
     extra: dict = {}
     also_reported_by: list = []
     is_baseline: bool = False
+    # Tarjima (?lang=en|ru|uz berilganda title/summary shu tilda, zanjir: so'ralgan → en → asl)
+    source_lang: str | None = None
+    display_lang: str | None = None
+    translated: bool = False
+    translation_status: str | None = None
+    original_title: str | None = None
+    original_summary: str | None = None
 
 
 class EventsResponse(BaseModel):

@@ -72,6 +72,12 @@ class Settings(BaseSettings):
     nvd_api_key: str | None = None
     cloudflare_api_token: str | None = None
 
+    # Tarjima (Google Cloud Translation, Basic v2 — API kalit bilan). Kalit bo'lmasa tarjimalar "pending" qoladi.
+    google_translate_api_key: str | None = None
+    translate_enabled: bool = True
+    # Oylik belgilar chegarasi (birinchi 500 000 belgi bepul; undan keyin ~$20 / 1 mln) — shundan oshsa to'xtaydi
+    translate_monthly_char_limit: int = 450_000
+
     @property
     def is_development(self) -> bool:
         return self.environment.lower() in ("development", "dev", "local", "test")
