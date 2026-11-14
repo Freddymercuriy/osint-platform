@@ -61,6 +61,13 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Eksport tugmalari: tarix sahifasi va qidiruv natijasi
 - ✅ Events retention (`EVENTS_RETENTION_DAYS`, `EVENTS_RETENTION_KEEP`); sahifalash ("Ko'proq yuklash")
 
+## Bosqich 12 — Events: Markaziy Osiyo, kiber / leak ✅
+- ✅ Hudud filtri 5 davlat (UZ, KZ, KG, TJ, TM); mavzu filtri (kiberxavfsizlik / data leak); chet el yangiliklarini kesish
+- ✅ Manbalar 5 → 55 (mahalliy yangilik saytlari, UZCERT, xalqaro va rus tilidagi kiber-saytlar)
+- ✅ ransomware.live — 5 davlat, bitta so'rov
+- ✅ `EVENTS_SINCE` — lenta boshlanish sanasi (eski hodisalar yig'ilmaydi va o'chiriladi)
+- ⬜ Qo'shimcha manbalar: intelforums.cc (qaror kutilmoqda), Reddit (API kaliti kerak)
+
 ## Keyingi — Kengaytirish
 - ⬜ Rate limiting, natijalarni keshlash
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti

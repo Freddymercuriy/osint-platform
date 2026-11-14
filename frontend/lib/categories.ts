@@ -26,31 +26,31 @@ export const CATEGORIES: Record<string, CategoryMeta> = {
     label: "Ransomware",
     tone: "red",
     icon: Skull,
-    description: "O'zbekiston tashkilotlariga qarshi ransomware hujumlari",
+    description: "Markaziy Osiyo tashkilotlariga qarshi ransomware hujumlari",
   },
   leak: {
     label: "Leak",
     tone: "orange",
     icon: ShieldAlert,
-    description: "Leak forumlari va kanallaridagi O'zbekiston ma'lumotlari",
+    description: "Leak forumlari va kanallaridagi Markaziy Osiyo ma'lumotlari",
   },
   telegram: {
     label: "TG kanal",
     tone: "sky",
     icon: Send,
-    description: "Telegram kanallaridagi O'zbekistonga oid xabarlar",
+    description: "Telegram kanallaridagi Markaziy Osiyoga oid xabarlar",
   },
   tg_group: {
     label: "TG guruh",
     tone: "violet",
     icon: Users,
-    description: "Telegram guruhlaridagi O'zbekistonga oid xabarlar",
+    description: "Telegram guruhlaridagi Markaziy Osiyoga oid xabarlar",
   },
   news: {
     label: "Yangilik",
     tone: "slate",
     icon: Newspaper,
-    description: "O'zbekiston yangilik saytlari (RSS)",
+    description: "Kiberxavfsizlik va data leak yangiliklari (RSS)",
   },
 };
 

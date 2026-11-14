@@ -45,7 +45,7 @@ const FEATURES: Feature[] = [
     eyebrow: "Threat intel",
     title: "Tahdidlar lentasi (Events)",
     description:
-      "O'zbekistonga oid hujumlar, sizib chiqishlar va xabarlar bitta lentada — manba, vaqt va kategoriya bilan.",
+      "Markaziy Osiyoga oid kiberhujumlar, sizib chiqishlar va xabarlar bitta lentada — manba, vaqt va kategoriya bilan.",
     points: [
       { icon: Skull, label: "ransomware.live" },
       { icon: Send, label: "Telegram kanal va guruhlar" },
@@ -101,8 +101,8 @@ const STEPS: { icon: LucideIcon; tone: Tone; title: string; text: string }[] = [
   {
     icon: Filter,
     tone: "violet",
-    title: "Filtrlash (O'zbekiston)",
-    text: "Faqat O'zbekistonga tegishli yozuvlar ajratib olinadi va kategoriyalanadi.",
+    title: "Filtrlash (Markaziy Osiyo)",
+    text: "Faqat Markaziy Osiyoga tegishli kiberxavfsizlik va leak yozuvlari ajratib olinadi va kategoriyalanadi.",
   },
   {
     icon: Bell,
@@ -286,7 +286,7 @@ export default function Home() {
             <div className="animate-fade-in">
               <Badge tone="cyan" className="gap-2 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em]">
                 <LiveDot tone="cyan" />
-                <ScrambleText text="OSINT · O'zbekiston" delay={0.2} />
+                <ScrambleText text="OSINT · Markaziy Osiyo" delay={0.2} />
               </Badge>
             </div>
             <h1 className="mt-6 text-4xl font-semibold leading-[1.08] tracking-tight text-white sm:text-5xl lg:text-6xl">
@@ -296,7 +296,7 @@ export default function Home() {
               className="mt-5 max-w-xl animate-fade-in text-base leading-relaxed text-slate-400 sm:text-lg"
               style={{ animationDelay: "160ms" }}
             >
-              O'zbekiston uchun ochiq manbalar razvedkasi va tahdidlar monitoringi — ransomware hujumlari,
+              Markaziy Osiyo uchun ochiq manbalar razvedkasi va tahdidlar monitoringi — ransomware hujumlari,
               Telegram, yangiliklar va identifikator tekshiruvi bitta platformada.
             </p>
             <div

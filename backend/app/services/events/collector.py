@@ -11,6 +11,9 @@ Retention: `events_retention_days` dan eski hodisalar har yig'ishdan keyin o'chi
 (`events_retention_keep` kategoriyalaridan tashqari). Manbalar eski yozuvlarni qayta-qayta
 qaytarishi mumkin, shuning uchun muddati o'tgan element bazaga umuman yozilmaydi — aks holda
 u har tsiklda "yangi" bo'lib qayta paydo bo'lardi.
+
+Boshlanish sanasi: `events_since` berilsa, undan oldingi hodisalar kategoriyasidan qat'i nazar
+yig'ilmaydi va bazadan o'chiriladi (lenta shu sanadan boshlanadi).
 """
 
 from __future__ import annotations
@@ -62,32 +65,49 @@ def retention_cutoff(now: datetime | None = None) -> datetime | None:
     return (now or datetime.now(UTC)) - timedelta(days=days)
 
 
-def is_expired(category: str, when: datetime | None, cutoff: datetime | None) -> bool:
-    """Hodisa retention muddatidan o'tganmi (saqlanadigan kategoriyalar hech qachon o'tmaydi)."""
-    if cutoff is None or when is None or category in settings.events_retention_keep_list:
+def is_expired(
+    category: str,
+    when: datetime | None,
+    cutoff: datetime | None,
+    since: datetime | None = None,
+) -> bool:
+    """Hodisa saqlanmasligi kerakmi.
+
+    - `since` (boshlanish sanasi) dan oldingi hodisa — har qanday kategoriyada;
+    - retention `cutoff` idan eski hodisa — saqlanadigan kategoriyalardan tashqari.
+    Sanasi noma'lum hodisa hozir topilgan deb hisoblanadi (o'tmaydi).
+    """
+    if when is None:
         return False
     if when.tzinfo is None:
         when = when.replace(tzinfo=UTC)
+    if since is not None and when < since:
+        return True
+    if cutoff is None or category in settings.events_retention_keep_list:
+        return False
     return when < cutoff
 
 
-async def _purge_expired(db, cutoff: datetime | None) -> int:
-    if cutoff is None:
-        return 0
-    stmt = delete(EventRecord).where(
-        func.coalesce(EventRecord.published, EventRecord.first_seen) < cutoff
-    )
-    keep = settings.events_retention_keep_list
-    if keep:
-        stmt = stmt.where(EventRecord.category.notin_(keep))
-    result = await db.execute(stmt)
+async def _purge_expired(db, cutoff: datetime | None, since: datetime | None = None) -> int:
+    when = func.coalesce(EventRecord.published, EventRecord.first_seen)
+    purged = 0
+    if since is not None:
+        result = await db.execute(delete(EventRecord).where(when < since))
+        purged += result.rowcount or 0
+    if cutoff is not None:
+        stmt = delete(EventRecord).where(when < cutoff)
+        keep = settings.events_retention_keep_list
+        if keep:
+            stmt = stmt.where(EventRecord.category.notin_(keep))
+        result = await db.execute(stmt)
+        purged += result.rowcount or 0
     await db.commit()
-    return result.rowcount or 0
+    return purged
 
 
 def _format_alert(records: list[EventRecord]) -> str:
     icons = {"leak": "🟠", "ransomware": "🔴"}
-    lines = [f"🚨 OSINT: O'zbekiston bo'yicha {len(records)} ta yangi hodisa\n"]
+    lines = [f"🚨 OSINT: Markaziy Osiyo bo'yicha {len(records)} ta yangi hodisa\n"]
     for r in records[:10]:
         lines.append(
             f"{icons.get(r.category, '•')} [{r.category}] {r.source}\n"
@@ -120,9 +140,10 @@ async def run_once() -> int:
         started = datetime.now(UTC)
         try:
             cutoff = retention_cutoff(started)
+            since = settings.events_since_dt
             items = [
                 i for i in await collect_all(force=True)
-                if not is_expired(i.category, i.published, cutoff)
+                if not is_expired(i.category, i.published, cutoff, since)
             ]
             async with AsyncSessionLocal() as db:
                 is_bootstrap = (await db.scalar(select(func.count(EventRecord.id)))) == 0
@@ -165,11 +186,14 @@ async def run_once() -> int:
                         await db.commit()
                         state.notified_total += len(to_notify)
 
-                purged = await _purge_expired(db, cutoff)
+                purged = await _purge_expired(db, cutoff, since)
                 state.last_purged = purged
                 state.purged_total += purged
                 if purged:
-                    log.info("Retention: %d ta eski hodisa o'chirildi (< %s)", purged, cutoff.date())
+                    log.info(
+                        "Retention: %d ta eski hodisa o'chirildi (boshlanish: %s, muddat: %s)",
+                        purged, since or "-", cutoff or "-",
+                    )
 
             state.last_new = len(new_records)
             state.last_error = None

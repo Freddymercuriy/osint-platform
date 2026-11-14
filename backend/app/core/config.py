@@ -1,3 +1,4 @@
+from datetime import UTC, datetime, timedelta, timezone
 from functools import lru_cache
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -48,10 +49,23 @@ class Settings(BaseSettings):
     # events_retention_keep dagi kategoriyalar hech qachon o'chirilmaydi (kam uchraydigan, muhim hodisalar).
     events_retention_days: int = 90
     events_retention_keep: str = "ransomware,leak"
+    # Boshlanish sanasi: shundan OLDINGI hodisalar (barcha kategoriyalar) yig'ilmaydi va bazadan o'chiriladi.
+    # "2026-11-14" (kun boshi, Toshkent vaqti UTC+5) yoki to'liq ISO vaqt. Bo'sh = chegara yo'q.
+    events_since: str = ""
 
     @property
     def notify_categories_list(self) -> list[str]:
         return [c.strip() for c in self.notify_categories.split(",") if c.strip()]
+
+    @property
+    def events_since_dt(self) -> datetime | None:
+        value = self.events_since.strip()
+        if not value:
+            return None
+        dt = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        if dt.tzinfo is None:  # sana yoki zonasiz vaqt → Toshkent vaqti
+            dt = dt.replace(tzinfo=timezone(timedelta(hours=5)))
+        return dt.astimezone(UTC)
 
     @property
     def events_retention_keep_list(self) -> list[str]:

@@ -8,7 +8,7 @@ const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono", displ
 
 export const metadata: Metadata = {
   title: "OSINT Platform",
-  description: "O'zbekiston uchun ochiq manbalar razvedkasi va tahdidlar monitoringi",
+  description: "Markaziy Osiyo uchun ochiq manbalar razvedkasi va kibertahdidlar monitoringi",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

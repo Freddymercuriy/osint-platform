@@ -55,6 +55,7 @@ class CollectorStatus(BaseModel):
     notify_telegram: bool
     notify_categories: list[str]
     notified_total: int
+    since: datetime | None  # lenta boshlanish sanasi (undan oldingi hodisalar saqlanmaydi)
     retention_days: int  # 0 = eski hodisalar o'chirilmaydi
     retention_keep: list[str]  # muddatidan qat'i nazar saqlanadigan kategoriyalar
     last_purged: int
@@ -82,6 +83,7 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
         notify_telegram=settings.notify_telegram,
         notify_categories=settings.notify_categories_list,
         notified_total=s.notified_total,
+        since=settings.events_since_dt,
         retention_days=max(0, settings.events_retention_days),
         retention_keep=settings.events_retention_keep_list,
         last_purged=s.last_purged,

@@ -137,7 +137,7 @@ export default function DashboardPage() {
               )}
             </h1>
             <p className="mt-2 max-w-xl text-slate-400">
-              O'zbekiston bo'yicha tahdidlar markazi: ransomware hujumlari, leak'lar, Telegram va yangiliklar — har{" "}
+              Markaziy Osiyo bo'yicha kibertahdidlar markazi: ransomware hujumlari, leak'lar, Telegram va yangiliklar — har{" "}
               {cs ? Math.round(cs.poll_seconds / 60) : 5} daqiqada avtomatik yig'iladi.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">

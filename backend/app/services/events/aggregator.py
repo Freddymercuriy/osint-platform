@@ -12,7 +12,16 @@ import feedparser
 import httpx
 from bs4 import BeautifulSoup
 
-from app.services.events.feeds import UZ_KEYWORDS, Feed, enabled_feeds
+from app.services.events.feeds import (
+    FOREIGN_MARKERS,
+    REGION_KEYWORDS,
+    TOPIC_NOISE,
+    TOPIC_PATTERNS,
+    TOPIC_STEMS,
+    UZ_KEYWORDS,  # noqa: F401  (orqaga moslik: REGION_KEYWORDS ning alias'i)
+    Feed,
+    enabled_feeds,
+)
 
 _USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
@@ -55,25 +64,124 @@ def _parse_iso(value: str | None) -> datetime | None:
         return None
 
 
+# Apostrof variantlari: ' ‘ ’ ʻ ʼ ` — va ularning yo'qligi ("o'zbek" ≈ "ozbek" ≈ "oʻzbek")
+_APOS = "['\u2018\u2019\u02bb\u02bc`]?"
+
+
+def _apos(pattern: str) -> str:
+    return pattern.replace("'", _APOS)
+
+
 def _kw_regex(keyword: str, whole_word: bool) -> re.Pattern[str]:
     """Kalit so'z uchun chegarali regex.
 
     - whole_word=False (o'zak): "uzbek" → "uzbekistan" ham mos, lekin "xuzbek" emas.
     - whole_word=True (nom): "payme" → "payment" ga mos EMAS.
     - ".uz" kabi belgidan boshlanganlar: "day.uz" mos, ".uzum" emas.
+    - Apostrof har xil yozilishlarga (va yo'qligiga) mos: "o'zbek" ≈ "oʻzbek" ≈ "ozbek".
     """
-    esc = re.escape(keyword)
+    esc = _apos(re.escape(keyword))
     left = r"(?<!\w)" if keyword[0].isalnum() else ""
     domain_like = not keyword[0].isalnum()  # ".uz" — domen oxiri, davomi bo'lmasligi kerak
     right = r"(?!\w)" if (whole_word or domain_like or not keyword[-1].isalnum()) else ""
     return re.compile(left + esc + right, re.IGNORECASE)
 
 
-_UZ_PATTERNS = [(k, _kw_regex(k, whole_word=False)) for k in UZ_KEYWORDS]
+def _region_regex(keyword: str) -> re.Pattern[str]:
+    """Hudud kalit so'zi. Domenlar (.tm, .kg ...) faqat so'z/defis dan keyin: "5.kg" mos emas."""
+    if keyword.startswith("."):
+        return re.compile(r"(?<=[a-z\-])" + re.escape(keyword) + r"(?![\w\-])", re.IGNORECASE)
+    return _kw_regex(keyword, whole_word=False)
 
 
-def _is_uz(text: str) -> bool:
-    return any(p.search(text) for _, p in _UZ_PATTERNS)
+_UZ_PATTERNS = [(k, _region_regex(k)) for k in REGION_KEYWORDS]
+_REGION_PATTERNS = _UZ_PATTERNS
+
+_TOPIC_NOISE = [re.compile(_apos(n), re.IGNORECASE) for n in TOPIC_NOISE]
+_TOPIC_PATTERNS: list[tuple[str, re.Pattern[str]]] = (
+    [(k, _kw_regex(k, whole_word=False)) for k in TOPIC_STEMS]
+    + [(label, re.compile(_apos(rx), re.IGNORECASE)) for label, rx in TOPIC_PATTERNS]
+)
+
+
+_FOREIGN_RE = re.compile(
+    r"(?<!\w)(?:" + "|".join(_apos(m) for m in FOREIGN_MARKERS) + ")", re.IGNORECASE
+)
+
+
+def _is_foreign(text: str) -> bool:
+    """Matnda chet el belgisi bor (AQSH, FQB, "global" ...)."""
+    return bool(_FOREIGN_RE.search(_flat(text)))
+
+
+def _flat(text: str) -> str:
+    return re.sub(r"\s+", " ", text or "").strip()
+
+
+def _region_hits(text: str) -> list[str]:
+    flat = _flat(text)
+    return [k for k, p in _REGION_PATTERNS if p.search(flat)]
+
+
+def _topic_hits(text: str) -> list[str]:
+    """Kiber/leak mavzu belgilari (takrorsiz, tartib saqlangan). Shovqin iboralari olib tashlanadi."""
+    flat = _flat(text)
+    for n in _TOPIC_NOISE:
+        flat = n.sub(" ", flat)
+    hits: list[str] = []
+    for label, p in _TOPIC_PATTERNS:
+        if label not in hits and p.search(flat):
+            hits.append(label)
+    return hits
+
+
+def _is_region(text: str) -> bool:
+    flat = _flat(text)
+    return any(p.search(flat) for _, p in _REGION_PATTERNS)
+
+
+_is_uz = _is_region  # orqaga moslik
+
+
+def _is_cyber(text: str) -> bool:
+    return bool(_topic_hits(text))
+
+
+def _strip_own(text: str, feed: Feed) -> str:
+    """Manbaning o'z domenini matndan olib tashlaydi ("... xabar beradi Tengrinews.kz" —
+    bu `.kz` mintaqa belgisi emas, shunchaki manba imzosi)."""
+    host = re.sub(r"^https?://(?:www\.)?([^/]+).*$", r"\1", feed.url or "")
+    if "." not in host:
+        return text
+    parts = host.split(".")
+    for h in {host, ".".join(parts[-2:])}:  # "kz.kursiv.media" va "kursiv.media"
+        text = re.sub(re.escape(h), " ", text, flags=re.IGNORECASE)
+    return text
+
+
+def _apply_filters(items: list[EventItem], feed: Feed) -> list[EventItem]:
+    """Feed bayroqlari bo'yicha filtr (title + summary). Mos kelganlarga '🔎 ...' belgisi qo'shiladi."""
+    out: list[EventItem] = []
+    for i in items:
+        text = f"{i.title} {i.summary}"
+        hits: list[str] = []
+        if feed.cyber_filter:
+            h = _topic_hits(text)
+            if not h:
+                continue
+            # Mahalliy sayt qayta bosgan jahon yangiligi: chet el belgisi bor, mintaqa so'zi yo'q
+            if not feed.region_filter and _is_foreign(text) and not _is_region(_strip_own(text, feed)):
+                continue
+            hits += h
+        if feed.region_filter:
+            h = _region_hits(text)
+            if not h:
+                continue
+            hits += h
+        if hits:
+            i.summary = f"🔎 {', '.join(hits[:4])} · {i.summary}"
+        out.append(i)
+    return out
 
 
 def _match_snippet(
@@ -109,25 +217,45 @@ async def _fetch_rss(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
     return items
 
 
+_CA_CODES = ("UZ", "KZ", "KG", "TJ", "TM")
+_CA_DOMAINS = tuple(f".{c.lower()}" for c in _CA_CODES)
+
+
 async def _fetch_ransomware_live(client: httpx.AsyncClient, feed: Feed) -> list[EventItem]:
-    resp = await client.get(f"https://api.ransomware.live/v2/countryvictims/{feed.url}")
+    """Yangi qurbonlar: BITTA /v2/recentvictims so'rovi (oxirgi ~100 ta), davlat kodi
+    bo'yicha filtrlanadi (rate limit ~1 so'rov/daqiqa). feed.url — vergul bilan kodlar."""
+    codes = {c.strip().upper() for c in (feed.url or ",".join(_CA_CODES)).split(",") if c.strip()}
+    domains = tuple(f".{c.lower()}" for c in codes)
+    resp = await client.get("https://api.ransomware.live/v2/recentvictims")
     resp.raise_for_status()
     data = resp.json()
     if not isinstance(data, list):  # rate-limit javobi ({"message": ...})
         raise RuntimeError(str(data))
     items: list[EventItem] = []
     for v in data:
-        victim = (v.get("post_title") or v.get("victim") or "Noma'lum").strip()
-        group = v.get("group_name") or v.get("group") or "?"
+        country = (v.get("country") or "").strip().upper()
+        domain = (v.get("domain") or "").strip().lower().rstrip("/")
+        # Davlat maydoni bo'sh bo'lsa — milliy domen bo'yicha (masalan example.kz)
+        if country not in codes and not (not country and domain.endswith(domains)):
+            continue
+        if not country:
+            country = domain.rsplit(".", 1)[-1].upper()
+        victim = (v.get("victim") or v.get("post_title") or "Noma'lum").strip()
+        group = v.get("group") or v.get("group_name") or "?"
         activity = v.get("activity") or ""
-        title = f"[{group}] {victim}" + (f" — {activity}" if activity else "")
+        if activity.lower() in ("not found", "unknown"):
+            activity = ""
+        title = f"[{group}] {victim} ({country})" + (f" — {activity}" if activity else "")
+        link = v.get("url") or ""
+        if not link.startswith("https://www.ransomware.live/") or ".onion" in link:
+            # .onion havolalar berilmaydi — ochiq ransomware.live sahifasi
+            link = f"https://www.ransomware.live/group/{str(group).lower()}"
         items.append(EventItem(
             source=feed.name,
             title=title,
-            # .onion havolalar berilmaydi — ochiq ransomware.live sahifasi
-            url=f"https://www.ransomware.live/group/{group.lower()}",
+            url=link,
             summary=_clean(v.get("description") or ""),
-            published=_parse_iso(v.get("discovered") or v.get("published")),
+            published=_parse_iso(v.get("discovered") or v.get("attackdate")),
             lang=feed.lang,
             category=feed.category,
         ))
@@ -203,6 +331,8 @@ async def _fetch_telegram_user(_client: httpx.AsyncClient, feed: Feed) -> list[E
     return items
 
 
+_MAX_PARALLEL = 16  # bir vaqtdagi so'rovlar soni (manbalarni ortiqcha yuklamaslik)
+
 _FETCHERS = {
     "rss": _fetch_rss,
     "ransomware_live": _fetch_ransomware_live,
@@ -216,7 +346,10 @@ _cache: dict[str, tuple[float, list[EventItem]]] = {}
 
 
 async def _fetch_cached(
-    client: httpx.AsyncClient, feed: Feed, force: bool = False
+    client: httpx.AsyncClient,
+    feed: Feed,
+    force: bool = False,
+    sem: asyncio.Semaphore | None = None,
 ) -> list[EventItem]:
     now = time.monotonic()
     cached = _cache.get(feed.name)
@@ -228,12 +361,16 @@ async def _fetch_cached(
     if fetcher is None:
         return []
     try:
-        items = await fetcher(client, feed)
+        if sem is not None:
+            async with sem:
+                items = await fetcher(client, feed)
+        else:
+            items = await fetcher(client, feed)
     except Exception:
         # Xato bo'lsa eski keshni qaytaramiz (bo'lsa), aks holda bo'sh
         return cached[1] if cached else []
-    if feed.uz_filter:
-        items = [i for i in items if _is_uz(i.title + " " + i.summary)]
+    if feed.region_filter or feed.cyber_filter:
+        items = _apply_filters(items, feed)
     _cache[feed.name] = (now, items)
     return items
 
@@ -242,8 +379,9 @@ async def collect_all(force: bool = True) -> list[EventItem]:
     """Barcha yoqilgan manbalardan hammasini yig'adi (fon yig'uvchi uchun)."""
     headers = {"User-Agent": _USER_AGENT}
     async with httpx.AsyncClient(timeout=12.0, headers=headers, follow_redirects=True) as client:
+        sem = asyncio.Semaphore(_MAX_PARALLEL)
         batches = await asyncio.gather(
-            *(_fetch_cached(client, f, force=force) for f in enabled_feeds())
+            *(_fetch_cached(client, f, force=force, sem=sem) for f in enabled_feeds())
         )
     return [i for batch in batches for i in batch]
 
@@ -254,7 +392,8 @@ async def fetch_events(
     feeds = enabled_feeds()
     headers = {"User-Agent": _USER_AGENT}
     async with httpx.AsyncClient(timeout=12.0, headers=headers, follow_redirects=True) as client:
-        batches = await asyncio.gather(*(_fetch_cached(client, f) for f in feeds))
+        sem = asyncio.Semaphore(_MAX_PARALLEL)
+        batches = await asyncio.gather(*(_fetch_cached(client, f, sem=sem) for f in feeds))
 
     items = [i for batch in batches for i in batch]
     # Kategoriya natija darajasida (bitta manba bir nechta kategoriya berishi mumkin; kesh tufayli arzon)

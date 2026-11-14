@@ -227,6 +227,8 @@ export type CollectorStatus = {
   notify_telegram: boolean;
   notify_categories: string[];
   notified_total: number;
+  /** lenta boshlanish sanasi (undan oldingi hodisalar saqlanmaydi) */
+  since: string | null;
   /** 0 = eski hodisalar o'chirilmaydi */
   retention_days: number;
   /** muddatidan qat'i nazar saqlanadigan kategoriyalar */

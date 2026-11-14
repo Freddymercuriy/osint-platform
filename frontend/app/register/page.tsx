@@ -27,7 +27,7 @@ const VALUE_PROPS: { icon: LucideIcon; tone: Tone; title: string; text: string }
     icon: Radar,
     tone: "cyan",
     title: "Tahdidlar monitoringi",
-    text: "Ransomware, Telegram va yangiliklar — O'zbekiston bo'yicha filtrlangan.",
+    text: "Kiberxavfsizlik va leak hodisalari — Markaziy Osiyo bo'yicha filtrlangan.",
   },
   {
     icon: AtSign,
@@ -147,7 +147,7 @@ export default function RegisterPage() {
 
         <div className="relative flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-slate-500">
           <LiveDot tone="emerald" />
-          Monitoring faol · O'zbekiston
+          Monitoring faol · Markaziy Osiyo
         </div>
       </aside>
 

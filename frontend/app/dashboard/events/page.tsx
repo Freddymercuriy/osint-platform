@@ -91,27 +91,28 @@ const ICON_TEXT: Record<Tone, string> = {
 const EMPTY_TEXT: Record<string, { title: string; description: string }> = {
   "": {
     title: "Hozircha hodisalar yo'q",
-    description: "Fon yig'uvchi manbalarni tekshirmoqda. \"Yangilash\" tugmasi bilan hozir yig'ishni boshlang.",
+    description:
+      "Lentaga faqat Markaziy Osiyoga oid kiberxavfsizlik va data leak hodisalari tushadi. Fon yig'uvchi manbalarni kuzatmoqda — mos hodisa chiqishi bilan shu yerda paydo bo'ladi.",
   },
   ransomware: {
     title: "Ransomware hujumlari qayd etilmagan",
-    description: "ransomware.live'da O'zbekiston tashkilotlariga oid yozuv topilmadi.",
+    description: "ransomware.live'da Markaziy Osiyo tashkilotlariga oid yangi yozuv topilmadi.",
   },
   leak: {
-    title: "Leak chatlarida O'zbekiston tilga olinmagan",
+    title: "Leak chatlarida Markaziy Osiyo tilga olinmagan",
     description: "Kuzatilayotgan leak chatlari va forumlarida mos xabar topilmadi.",
   },
   telegram: {
     title: "TG kanallarda mos xabar yo'q",
-    description: "Kuzatilayotgan Telegram kanallarida O'zbekistonga oid xabar hali uchramadi.",
+    description: "Kuzatilayotgan Telegram kanallarida Markaziy Osiyoga oid xabar hali uchramadi.",
   },
   tg_group: {
     title: "TG guruhlarda mos xabar yo'q",
-    description: "Kuzatilayotgan Telegram guruhlarida O'zbekistonga oid xabar hali uchramadi.",
+    description: "Kuzatilayotgan Telegram guruhlarida Markaziy Osiyoga oid xabar hali uchramadi.",
   },
   news: {
-    title: "Yangiliklar hali yig'ilmagan",
-    description: "RSS manbalaridan yangiliklar keyingi yig'ishda paydo bo'ladi.",
+    title: "Mos yangilik hali yo'q",
+    description: "Markaziy Osiyoga oid kiberxavfsizlik yoki data leak yangiligi chiqsa, shu yerda paydo bo'ladi.",
   },
 };
 
@@ -237,6 +238,15 @@ function StatusStrip({
                   <Database className="h-3.5 w-3.5 text-slate-500" />
                   bazada <span className="font-mono tabular-nums text-slate-200">{fmt(cs.total_events)}</span> ta
                 </span>
+                {cs.since && (
+                  <span
+                    className="flex items-center gap-1.5 text-slate-400"
+                    title={`Lenta ${formatDateTime(cs.since)} dan boshlanadi — undan oldingi hodisalar saqlanmaydi.`}
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+                    <span className="text-slate-200">{formatDate(cs.since, { short: true })}</span> dan boshlab
+                  </span>
+                )}
                 {cs.retention_days > 0 && (
                   <span
                     className="flex items-center gap-1.5 text-slate-400"
@@ -284,7 +294,7 @@ function StatusStrip({
                       <span className="text-sky-300/60">
                         {" "}
                         · {tg.chats_filter.length ? `${tg.chats_filter.length} chat` : "barcha chatlar"}
-                        {tg.uz_filter ? " · UZ filtr" : ""}
+                        {tg.uz_filter ? " · MO filtr" : ""}
                       </span>
                     </>
                   ) : (
@@ -640,9 +650,9 @@ export default function EventsPage() {
       <PageHeader
         icon={Radar}
         tone="cyan"
-        eyebrow="THREAT INTELLIGENCE · O'ZBEKISTON"
+        eyebrow="THREAT INTELLIGENCE · MARKAZIY OSIYO"
         title="Events"
-        subtitle="Ransomware hujumlari, leak chatlari, Telegram kanal va guruhlari hamda yangiliklar — O'zbekistonga oid barcha signallar bitta lentada."
+        subtitle="Ransomware hujumlari, leak chatlari, Telegram kanal va guruhlari hamda kiberxavfsizlik yangiliklari — Markaziy Osiyoga oid barcha signallar bitta lentada."
         actions={
           <Button icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
             {refreshing ? "Yig'ilmoqda..." : "Yangilash"}

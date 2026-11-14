@@ -25,7 +25,7 @@ export const NAV: NavSection[] = [
   },
   {
     title: "Razvedka",
-    items: [{ href: "/dashboard/events", label: "Events · O'zbekiston", icon: Radar, badge: "notifications" }],
+    items: [{ href: "/dashboard/events", label: "Events · Markaziy Osiyo", icon: Radar, badge: "notifications" }],
   },
   {
     title: "Tekshiruv",

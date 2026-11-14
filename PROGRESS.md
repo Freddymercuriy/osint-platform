@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 11 — Hisobot eksporti (JSON / PDF) va Events retention qo'shildi (undan oldin: Bosqich 10 — Domen / IP / WHOIS, Qidiruv tarixi)
+**Bosqich:** 12 — Events lentasi: faqat Markaziy Osiyo + kiberxavfsizlik / data leak, lenta 2026-11-14 dan boshlanadi (undan oldin: Bosqich 11 — hisobot eksporti, retention)
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
@@ -20,7 +20,7 @@ cd frontend && npm run dev                # http://localhost:3000
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
 | Nima | Qayerda | Nima qilish |
 |---|---|---|
-| `backend/.env` | maxfiy | nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false` |
+| `backend/.env` | maxfiy | nusxalash, yoki `cp backend/.env.example backend/.env` va to'ldirish: `SECRET_KEY` (yangi random), `TG_API_ID`, `TG_API_HASH`, `TG_CHATS`, `TG_LEAK_CHATS`, `TG_EXTRA_KEYWORDS`, `TG_MESSAGES_PER_CHAT=100`, `NOTIFY_TELEGRAM=false`, `EVENTS_SINCE=2026-11-14` |
 | `backend/data/tg_session.session` | Telegram sessiyasi | nusxalash YOKI qayta login: `docker-compose exec backend python scripts/tg_login.py` |
 | Postgres ma'lumotlari | docker volume | ko'chmaydi: foydalanuvchi qayta ro'yxatdan o'tadi, hodisalarni fon yig'uvchi 5 daqiqada o'zi yig'adi |
 | `frontend/.env.local` | — | `cp frontend/.env.example frontend/.env.local` |
@@ -32,6 +32,42 @@ docker-compose build backend && docker-compose up -d        # yoki: docker compo
 cd frontend && npm install && cp .env.example .env.local && npm run dev   # http://localhost:3000
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### 2026-11-14, 2-sessiya davomi (Bosqich 12: Markaziy Osiyo + kiber/leak filtri, "bugundan boshlab")
+Foydalanuvchi talabi: *"yangiliklar bugundan boshlab ko'rsatilsin, eskilari kerak emas; mazmuni kiberxavfsizlik yoki data leak
+bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
+- **Boshlanish sanasi** — `EVENTS_SINCE` (`backend/.env` da `2026-11-14`; bare sana = Toshkent vaqti bilan kun boshi):
+  undan oldingi hodisalar **barcha kategoriyalarda** yig'ilmaydi va har tsiklda bazadan o'chiriladi (`collector.is_expired`,
+  `_purge_expired`). `GET /api/events/status` → `since`; Events panelida "14 noy 2026 dan boshlab". Bo'sh qiymat = chegara yo'q.
+  ⚠️ Bu 2023-yildan beri yig'ilgan 6 ta ransomware yozuvini ham o'chirdi (foydalanuvchiga aytilgan). Tozalashdan oldingi to'liq nusxa
+  (141 qator): `~/osint-events-backup-2026-11-14.sql` (repodan tashqarida; `backend/data/` root'ga tegishli — yozib bo'lmadi).
+- **Hudud filtri** — endi 5 davlat (UZ, KZ, KG, TJ, TM): `feeds.REGION_KEYWORDS` (davlat/shahar o'zaklari lotin+kirill, `.uz .kz .kg .tj .tm`
+  domenlari, "central asia"...). `UZ_KEYWORDS` — alias. `TG_UZ_FILTER=true` endi "Markaziy Osiyo filtri" (UI'da "MO filtr").
+- **Mavzu filtri** — `TOPIC_STEMS` + `TOPIC_PATTERNS` (kontekstli regexlar: "утечка" yolg'iz emas, "мошенничество" faqat online
+  kontekst bilan) − `TOPIC_NOISE` (киберспорт, "взлом квартиры", "утечка газа"). uz/ru/en, qisman kk.
+- **Feed bayroqlari:** `cyber_filter` (mahalliy saytlar — faqat mavzu) va `region_filter` (xalqaro kiber-saytlar — faqat hudud;
+  eski `uz_filter` endi shuning property'si). Mahalliy saytlar uchun qo'shimcha qoida: matnda chet el belgisi
+  (`FOREIGN_MARKERS`: AQSH, FQB, KXDR, "global"...) bo'lib, mintaqa so'zi yo'q bo'lsa — yozuv tashlanadi (qayta bosilgan jahon
+  yangiligi); manbaning o'z domeni ("...Tengrinews.kz") mintaqa belgisi hisoblanmaydi (`_strip_own`).
+- **Manbalar: 5 → 55** (`feeds.py`): UZ (Gazeta, Kun, Spot, Daryo, UzDaily, Nuz, **UZCERT** — filtrsiz), KZ (Tengrinews, Kursiv,
+  Profit.kz, DigitalBusiness, Sputnik), KG (24.kg, Kaktus, AKIpress, Kloop, Kabar, Sputnik), TJ (Asia-Plus, Sputnik),
+  TM (Turkmen.news, Хроника Туркменистана), CentralAsia.media; xalqaro kiber (The Hacker News, SecurityWeek, The Record,
+  DataBreaches, Securelist, Security Affairs, HackRead, Krebs, Dark Reading, ... + Xakep, SecurityLab, Anti-Malware, Habr, Kaspersky).
+  403/Cloudflare berganlar qo'shilmadi (BleepingComputer, CyberNews, CISA...). 53 ta RSS parallel (16 tadan) ≈ 5 s.
+- **ransomware.live:** endi bitta `/v2/recentvictims` so'rovi (oxirgi ~100 qurbon), `country` ∈ {UZ,KZ,KG,TJ,TM} yoki milliy domen
+  bo'yicha filtr (rate limit 1/daq — 5 ta alohida so'rov o'rniga). Sarlavha: `[guruh] Qurbon (KZ)`.
+- UI matnlari "O'zbekiston" → "Markaziy Osiyo" (sidebar, Events, landing, login/register, kategoriya tavsiflari).
+- Agent: `osint-collector` (manbalar + filtr); sana chegarasi, chet el qoidasi, UI va tekshiruv — asosiy sessiyada.
+- **Hozirgi holat:** baza tozalangan, lenta **bo'sh** (bugun mos hodisa chiqmagan — kutilgan holat). Jonli sinov (2117 ta RSS yozuv):
+  mavzu filtridan 10 ta o'tdi, 6 tasi chet el qoidasi bilan tashlandi, qolgan 4 tasi 14-noyabrdan oldingi; UZCERT'ning 10 ta
+  yozuvi ham 10–12-noyabrga tegishli.
+- Tekshirildi: ✅ birlik testlar (hudud/mavzu/chet el/sana, konteyner ichida); ✅ jonli RSS (53 feed, 0 xato); ✅ purge (30 eski yozuv);
+  ✅ `tsc`, build, smoke 22/22 (bo'sh lenta bilan).
+- ⚠️ Tekshirilmadi: haqiqiy mos hodisaning oxirigacha yo'li (RSS → baza → UI → 🔔) yangi filtr bilan — bugun mos yozuv bo'lmadi;
+  ransomware.live'da Markaziy Osiyo qurbonining kelishi (sun'iy javobda sinalgan); Telegram oqimi yangi kalit so'zlar bilan
+  (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
+- Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
+  `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
 ### 2026-11-14, 2-sessiya (Bosqich 11: hisobot eksporti + Events retention)
 - **Hisobot eksporti** — tarix sahifasidagi har qatorda va qidiruv natijasi kartasida `JSON` / `PDF` tugmalari
@@ -212,6 +248,8 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
 - [x] **Domen / IP / WHOIS + Qidiruv tarixi (Bosqich 10, 2026-11-14)** — tafsilotlar yuqorida ("2026-11-14 sessiyasida qilingan")
 
 - [x] **Hisobot eksporti (JSON / PDF) + Events retention (Bosqich 11, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya")
+
+- [x] **Events: Markaziy Osiyo + kiber/leak filtri, `EVENTS_SINCE` (Bosqich 12, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya davomi")
 
 ## ⚠️ Docker eslatmasi (muhim)
 - `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz
