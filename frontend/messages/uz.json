@@ -678,59 +678,157 @@
   },
   "dashboard": {
     "title": "Umumiy ko'rinish",
-    "description": "Yig'ilgan kiberxavf hodisalari, ularning manbalari va oxirgi tekshiruvlaringiz xulosasi.",
-    "openEvents": "Hodisalarni ochish",
+    "description": "Saqlangan hodisalar statistikasi: grafikdagi ustun, bo'lak yoki legendani bossangiz — filtr qo'shiladi.",
+    "other": "Boshqa",
+    "unspecified": "Ko'rsatilmagan",
+    "count": "Soni",
+    "period": "Davr",
+    "total": "Jami",
+    "openInEvents": "Hodisalarda ochish",
+    "addFilter": "«{name}» bo'yicha filtrlash",
+    "otherCount": "Ro'yxatdan tashqari yana {count} ta",
+    "updated": "Yangilangan: {time} · har daqiqada avtomatik",
+    "widget": {
+      "showChart": "Grafik ko'rinishi",
+      "showTable": "Jadval ko'rinishi",
+      "csv": "CSV yuklab olish",
+      "hide": "Vidjetni yashirish",
+      "empty": "Bu davr va filtrlar uchun ma'lumot yo'q",
+      "emptyHint": "Davrni kengaytiring yoki filtrlarni olib tashlang. Hodisalar manbalardan yig'ilgan sari bu yer to'ladi."
+    },
     "kpi": {
-      "total": "Jami hodisalar",
-      "totalHint": "bazada saqlangan",
-      "last24h": "So'nggi 24 soat",
-      "last24hHint": "yangi yig'ilgan",
-      "topCategory": "Asosiy kategoriya",
-      "topCategoryHint": "{count} ta hodisa",
-      "noData": "hozircha ma'lumot yo'q",
-      "searches": "Tekshiruvlaringiz",
-      "searchesHint": "butun davr"
+      "title": "Asosiy ko'rsatkichlar",
+      "help": "Tanlangan davr va oldingi xuddi shunday uzunlikdagi davr bilan solishtirish.",
+      "total": "Hodisalar",
+      "totalHelp": "Filtrlarga mos barcha hodisalar soni.",
+      "criticalHigh": "Kritik va yuqori",
+      "criticalHighHelp": "Jiddiyligi «kritik» yoki «yuqori» bo'lgan hodisalar.",
+      "ransomware": "Ransomware qurbonlari",
+      "ransomwareHelp": "Ransomware guruhlari sizdirish saytlarida e'lon qilgan tashkilotlar.",
+      "countries": "Davlatlar",
+      "countriesHelp": "Hodisalarda tilga olingan Markaziy Osiyo davlatlari soni.",
+      "sources": "Manbalar",
+      "sourcesHelp": "Shu davrda kamida bitta hodisa bergan manbalar.",
+      "multiSource": "Bir necha manbada",
+      "multiSourceHelp": "Bir nechta manba xabar qilgan (takrori birlashtirilgan) hodisalar.",
+      "noPrevious": "Oldingi davrda ma'lumot yo'q",
+      "previousValue": "Oldingi davr: {value}",
+      "change": "{pct}% oldingi davrga nisbatan",
+      "metric": "Ko'rsatkich",
+      "value": "Qiymat",
+      "previous": "Oldingi davr"
     },
-    "daily": {
-      "title": "Kunlik hodisalar",
-      "subtitle": "So'nggi {days} kun, hodisa sanasi bo'yicha, barcha manbalar",
-      "unit": "hodisa",
-      "emptyTitle": "Hozircha hodisa yo'q",
-      "emptyText": "Yig'uvchilar birinchi hodisalarni saqlagach, kunlik grafik shu yerda chiqadi."
+    "timeline": {
+      "title": "Vaqt bo'yicha hodisalar",
+      "help": "Kategoriyalar bo'yicha yig'ilgan ustunlar; g'ildirak yoki pastdagi slayder bilan kattalashtiring. Eng ko'p 7 kategoriya alohida, qolgani «Boshqa»."
     },
-    "view": {
-      "label": "Ko'rinish",
-      "chart": "Grafik",
-      "table": "Jadval"
-    },
-    "table": {
-      "date": "Sana",
-      "total": "Jami"
+    "severityTrend": {
+      "title": "Jiddiylik trendi",
+      "help": "Har davr bo'lagida jiddiylik darajalari. To'qroq rang — jiddiyroq."
     },
     "categories": {
       "title": "Kategoriyalar",
-      "subtitle": "Bazadagi barcha hodisalar",
-      "emptyTitle": "Ma'lumotli kategoriya yo'q",
-      "emptyText": "Hodisalar tasniflangach, kategoriyalar shu yerda chiqadi."
+      "help": "Hodisalar mavzusi bo'yicha. Qatorni bossangiz — filtr.",
+      "column": "Kategoriya",
+      "empty": "Bu davrda hodisa yo'q."
     },
-    "critical": {
-      "title": "Muhim hodisalar",
-      "subtitle": "So'nggi ransomware va leak'lar",
-      "all": "Barcha hodisalar",
-      "emptyTitle": "Muhim hodisa yo'q",
-      "emptyText": "Ransomware yoki leak topilsa, shu yerda chiqadi.",
-      "external": "Manba yangi oynada ochiladi"
+    "countries": {
+      "title": "Davlatlar",
+      "help": "Hodisada tilga olingan davlat. Bitta hodisa bir nechta davlatda bo'lishi mumkin.",
+      "column": "Davlat",
+      "empty": "Davlat aniqlangan hodisa yo'q."
     },
     "sources": {
       "title": "Eng faol manbalar",
-      "subtitle": "Hodisalar soni bo'yicha",
-      "emptyTitle": "Hozircha manba yo'q",
-      "emptyText": "Birinchi hodisalar yig'ilgach, manbalar shu yerda chiqadi."
+      "help": "Eng ko'p hodisa bergan 10 ta manba.",
+      "column": "Manba",
+      "empty": "Bu davrda manbalardan hodisa kelmagan."
     },
-    "modules": {
-      "title": "Tekshiruv modullari",
-      "myChecks": "Tekshiruvlaringiz",
-      "count": "{count} ta tekshiruv"
+    "ransomware": {
+      "title": "Ransomware guruhlari",
+      "help": "Qurbonlar soni bo'yicha. Bossangiz — guruh hodisalari ochiladi.",
+      "column": "Guruh",
+      "empty": "Bu davrda Markaziy Osiyo qurbonlari e'lon qilinmagan."
+    },
+    "sectors": {
+      "title": "Nishondagi sohalar",
+      "help": "Hodisa matnidan aniqlangan soha (davlat, moliya, sog'liqni saqlash, telekom, ta'lim).",
+      "column": "Soha",
+      "empty": "Soha aniqlangan hodisa yo'q."
+    },
+    "heatmap": {
+      "title": "Hafta kuni va soat",
+      "help": "Hodisalar qaysi kun va soatda chiqqani ({tz} vaqti). To'qroq katak — ko'proq hodisa.",
+      "day": "Kun"
+    },
+    "latest": {
+      "title": "So'nggi muhim hodisalar",
+      "help": "Jiddiyligi «kritik» yoki «yuqori» bo'lgan eng yangi hodisalar.",
+      "empty": "Bu davrda kritik yoki yuqori jiddiylikdagi hodisa yo'q.",
+      "when": "Vaqt",
+      "severity": "Jiddiylik",
+      "event": "Hodisa",
+      "source": "Manba"
+    },
+    "health": {
+      "title": "Manbalar sog'lig'i",
+      "help": "Manbalarning hozirgi holati va oxirgi 24 soatdagi urinishlar.",
+      "status": "Holat",
+      "summary": "{enabled} / {total} ta yoqilgan · 24 soatda {runs} urinish, {failed} tasi xato"
+    },
+    "filters": {
+      "period": "Davr",
+      "range": {
+        "24h": "So'nggi 24 soat",
+        "7d": "So'nggi 7 kun",
+        "30d": "So'nggi 30 kun",
+        "90d": "So'nggi 90 kun",
+        "custom": "O'zim tanlayman"
+      },
+      "from": "Dan",
+      "to": "Gacha",
+      "dim": {
+        "category": "Kategoriya",
+        "country": "Davlat",
+        "channel": "Kanal",
+        "source": "Manba",
+        "severity": "Jiddiylik"
+      },
+      "openInEvents": "Shu filtrlar bilan hodisalar",
+      "active": "Faol filtrlar",
+      "remove": "Filtrni olib tashlash",
+      "reset": "Hammasini tozalash",
+      "hint": "Filtrlar havolada saqlanadi — sahifani bookmark qilish yoki ulashish mumkin.",
+      "eventsLink": "Barcha hodisalar"
+    },
+    "customize": {
+      "button": "Vidjetlarni sozlash",
+      "title": "Vidjetlar",
+      "reset": "Standart tartib",
+      "hint": "Ko'rsatish/yashirish va tartib — shu brauzerda eslab qolinadi.",
+      "up": "«{name}» ni yuqoriga",
+      "down": "«{name}» ni pastga",
+      "allHidden": "Barcha vidjetlar yashirilgan — «Vidjetlarni sozlash» orqali qaytaring."
+    },
+    "widgets": {
+      "kpis": "Asosiy ko'rsatkichlar",
+      "timeline": "Vaqt bo'yicha hodisalar",
+      "categories": "Kategoriyalar",
+      "countries": "Davlatlar",
+      "severity": "Jiddiylik trendi",
+      "heatmap": "Hafta kuni va soat",
+      "sources": "Eng faol manbalar",
+      "ransomware": "Ransomware guruhlari",
+      "sectors": "Nishondagi sohalar",
+      "latest": "So'nggi muhim hodisalar",
+      "health": "Manbalar sog'lig'i"
+    },
+    "sector": {
+      "government": "Davlat sektori",
+      "finance": "Moliya",
+      "healthcare": "Sog'liqni saqlash",
+      "telecom": "Telekom",
+      "education": "Ta'lim"
     }
   },
   "events": {

@@ -13,6 +13,7 @@
     "test:smoke": "node scripts/qa/smoke.js"
   },
   "dependencies": {
+    "echarts": "^6.1.0",
     "lucide-react": "^1.72.0",
     "next": "^14.2.35",
     "next-intl": "^4.15.1",

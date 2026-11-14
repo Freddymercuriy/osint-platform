@@ -678,59 +678,157 @@
   },
   "dashboard": {
     "title": "Overview",
-    "description": "A summary of collected cyber-threat events, their sources and your recent checks.",
-    "openEvents": "Open events",
+    "description": "Statistics over stored events: click a bar, segment or legend entry to add a filter.",
+    "other": "Other",
+    "unspecified": "Not specified",
+    "count": "Count",
+    "period": "Period",
+    "total": "Total",
+    "openInEvents": "Open in Events",
+    "addFilter": "Filter by “{name}”",
+    "otherCount": "{count, plural, one {# more event} other {# more events}} outside the list",
+    "updated": "Updated {time} · refreshes every minute",
+    "widget": {
+      "showChart": "Show chart",
+      "showTable": "Show table",
+      "csv": "Download CSV",
+      "hide": "Hide widget",
+      "empty": "No data for this period and filters",
+      "emptyHint": "Widen the period or remove filters. Data appears here as events are collected."
+    },
     "kpi": {
-      "total": "Total events",
-      "totalHint": "stored in the database",
-      "last24h": "Last 24 hours",
-      "last24hHint": "newly collected",
-      "topCategory": "Top category",
-      "topCategoryHint": "{count, plural, one {# event} other {# events}}",
-      "noData": "no data yet",
-      "searches": "Your checks",
-      "searchesHint": "all time"
+      "title": "Key figures",
+      "help": "Compared with the previous period of the same length.",
+      "total": "Events",
+      "totalHelp": "All events matching the filters.",
+      "criticalHigh": "Critical and high",
+      "criticalHighHelp": "Events with critical or high severity.",
+      "ransomware": "Ransomware victims",
+      "ransomwareHelp": "Organisations listed on ransomware groups' leak sites.",
+      "countries": "Countries",
+      "countriesHelp": "How many Central Asian countries are mentioned in the events.",
+      "sources": "Sources",
+      "sourcesHelp": "Sources that reported at least one event in the period.",
+      "multiSource": "In several sources",
+      "multiSourceHelp": "Events reported by more than one source (duplicates merged).",
+      "noPrevious": "No data for the previous period",
+      "previousValue": "Previous period: {value}",
+      "change": "{pct}% vs previous period",
+      "metric": "Metric",
+      "value": "Value",
+      "previous": "Previous period"
     },
-    "daily": {
-      "title": "Daily events",
-      "subtitle": "Last {days} days, by event date, all sources",
-      "unit": "events",
-      "emptyTitle": "No events yet",
-      "emptyText": "The daily chart appears once the collectors save their first events."
+    "timeline": {
+      "title": "Events over time",
+      "help": "Stacked by category; zoom with the wheel or the slider below. The 7 most frequent categories are separate, the rest is “Other”."
     },
-    "view": {
-      "label": "View",
-      "chart": "Chart",
-      "table": "Table"
-    },
-    "table": {
-      "date": "Date",
-      "total": "Total"
+    "severityTrend": {
+      "title": "Severity trend",
+      "help": "Severity levels per period. Darker means more severe."
     },
     "categories": {
       "title": "Categories",
-      "subtitle": "All events in the database",
-      "emptyTitle": "No categories with data",
-      "emptyText": "Categories appear here when events are classified."
+      "help": "By topic. Click a row to filter.",
+      "column": "Category",
+      "empty": "No events in this period."
     },
-    "critical": {
-      "title": "Critical events",
-      "subtitle": "Latest ransomware and leaks",
-      "all": "All events",
-      "emptyTitle": "No critical events",
-      "emptyText": "Ransomware and leak events will be listed here when found.",
-      "external": "Opens the source in a new tab"
+    "countries": {
+      "title": "Countries",
+      "help": "Country mentioned in the event. One event can concern several countries.",
+      "column": "Country",
+      "empty": "No events with a detected country."
     },
     "sources": {
-      "title": "Most active sources",
-      "subtitle": "By number of events",
-      "emptyTitle": "No sources yet",
-      "emptyText": "Sources appear after the first events are collected."
+      "title": "Top sources",
+      "help": "The 10 sources with the most events.",
+      "column": "Source",
+      "empty": "No source reported events in this period."
     },
-    "modules": {
-      "title": "Check modules",
-      "myChecks": "Your checks",
-      "count": "{count, plural, one {# check} other {# checks}}"
+    "ransomware": {
+      "title": "Top ransomware groups",
+      "help": "By number of victims. Click to open the group's events.",
+      "column": "Group",
+      "empty": "No Central Asian victims were posted in this period."
+    },
+    "sectors": {
+      "title": "Targeted sectors",
+      "help": "Sector detected from the text (government, finance, healthcare, telecom, education).",
+      "column": "Sector",
+      "empty": "No events with a detected sector."
+    },
+    "heatmap": {
+      "title": "Day of week and hour",
+      "help": "When events appeared ({tz} time). Darker cells mean more events.",
+      "day": "Day"
+    },
+    "latest": {
+      "title": "Latest critical events",
+      "help": "The newest events with critical or high severity.",
+      "empty": "No critical or high-severity events in this period.",
+      "when": "When",
+      "severity": "Severity",
+      "event": "Event",
+      "source": "Source"
+    },
+    "health": {
+      "title": "Source health",
+      "help": "Current source status and fetch attempts in the last 24 hours.",
+      "status": "Status",
+      "summary": "{enabled} of {total} enabled · {runs} fetches in 24 h, {failed} failed"
+    },
+    "filters": {
+      "period": "Period",
+      "range": {
+        "24h": "Last 24 hours",
+        "7d": "Last 7 days",
+        "30d": "Last 30 days",
+        "90d": "Last 90 days",
+        "custom": "Custom"
+      },
+      "from": "From",
+      "to": "To",
+      "dim": {
+        "category": "Category",
+        "country": "Country",
+        "channel": "Channel",
+        "source": "Source",
+        "severity": "Severity"
+      },
+      "openInEvents": "Events with these filters",
+      "active": "Active filters",
+      "remove": "Remove filter",
+      "reset": "Reset all",
+      "hint": "Filters live in the link — bookmark or share the page.",
+      "eventsLink": "All events"
+    },
+    "customize": {
+      "button": "Customize",
+      "title": "Widgets",
+      "reset": "Default layout",
+      "hint": "Visibility and order are remembered in this browser.",
+      "up": "Move “{name}” up",
+      "down": "Move “{name}” down",
+      "allHidden": "All widgets are hidden — bring them back with “Customize”."
+    },
+    "widgets": {
+      "kpis": "Key figures",
+      "timeline": "Events over time",
+      "categories": "Categories",
+      "countries": "Countries",
+      "severity": "Severity trend",
+      "heatmap": "Day of week and hour",
+      "sources": "Top sources",
+      "ransomware": "Top ransomware groups",
+      "sectors": "Targeted sectors",
+      "latest": "Latest critical events",
+      "health": "Source health"
+    },
+    "sector": {
+      "government": "Government",
+      "finance": "Finance",
+      "healthcare": "Healthcare",
+      "telecom": "Telecom",
+      "education": "Education"
     }
   },
   "events": {

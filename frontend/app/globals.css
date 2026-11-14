@@ -24,15 +24,28 @@
   --warning: 180 83 9;
   --danger: 185 28 28;
   --info: 3 105 161;
-  /* Grafiklar (Bosqich 8 da tekshirilgan palitra bilan almashtiriladi) */
-  --chart-1: 37 99 235;
-  --chart-2: 234 88 12;
-  --chart-3: 22 163 74;
-  --chart-4: 147 51 234;
-  --chart-5: 202 138 4;
-  --chart-6: 8 145 178;
-  --chart-7: 219 39 119;
-  --chart-8: 100 116 139;
+  /* Grafiklar (dataviz validatori: CVD ΔE ≥ 8.4, normal ≥ 19.3; 3 rang <3:1 → jadval ko'rinishi majburiy) */
+  --chart-1: 42 120 214;
+  --chart-2: 235 104 52;
+  --chart-3: 27 175 122;
+  --chart-4: 237 161 0;
+  --chart-5: 232 123 164;
+  --chart-6: 0 131 0;
+  --chart-7: 98 80 214;
+  --chart-8: 227 73 72;
+  --chart-other: 154 163 178;
+  --seq-1: 205 226 251;
+  --seq-2: 158 197 244;
+  --seq-3: 109 167 236;
+  --seq-4: 57 135 229;
+  --seq-5: 37 106 191;
+  --seq-6: 24 79 149;
+  --seq-7: 13 54 107;
+  --sev-info: 134 182 239;
+  --sev-low: 85 152 231;
+  --sev-medium: 42 120 214;
+  --sev-high: 28 92 171;
+  --sev-critical: 16 66 129;
 }
 
 .dark {
@@ -53,14 +66,28 @@
   --warning: 251 191 36;
   --danger: 248 113 113;
   --info: 56 189 248;
-  --chart-1: 96 165 250;
-  --chart-2: 251 146 60;
-  --chart-3: 74 222 128;
-  --chart-4: 192 132 252;
-  --chart-5: 250 204 21;
-  --chart-6: 34 211 238;
-  --chart-7: 244 114 182;
-  --chart-8: 148 163 184;
+  /* Grafiklar — qorong'i sirt uchun alohida qadamlar (hammasi ≥ 3:1) */
+  --chart-1: 57 135 229;
+  --chart-2: 217 89 38;
+  --chart-3: 25 158 112;
+  --chart-4: 201 133 0;
+  --chart-5: 213 81 129;
+  --chart-6: 12 163 12;
+  --chart-7: 144 133 233;
+  --chart-8: 230 103 103;
+  --chart-other: 107 116 134;
+  --seq-1: 13 54 107;
+  --seq-2: 24 79 149;
+  --seq-3: 37 106 191;
+  --seq-4: 57 135 229;
+  --seq-5: 109 167 236;
+  --seq-6: 158 197 244;
+  --seq-7: 205 226 251;
+  --sev-info: 24 79 149;
+  --sev-low: 37 106 191;
+  --sev-medium: 57 135 229;
+  --sev-high: 109 167 236;
+  --sev-critical: 183 211 246;
 }
 
 @layer base {

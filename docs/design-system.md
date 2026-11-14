@@ -39,7 +39,17 @@ ikkala temada WCAG AA kontrast.
 **Manba holati**: ok=green, degraded=amber, down=red, blocked=purple, auth_missing=yellow, disabled/never_run=slate.
 Rang hech qachon yolg'iz ma'no tashimaydi — doim matn (va kerak bo'lsa ikon) bilan.
 
-Grafik ranglari — tokenlar orqali (`--chart-1..8`), tema almashganda grafik qayta chiziladi; bitta grafikda ≤ 8 rang.
+### Grafiklar (Apache ECharts — `components/charts/EChart.tsx`, `lib/chartTheme.ts`)
+- Bitta yupqa o'ram: `echarts` faqat kerakli modullar bilan (`lib/echarts.ts`, SVG renderer), dinamik import — alohida bo'lak.
+  Ranglar tokenlardan o'qiladi va tema almashganda grafik qayta chiziladi.
+- **Kategorial** `--chart-1..8` (tartib qat'iy — CVD xavfsizligi shu tartibda tekshirilgan) + `--chart-other` (kulrang
+  "Boshqa"). Dataviz validatori: light (sirt #fff) — CVD ΔE ≥ 9.1, normal ≥ 19.6; dark (sirt #121826) — CVD ≥ 8.4,
+  normal ≥ 19.3, hammasi ≥ 3:1. Light'da 3 rang < 3:1 — shuning uchun **har vidjetda jadval ko'rinishi** va legenda bor.
+- Bitta grafikda ≤ 8 rang: kategoriyalar uchun barqaror to'plam (tanlangan kategoriyalar yoki eng ko'p uchraydigan 7 tasi),
+  qolgani "Boshqa". Rang entity'ga bog'langan — filtr o'zgarsa qolganlari qayta bo'yalmaydi.
+- **Ketma-ket** (issiqlik xaritasi) `--seq-1..7` — bitta ko'k ton; **ordinal** jiddiylik `--sev-info..critical` — bitta ton,
+  to'qlik bilan (validator `--ordinal` o'tgan). Holat ranglari (success/warning/danger) seriya uchun ishlatilmaydi.
+- Ustun/top-N ro'yxatlari bitta rangda (uzunlik = qiymat, nom = yorliq). Tooltip, jadval, CSV — har vidjetda.
 
 ## Tema
 - `next-themes`: `attribute="class"`, standart `system`, sahifa yuklanishida "miltillash" yo'q.

@@ -77,6 +77,35 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 8: interaktiv statistika dashboard'i (2026-11-15)
+- **Backend** (`api/stats_v2.py`, commit f04c7ef da kiritilgan): hamma endpoint `/api/events` bilan bir xil filtrlar +
+  davr (`range` = 24h | 7d | 30d | 90d yoki `date_from`/`date_to` Toshkent kuni); oldingi davr — xuddi shu uzunlikdagi.
+  `GET /api/stats/kpis` (jami va o'zgarish %, kritik+yuqori, ransomware, davlatlar, manbalar, bir necha manbada),
+  `/timeseries` (`bucket` hour|day|week|month — `APP_TIMEZONE`=Asia/Tashkent bo'yicha; `group_by` category|country|source|
+  channel|severity; bo'sh bo'laklar 0; top-N + `__other__`, davlatsiz — `__none__`), `/breakdown` (category, country,
+  source, channel, severity, actor, sector), `/heatmap` (hafta kuni × soat), `/source-health`, `/latest` (≥ high,
+  `?lang=`). `0011_stats_indexes`: `coalesce(published, first_seen)`, severity, channel, (scope, vaqt).
+  Eski `/api/stats/overview` qoldi — faqat tarix sahifasidagi qidiruvlar soni uchun (tekshiruv modullariga tegilmadi).
+- **Frontend** (`/dashboard`): bitta filtr paneli (davr, kategoriya, davlat, kanal, manba, jiddiylik, qamrov) — URL'da;
+  faol filtr chiplari, "Hammasini tozalash", "Shu filtrlar bilan hodisalar" (Events'ga o'tish). Kesishma filtr: ustun,
+  qator, segment yoki legenda bosilsa filtr qo'shiladi. Vidjetlar: asosiy ko'rsatkichlar (oldingi davrga nisbatan),
+  vaqt bo'yicha (kategoriyalar bo'yicha yig'ilgan, zoom), kategoriyalar, davlatlar, jiddiylik trendi, hafta×soat issiqlik
+  xaritasi, eng faol manbalar, ransomware guruhlari, nishondagi sohalar, so'nggi muhim hodisalar, manbalar sog'lig'i.
+  Har vidjetda: tooltip, jadval ko'rinishi, CSV, yashirish; "Vidjetlarni sozlash" — ko'rsatish/yashirish va tartib
+  (localStorage'da). Har 60 s yangilanadi, yashirin tabda to'xtaydi. Bo'sh vidjet — halol bo'sh holat.
+- ECharts 6.1: `lib/echarts.ts` (Bar, Line, Heatmap + Grid/Tooltip/Legend/DataZoom/VisualMap/Aria, SVG), dinamik import —
+  ~700 KB alohida bo'lak, faqat dashboard'da; `/dashboard` birinchi yuklanish 136 kB. Palitra dataviz validatoridan o'tdi
+  (tafsilot: `docs/design-system.md` → Grafiklar); 8 rangdan ko'p emas (barqaror 7 kategoriya + "Boshqa").
+  Eski `ColumnChart`/`HBarList` olib tashlandi.
+- Tekshirildi: ✅ 7 stats testi (KPI va oldingi davr, top va "Other", davlat bo'yicha (bitta hodisa ikki davlatda) va
+  `__none__`, soatlik bo'laklar, **Toshkent kuni** (20:30 UTC → ertangi kun), breakdown actor/sector/limit, heatmap,
+  source-health, latest, 401); ✅ jonli API; ✅ brauzerda: light/en va dark/ru/uz — 11 vidjet haqiqiy ma'lumot bilan,
+  konsol xatosiz, kesishma filtr URL'ga yoziladi, jadval ko'rinishi (31 qator), yashirilgan vidjet qayta yuklashda
+  eslab qolinadi, 360px'da skrollsiz; ✅ `tsc`, production build; ✅ smoke matritsasi 108/108
+  (dashboard ham: light/dark × uz/ru/en × desktop/360px).
+- ⚠️ Cheklov: Events sahifasi sanalari kun aniqligida — dashboard'dan "24 soat" bilan o'tilganda Events kechagi sanadan
+  boshlab ko'rsatadi; vaqt grafigida zoom faqat ko'rinishni o'zgartiradi (filtrga aylanmaydi).
+
 ### v2 — Bosqich 7: admin bo'limi va Events sahifasi (2026-11-15)
 - **Backend**: `GET|PATCH /api/admin/users` (rol admin/analyst, faollik; oxirgi faol adminni pasaytirish/o'chirish — 409
   `last_admin`); `admin_alerts` jadvali (`0010_admin_alerts`) — manba `SOURCE_DOWN_ALERT_HOURS` (3) soatdan beri

@@ -206,7 +206,8 @@ async def timeseries(
     _: CurrentUser, db: DbSession, w: StatsWindow,
     bucket: Bucket | None = None,
     group_by: GroupBy | None = None,
-    top: int = Query(7, ge=1, le=7, description="Alohida seriyalar soni (qolgani 'Other'); grafikda ≤ 8 rang"),
+    top: int = Query(7, ge=1, le=50, description="Alohida seriyalar soni (qolgani 'Other'). Grafikda ≤ 8 rang — "
+                     "frontend barqaror to'plamga (≤ 7 + Other) qayta yig'adi"),
 ) -> TimeSeries:
     b = bucket or AUTO_BUCKET.get(w.range_key, "day")
     starts = _bucket_starts(w.start, w.end, b)
