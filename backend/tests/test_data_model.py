@@ -12,10 +12,10 @@ from sqlalchemy import func, select
 
 from app.models import Category, EventRecord, Source
 from app.services.events.geo import detect_countries
-from tests.conftest import ADMIN_DATABASE_URL, TEST_DATABASE_URL, _plain
+from tests.conftest import ADMIN_DATABASE_URL, TEST_DATABASE_URL, _plain, scratch_db_name
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH_NAME = "osint_datamodel_scratch"
+SCRATCH_NAME = scratch_db_name("osint_datamodel_scratch")
 SCRATCH = TEST_DATABASE_URL.rsplit("/", 1)[0] + f"/{SCRATCH_NAME}"
 
 
@@ -38,7 +38,7 @@ async def test_seed_categories_and_sources(db):
             "vulnerability", "ddos-outage", "defacement", "espionage", "law-enforcement", "advisory",
             "research", "other"} == set(slugs)
     n = await db.scalar(select(func.count(Source.id)))
-    assert n == 63
+    assert n == 63 + 15  # v1 FEEDS + Bosqich 3 (0007); testda TG_CHATS bo'sh — yagona Telegram manbasi
     rl = await db.scalar(select(Source).where(Source.name == "ransomware.live"))
     assert rl.kind == "ransomware_live" and rl.config["countries"] == ["UZ", "KZ", "KG", "TJ", "TM"]
     assert rl.interval_seconds == 900 and rl.status == "never_run"
@@ -128,3 +128,21 @@ async def test_events_api_exposes_v2_fields(client, analyst_headers, db):
     assert item["category"] == "vulnerability" and item["countries"] == ["UZ"]
     assert item["matched_keywords"] == ["zaiflik"] and item["severity"] == "medium"
     assert item["channel"] == "news" and item["is_baseline"] is False
+
+
+async def test_threat_intel_sources_seeded(db):
+    rows = {s.name: s for s in (await db.scalars(select(Source))).all()}
+    # kalit kerak, testda yo'q → o'chiq va auth_missing
+    for name in ("ransomware.live PRO", "abuse.ch URLhaus (CA)", "abuse.ch ThreatFox (CA)",
+                 "LevelBlue OTX pulses (Central Asia)", "Cloudflare Radar outages"):
+        assert not rows[name].enabled and rows[name].status == "auth_missing", name
+        assert rows[name].api_key_env
+    for name in ("RansomLook", "Have I Been Pwned (breaches API)", "CISA KEV", "OpenPhish community feed",
+                 "KG-CERT (KCOKB)", "Google News: KZ-CERT / STS"):
+        assert rows[name].enabled and rows[name].status == "never_run", name
+    assert rows["NVD critical CVEs"].status == "disabled" and not rows["NVD critical CVEs"].enabled
+    assert rows["Kazakhstan STS (sts.kz)"].status == "blocked" and not rows["Kazakhstan STS (sts.kz)"].enabled
+    assert rows["CISA KEV"].scope == "global"
+    hibp_rss = rows["Have I Been Pwned"]
+    assert not hibp_rss.enabled and hibp_rss.status == "disabled"
+    assert rows["UZCERT"].config["default_countries"] == ["UZ"]

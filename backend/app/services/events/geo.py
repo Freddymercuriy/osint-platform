@@ -20,3 +20,18 @@ def detect_countries(*texts: str | None) -> list[str]:
     if not flat:
         return []
     return [code for code, pats in _PATTERNS.items() if any(p.search(flat) for p in pats)]
+
+
+# Soha (sector) — sarlavha/matndagi so'z boshlanishlari bo'yicha (dedup._SECTORS bilan bir xil lug'at)
+SECTOR_NAMES = {"GOV": "government", "BANK": "finance", "HEALTH": "healthcare", "TELECOM": "telecom",
+                "EDU": "education"}
+
+
+def detect_sector(*texts: str | None) -> str | None:
+    from app.services.events.dedup import _SECTORS
+
+    words = re.findall(r"\w+", " ".join(t for t in texts if t).lower().replace("ё", "е"))
+    for code, prefixes in _SECTORS.items():
+        if any(w.startswith(p) for w in words for p in prefixes):
+            return SECTOR_NAMES[code]
+    return None

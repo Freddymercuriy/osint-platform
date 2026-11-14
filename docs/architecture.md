@@ -44,6 +44,35 @@ JSON fayl yoki `/report/{id}` chop etish sahifasi orqali PDF).
 qat'iy belgilangan ochiq xizmatlar (rdap.org, crt.sh, WHOIS serverlari); WHOIS/RDAP'dagi shaxsiy ma'lumotlar
 (registrant ismi, email, telefon, manzil) o'qilmaydi va saqlanmaydi.
 
+## Events: manbalar, yig'uvchi, hodisalar (v2)
+
+```
+sources (bazada, admin CRUD)          categories (15 ta, en/ru/uz)
+     │  har biri o'z jadvali                │
+     v                                      │
+scheduler (API jarayoni ichida, advisory lock, ≤8 parallel, xost navbati)
+     │  connectors/<kind>.py  →  RawItem[]
+     v
+filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror → also_reported_by)  →  events
+     │                                                                                                  │
+     └── source_runs (har urinish, 30 kun) + sources sog'liq maydonlari                                  └── 🔔, API, statistika
+```
+
+- **`sources`** — runtime'dagi yagona manbalar ro'yxati (`config` JSONB, til, qat'iy kategoriya, scope, filtrlar,
+  `translate`, interval/jitter/backfill, kalit o'zgaruvchisining NOMI, ETag/Last-Modified, `next_run_at`, kursor `state`,
+  sog'liq: status, oxirgi tekshiruv/muvaffaqiyat/xato/HTTP/kechikish, ketma-ket xatolar, elementlar soni).
+  Holatlar: `ok` · `degraded` · `down` · `blocked` · `auth_missing` · `disabled` · `never_run`.
+- **`services/events/scheduler.py`** — rejalashtiruvchi: `next_run_at = now + interval × random(1 ± jitter)`, xatoda
+  eksponensial backoff (≤ 6 soat, Retry-After / FloodWait), PostgreSQL advisory lock bilan yagona nusxa.
+- **`services/connectors/`** — ulagichlar, tur bo'yicha ro'yxatga olinadi (`@register`); yozish qoidalari:
+  [`docs/connectors.md`](connectors.md). `http.py` — xost navbati va pauzalar, shartli so'rov, holat kodlari, SSRF.
+- **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline
+  (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi.
+- Kalit so'zlar va regexlar kodda: `services/events/feeds.py` (hudud, mavzu, chet el belgilari), `dedup.py`, `geo.py`.
+- Admin API: `/api/admin/sources` (CRUD, test, run, runs, export/import), `/api/admin/collector`.
+- Rollar: `admin` (manbalar, kategoriyalar, yig'uvchi, Telegram) va `analyst`.
+- Sxema: Alembic (`backend/migrations/`), konteyner ishga tushganda `scripts/migrate.py` → `upgrade head`.
+
 ## Frontend (`frontend/`)
 
 - Next.js App Router

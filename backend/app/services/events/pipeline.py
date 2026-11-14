@@ -18,7 +18,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from urllib.parse import urlsplit
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -27,7 +27,7 @@ from app.models.category import SEVERITY_RANK
 from app.services.connectors.base import RawItem
 from app.services.connectors.google_news import GOOGLE_NEWS_TAG
 from app.services.events.dedup import TitleSig, same_story, signature
-from app.services.events.geo import detect_countries
+from app.services.events.geo import detect_countries, detect_sector
 
 log = logging.getLogger("osint.events")
 
@@ -153,6 +153,11 @@ async def store_items(
     async with _WRITE_LOCK:
         uids = {p.uid for p in prepared}
         existing = set((await db.scalars(select(EventRecord.uid).where(EventRecord.uid.in_(uids)))).all())
+        if existing and source.id is not None:
+            # Manbasi noma'lum eski yozuvlarni shu manbaga bog'laymiz (masalan v1 Telegram yozuvlari)
+            await db.execute(update(EventRecord).where(
+                EventRecord.uid.in_(existing), EventRecord.source_id.is_(None)
+            ).values(source_id=source.id))
         fresh = [p for p in prepared if p.uid not in existing]
         stats.known = len(prepared) - len(fresh)
         # bitta paketdagi bir xil uid
@@ -195,6 +200,8 @@ async def store_items(
                     stats.merged += 1
                     continue
             cat = cats.get(p.slug)
+            if it.sector:
+                it.sector = it.sector[:32]
             countries = it.countries or detect_countries(it.title, it.summary) or list(
                 source.config.get("default_countries") or []
             )
@@ -208,7 +215,7 @@ async def store_items(
                 lang=(it.lang or source.lang or "en")[:8], published=it.published,
                 channel=it.channel, scope=it.scope or source.scope,
                 severity=higher_severity(cat.severity if cat else "info", it.severity),
-                countries=countries[:5], sector=(it.sector or None) and it.sector[:32],
+                countries=countries[:5], sector=((it.sector or detect_sector(it.title, it.summary)) or None),
                 actor=(it.actor or None) and it.actor[:128], matched_keywords=it.matched_keywords[:12],
                 extra=extra, also_reported_by=[], is_baseline=baseline,
                 notified=baseline or p.old,

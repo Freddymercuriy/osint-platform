@@ -157,20 +157,47 @@ async def fetch_messages() -> list[TgMessage]:
     return out
 
 
-async def fetch_chat_messages(chat: str, limit: int) -> list[TgMessage]:
-    """Bitta kanal/guruhdan so'nggi xabarlar. `chat` — username yoki raqamli ID (-100...).
+# chat kaliti → (entity, ChatInfo). Dialoglar ro'yxati bir soatda bir marta olinadi (har chat uchun GetDialogs
+# chaqirilmasin — Telegram limitlari).
+_dialog_cache: dict[str, tuple[object, ChatInfo]] = {}
+_dialog_cache_at: float = 0.0
+_DIALOG_TTL = 3600
+
+
+async def _dialog_map(force: bool = False) -> dict[str, tuple[object, ChatInfo]]:
+    global _dialog_cache, _dialog_cache_at
+    import time
+
+    if not force and _dialog_cache and time.monotonic() - _dialog_cache_at < _DIALOG_TTL:
+        return _dialog_cache
+    client = await get_client()
+    out: dict[str, tuple[object, ChatInfo]] = {}
+    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
+        info = _chat_info(d)
+        if info is None:
+            continue
+        out[str(info.id)] = (d.entity, info)
+        if info.username:
+            out[info.username.lower()] = (d.entity, info)
+    _dialog_cache, _dialog_cache_at = out, time.monotonic()
+    return out
+
+
+async def fetch_chat_messages(chat: str, limit: int, min_id: int = 0) -> list[TgMessage]:
+    """Bitta kanal/guruhdan so'nggi xabarlar (`min_id` dan keyingilari). `chat` — username yoki ID (-100...).
 
     Faqat akkaunt a'zo bo'lgan chatlar (dialoglar ichidan) o'qiladi — begona chatga qo'shilish yo'q.
     """
+    key = chat.strip().lstrip("@").lower()
+    found = (await _dialog_map()).get(key)
+    if found is None:
+        found = (await _dialog_map(force=True)).get(key)
+    if found is None:
+        raise ValueError(f"Chat topilmadi yoki akkaunt a'zo emas: {chat}")
+    entity, info = found
     client = await get_client()
-    key = chat.strip().lstrip("@")
-    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
-        info = _chat_info(d)
-        if info is None or not chat_matches(info, [key]):
-            continue
-        out: list[TgMessage] = []
-        async for m in client.iter_messages(d.entity, limit=limit):
-            if m.message:
-                out.append(TgMessage(info, m.id, m.message, m.date))
-        return out
-    raise ValueError(f"Chat topilmadi yoki akkaunt a'zo emas: {chat}")
+    out: list[TgMessage] = []
+    async for m in client.iter_messages(entity, limit=limit, min_id=min_id):
+        if m.message:
+            out.append(TgMessage(info, m.id, m.message, m.date))
+    return out

@@ -35,9 +35,9 @@ for _k in list(os.environ):
 
 _parts = urlsplit(_base_url)
 _db_name = _parts.path.lstrip("/") or "osint"
-if not _db_name.endswith("_test"):
-    _db_name = f"{_db_name}_test"
-TEST_DB_NAME = _db_name
+# Har pytest jarayoni o'z bazasida (parallel ishga tushirilganda bir-birining bazasini o'chirmasin)
+RUN_ID = os.environ.get("OSINT_TEST_RUN_ID") or str(os.getpid())
+TEST_DB_NAME = f"{_db_name.removesuffix('_test')}_test_{RUN_ID}"
 TEST_DATABASE_URL = urlunsplit(_parts._replace(path=f"/{TEST_DB_NAME}"))
 ADMIN_DATABASE_URL = urlunsplit(_parts._replace(path="/postgres"))
 
@@ -91,11 +91,30 @@ async def _snapshot_seed() -> None:
         await conn.close()
 
 
+async def _drop_db() -> None:
+    import asyncpg
+
+    conn = await asyncpg.connect(_plain(ADMIN_DATABASE_URL))
+    try:
+        await conn.execute(f'DROP DATABASE IF EXISTS "{TEST_DB_NAME}" WITH (FORCE)')
+    finally:
+        await conn.close()
+
+
 @pytest.fixture(scope="session", autouse=True)
-def _database() -> None:
+def _database():
     asyncio.run(_recreate_db())
     run_migrations()
     asyncio.run(_snapshot_seed())
+    yield
+    from app.core.db import engine
+
+    asyncio.run(engine.dispose())
+    asyncio.run(_drop_db())
+
+
+def scratch_db_name(prefix: str) -> str:
+    return f"{prefix}_{RUN_ID}"
 
 
 # ---------------------------------------------------------------- per-test

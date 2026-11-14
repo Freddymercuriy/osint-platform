@@ -64,6 +64,14 @@ class Settings(BaseSettings):
     # "2026-11-14" (kun boshi, Toshkent vaqti UTC+5) yoki to'liq ISO vaqt. Bo'sh = chegara yo'q.
     events_since: str = ""
 
+    # Tashqi manbalar kalitlari (bo'sh — manba `auth_missing` holatida o'chiq turadi). Manba yozuvida faqat
+    # o'zgaruvchi NOMI saqlanadi (`sources.api_key_env`), qiymat — shu yerda / muhitda.
+    ransomware_live_api_key: str | None = None
+    abusech_auth_key: str | None = None
+    otx_api_key: str | None = None
+    nvd_api_key: str | None = None
+    cloudflare_api_token: str | None = None
+
     @property
     def is_development(self) -> bool:
         return self.environment.lower() in ("development", "dev", "local", "test")

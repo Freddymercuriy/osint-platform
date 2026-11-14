@@ -56,6 +56,10 @@ def _resolve(host: str) -> list[str]:
 # Testlar almashtiradi (tarmoqsiz)
 RESOLVER = _resolve
 
+# Muvaffaqiyatli DNS javoblari qisqa muddat keshlanadi (har so'rovda qayta resolve qilinmasin)
+DNS_TTL = 300.0
+_dns_cache: dict[str, tuple[list[str], float]] = {}
+
 
 def _is_public(ip: str) -> bool:
     addr = ipaddress.ip_address(ip.split("%", 1)[0])
@@ -73,10 +77,16 @@ async def assert_public_url(url: str) -> None:
     if parts.scheme not in ("http", "https") or not parts.hostname:
         raise BlockedAddress(f"Faqat http(s) URL ruxsat etilgan: {url[:120]}")
     host = parts.hostname
-    try:
-        ips = [host] if _is_ip(host) else await asyncio.to_thread(RESOLVER, host)
-    except OSError as exc:
-        raise ConnectorError(f"DNS: {host} topilmadi ({exc})") from exc
+    cached = _dns_cache.get(host)
+    if cached and cached[1] > time.monotonic():
+        ips = cached[0]
+    else:
+        try:
+            ips = [host] if _is_ip(host) else await asyncio.to_thread(RESOLVER, host)
+        except OSError as exc:
+            raise ConnectorError(f"DNS: {host} topilmadi ({exc})") from exc
+        if ips:
+            _dns_cache[host] = (ips, time.monotonic() + DNS_TTL)
     if not ips:
         raise ConnectorError(f"DNS: {host} topilmadi")
     bad = [ip for ip in ips if not _is_public(ip)]
@@ -113,6 +123,7 @@ def _gate(host: str) -> _HostGate:
 
 def reset_gates() -> None:
     _gates.clear()
+    _dns_cache.clear()
 
 
 # ---------------------------------------------------------------- yordamchilar

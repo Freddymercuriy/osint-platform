@@ -8,10 +8,11 @@ from pathlib import Path
 
 import asyncpg
 
-from tests.conftest import ADMIN_DATABASE_URL, TEST_DATABASE_URL, _plain
+from tests.conftest import ADMIN_DATABASE_URL, TEST_DATABASE_URL, _plain, scratch_db_name
 
 ROOT = Path(__file__).resolve().parent.parent
-SCRATCH = TEST_DATABASE_URL.rsplit("/", 1)[0] + "/osint_migration_scratch"
+SCRATCH_NAME = scratch_db_name("osint_migration_scratch")
+SCRATCH = TEST_DATABASE_URL.rsplit("/", 1)[0] + f"/{SCRATCH_NAME}"
 
 
 async def _admin(sql: str) -> None:
@@ -38,8 +39,8 @@ def _migrate(*args: str) -> None:
 
 
 def test_migrations_up_down_up():
-    asyncio.run(_admin('DROP DATABASE IF EXISTS "osint_migration_scratch" WITH (FORCE)'))
-    asyncio.run(_admin('CREATE DATABASE "osint_migration_scratch"'))
+    asyncio.run(_admin(f'DROP DATABASE IF EXISTS "{SCRATCH_NAME}" WITH (FORCE)'))
+    asyncio.run(_admin(f'CREATE DATABASE "{SCRATCH_NAME}"'))
     try:
         _migrate()
         assert {"users", "events", "alembic_version"} <= asyncio.run(_tables(SCRATCH))
@@ -48,4 +49,4 @@ def test_migrations_up_down_up():
         _migrate()
         assert "users" in asyncio.run(_tables(SCRATCH))
     finally:
-        asyncio.run(_admin('DROP DATABASE IF EXISTS "osint_migration_scratch" WITH (FORCE)'))
+        asyncio.run(_admin(f'DROP DATABASE IF EXISTS "{SCRATCH_NAME}" WITH (FORCE)'))

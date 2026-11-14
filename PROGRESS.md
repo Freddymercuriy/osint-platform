@@ -77,6 +77,44 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 3: manbalar (2026-11-14)
+- **Telegram** (`0006_telegram_sources`): `TG_CHATS ∪ TG_LEAK_CHATS` dagi har chat — alohida manba `Telegram: <kalit>`
+  (22 ta), `config.chat`, kursor `state.last_id` (faqat yangi xabarlar), leak chatlar — qat'iy kategoriya `leak`.
+  `translate`: ochiq kanal (username) yoqiq, raqamli ID (yopiq chat) o'chiq. Dialoglar ro'yxati soatiga bir marta
+  olinadi (har chat uchun GetDialogs chaqirilmaydi). Yagona "Telegram (akkaunt)" o'chirildi; eski TG yozuvlari
+  per-chat manba o'sha xabarni qayta ko'rganda avtomatik bog'lanadi. ⚠️ Sessiya bekor qilingani sabab hammasi `auth_missing`.
+- **Yangi ulagichlar** (5 ta subagent parallel yozdi, men birlashtirdim; har biri joriy hujjat bo'yicha tekshirilgan):
+
+  | Manba (kind) | Kalit | Holat | Izoh |
+  |---|---|---|---|
+  | ransomware.live PRO (`ransomware_live_pro`) | `RANSOMWARE_LIVE_API_KEY` | auth_missing | `/victims/?country&year&month`, `X-API-KEY`, 60/daq; v2 zaxira sifatida yoqiq, takrorlar `dedup_key` bilan birlashadi |
+  | RansomLook (`ransomlook`) | — | ✅ ok | `/api/recent/100`, davlat maydoni yo'q → sarlavhadagi domen / matn |
+  | HIBP breaches (`hibp_breaches`) | — | ✅ ok (3 yangi) | `/api/v3/breaches`, HIBP RSS o'rniga (RSS o'chirildi); domen/matnga qarab regional/global |
+  | CISA KEV (`cisa_kev`) | — | ✅ ok (8 yangi) | `cisagov/kev-data` (develop), ETag/304, scope global |
+  | NVD critical CVEs (`nvd_cves`) | `NVD_API_KEY` (ixtiyoriy) | disabled (shovqinli) | 2.0 API, CRITICAL, ≤120 kun oyna, kalitsiz 6 s pauza |
+  | URLhaus, ThreatFox (`urlhaus`, `threatfox`) | `ABUSECH_AUTH_KEY` | auth_missing | faqat .uz .kz .kg .tj .tm; defang; havola — abuse.ch hisobot sahifasi |
+  | OpenPhish (`openphish`) | — | ✅ ok (0 mos) | mintaqa domeni yoki `config.brands` (aniq brendlar ro'yxati); query string saqlanmaydi; havola — urlscan.io domen sahifasi |
+  | LevelBlue OTX (`otx_pulses`) | `OTX_API_KEY` | auth_missing | `pulses/subscribed`, `modified_since` kursor, TLP red/amber tashlanadi |
+  | Cloudflare Radar (`cloudflare_radar`) | `CLOUDFLARE_API_TOKEN` | auth_missing | `radar/annotations/outages` davlat bo'yicha |
+  | KG-CERT (`html_list`) | — | degraded (eng yangisi 2025-11) | RSS yo'q — server-rendered yangiliklar sahifasi, umumiy `html_list` ulagichi |
+  | CERT.TJ (rss) | — | disabled | lentada faqat WordPress namunasi |
+  | sts.kz, kz-cert.kz | — | **blocked** | Firewall CAPTCHA / 403 — chetlab o'tilmaydi; "Google News: KZ-CERT / STS" ikkilamchi manbasi |
+
+  UZCERT — `default_countries: ["UZ"]`. cert.gov.kz — JS ilova, ochiq lenta yo'q; uning hujjatlanmagan ichki JSON
+  endpoint'i ataylab ishlatilmadi. Turkmaniston — ochiq CERT sayti topilmadi (cert.gov.tm/cert.tm DNS yo'q).
+- `docs/connectors.md` — ulagich yozish shartnomasi (qoidalar, `RawItem`, `extra.template`: ransomware_victim, cve,
+  breach, indicator, outage). Yangi tur = bitta fayl + `connectors/__init__.py` importi.
+- Pipeline: `config.default_countries` (matnda davlat topilmasa), `sector` — `geo.detect_sector()` (davlat, moliya,
+  sog'liqni saqlash, telekom, ta'lim). SSRF tekshiruvidagi DNS javoblari 5 daqiqa keshlanadi.
+- Testlar parallel ishlay oladi: har pytest jarayoni o'z bazasida (`<db>_test_<pid>`, oxirida o'chiriladi).
+- Tekshirildi: ✅ 126 pytest (har ulagich: yozib olingan haqiqiy javob — UZCERT, Google News, ransomware.live, RansomLook,
+  HIBP, KEV, NVD, OpenPhish, KG-CERT sahifasi; kalitli API'lar — hujjatdagi namuna shaklida; mintaqa filtri, kursor,
+  304, 401/403, defang, query string olib tashlanishi, dedup_key mosligi; per-chat seed va downgrade; Telegram kursori);
+  ✅ jonli: 0006–0007 qo'llandi (`~/osint-backups/osint-pre-phase3-*.sql`), kalitsiz yangi manbalar "hozir yig'ish" bilan:
+  RansomLook, HIBP (3), KEV (8), OpenPhish, KG-CERT, Google News KZ-CERT — hammasi 200; baseline yozuvlar ogohlantirmadi.
+- ⚠️ Tekshirilmadi: kalitli manbalar jonli (PRO, URLhaus, ThreatFox, OTX, Radar — kalit yo'q); OTX `targeted_countries`
+  formati va tartibi; ransomware.live PRO `/victims/` qator chegarasi; Telegram per-chat jonli (sessiya bekor).
+
 ### v2 — Bosqich 2: yig'uvchi dvigatel (2026-11-14)
 - `services/events/scheduler.py` — bitta 300 s tsikl o'rniga **har manba o'z jadvali**: `next_run_at = now + interval ×
   random(1 ± jitter)`; rejasiz manbalar ishga tushganda bir interval ichida tasodifiy taqsimlanadi; tsikl har 15–30 s,

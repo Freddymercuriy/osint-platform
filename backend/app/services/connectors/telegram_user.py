@@ -74,9 +74,10 @@ class TelegramUserConnector(Connector):
         if not tg.is_configured():
             raise AuthMissing("TG_API_ID / TG_API_HASH sozlanmagan")
         chat = (ctx.source.config.get("chat") or "").strip()
+        last_id = 0 if ctx.dry_run else int((ctx.source.state or {}).get("last_id") or 0)
         try:
             if chat:
-                messages = await tg.fetch_chat_messages(chat, settings.tg_messages_per_chat)
+                messages = await tg.fetch_chat_messages(chat, settings.tg_messages_per_chat, min_id=last_id)
             else:
                 messages = await tg.fetch_messages()
         except tg.TelegramNotConfigured as exc:
@@ -85,5 +86,10 @@ class TelegramUserConnector(Connector):
             raise RateLimited(f"Telegram FloodWait {exc.seconds} s", retry_after=float(exc.seconds)) from exc
         except (ValueError, errors.RPCError) as exc:
             raise ConnectorError(f"Telegram: {type(exc).__name__}: {exc}") from exc
-        items = messages_to_items(messages, settings.tg_leak_chats_list, keyword_patterns())
-        return FetchResult(items, None)
+        # Bitta chat manbasida "leak" kategoriyasi manbaning o'zida (sources.category_id)
+        leak_keys = [] if chat else settings.tg_leak_chats_list
+        items = messages_to_items(messages, leak_keys, keyword_patterns())
+        state = None
+        if chat and messages and not ctx.dry_run:
+            state = {**(ctx.source.state or {}), "last_id": max(m.msg_id for m in messages)}
+        return FetchResult(items, None, state=state)
