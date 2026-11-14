@@ -322,7 +322,7 @@ export function RouteProgress() {
 /** Fon ortidagi sekin suzib yuruvchi rangli nur dog'lari (butun ilova uchun). */
 export function Aurora() {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden print:hidden">
       <div className="aurora-blob left-[-10%] top-[-15%] h-[42rem] w-[42rem] text-cyan-500/[0.16] [animation-duration:26s]" />
       <div className="aurora-blob right-[-12%] top-[5%] h-[38rem] w-[38rem] text-violet-600/[0.20] [animation-delay:-8s] [animation-duration:32s]" />
       <div className="aurora-blob bottom-[-20%] left-[30%] h-[36rem] w-[36rem] text-fuchsia-600/[0.11] [animation-delay:-15s] [animation-duration:38s]" />

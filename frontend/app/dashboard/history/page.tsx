@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import ExportButtons from "@/components/ExportButtons";
 import { AnimatePresence, EASE, SPRING, motion } from "@/components/motion";
 import {
   Badge,
@@ -238,6 +239,8 @@ function JobRow({
                 <span className="hidden sm:inline">Qayta</span>
               </Link>
 
+              <ExportButtons jobId={job.id} onError={setError} />
+
               <button
                 type="button"
                 onClick={remove}
@@ -452,7 +455,7 @@ export default function HistoryPage() {
         tone="violet"
         eyebrow="Tekshiruv"
         title="Qidiruv tarixi"
-        subtitle="Bajarilgan barcha tekshiruvlar: natijalarni qayta ko'ring, qayta qidiring yoki o'chiring."
+        subtitle="Bajarilgan barcha tekshiruvlar: natijalarni qayta ko'ring, hisobot (JSON / PDF) oling, qayta qidiring yoki o'chiring."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {clearArm.armed && (

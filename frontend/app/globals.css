@@ -170,3 +170,26 @@
   .animate-dash-flow { stroke-dasharray: 4 8; animation: dash-flow 1.2s linear infinite; }
   .caret::after { content: "▍"; margin-left: 2px; color: #22d3ee; animation: blink 1s steps(1) infinite; }
 }
+
+/* ================================================================ Chop etish (hisobot → PDF) */
+@media print {
+  :root { color-scheme: light; }
+  html,
+  body {
+    background: #fff !important;
+    background-image: none !important;
+  }
+  /* fon ranglari (holat nishonlari, jadval sarlavhasi) qog'ozda ham chiqsin */
+  .report-sheet,
+  .report-sheet * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .report-sheet tr,
+  .report-sheet .avoid-break { break-inside: avoid; }
+  .report-sheet thead { display: table-header-group; }
+}
+@page {
+  size: A4;
+  margin: 14mm 12mm;
+}

@@ -237,6 +237,20 @@ function StatusStrip({
                   <Database className="h-3.5 w-3.5 text-slate-500" />
                   bazada <span className="font-mono tabular-nums text-slate-200">{fmt(cs.total_events)}</span> ta
                 </span>
+                {cs.retention_days > 0 && (
+                  <span
+                    className="flex items-center gap-1.5 text-slate-400"
+                    title={
+                      `${cs.retention_days} kundan eski hodisalar avtomatik o'chiriladi.` +
+                      (cs.retention_keep.length
+                        ? ` Doim saqlanadi: ${cs.retention_keep.map((k) => categoryMeta(k).label).join(", ")}.`
+                        : "")
+                    }
+                  >
+                    <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
+                    saqlash <span className="font-mono tabular-nums text-slate-200">{cs.retention_days}</span> kun
+                  </span>
+                )}
                 {cs.last_new > 0 && (
                   <span className="flex items-center gap-1.5 text-emerald-300">
                     <Sparkles className="h-3.5 w-3.5" />

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui";
 import { getHistory, type CollectResult, type SearchJob, type SearchResponse } from "@/lib/api";
 import type { Tone } from "@/lib/categories";
+import ExportButtons from "@/components/ExportButtons";
 import { AnimatePresence, EASE, SPRING, motion } from "@/components/motion";
 import { cn } from "@/lib/cn";
 
@@ -279,6 +280,7 @@ export default function SearchModule({
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<SearchResponse | null>(null);
   const [filter, setFilter] = useState<Filter>("all");
+  const [exportError, setExportError] = useState<string | null>(null);
   const [history, setHistory] = useState<SearchJob[] | null>(null);
   const [historyError, setHistoryError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -310,6 +312,7 @@ export default function SearchModule({
       setError(null);
       setData(null);
       setFilter("all");
+      setExportError(null);
       setRunning(q);
       try {
         setData(await search(q));
@@ -474,6 +477,15 @@ export default function SearchModule({
                     transition={{ duration: 1.1, ease: EASE, delay: 0.2 }}
                   />
                 </div>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
+                  <span className="text-xs text-slate-500">Hisobotni eksport qilish</span>
+                  <ExportButtons jobId={data.job_id} labels="always" onError={setExportError} />
+                </div>
+                {exportError && (
+                  <div className="mt-3">
+                    <ErrorBanner message={exportError} />
+                  </div>
+                )}
               </Card>
 
               {/* Filtrlar */}

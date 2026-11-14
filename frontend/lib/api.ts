@@ -147,6 +147,22 @@ export async function getJob(id: number): Promise<SearchResponse> {
   return handle<SearchResponse>(res);
 }
 
+/** Eksport qilinadigan hisobot (backend: `JobReport`). */
+export type JobReport = {
+  report: { platform: string; format_version: number; generated_at: string; notice: string };
+  job: { id: number; kind: string; query: string; status: string; created_at: string };
+  summary: { checked: number; found: number; not_found: number; error: number };
+  results: CollectResult[];
+};
+
+/** Bitta qidiruvning hisoboti (JSON eksport va chop etish sahifasi uchun). */
+export async function getJobReport(id: number): Promise<JobReport> {
+  const res = await fetch(`${API_URL}/api/search/jobs/${id}/export`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<JobReport>(res);
+}
+
 export async function deleteJob(id: number): Promise<void> {
   const res = await fetch(`${API_URL}/api/search/jobs/${id}`, {
     method: "DELETE",
@@ -211,6 +227,12 @@ export type CollectorStatus = {
   notify_telegram: boolean;
   notify_categories: string[];
   notified_total: number;
+  /** 0 = eski hodisalar o'chirilmaydi */
+  retention_days: number;
+  /** muddatidan qat'i nazar saqlanadigan kategoriyalar */
+  retention_keep: string[];
+  last_purged: number;
+  purged_total: number;
 };
 
 // --- Saytdagi ogohlantirishlar (🔔) ---

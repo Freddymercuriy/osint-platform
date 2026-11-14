@@ -44,10 +44,18 @@ class Settings(BaseSettings):
     # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi.
     notify_telegram: bool = False
     notify_categories: str = "leak,ransomware"
+    # Retention: shu kundan eski hodisalar bazadan o'chiriladi (0 = o'chirilmaydi).
+    # events_retention_keep dagi kategoriyalar hech qachon o'chirilmaydi (kam uchraydigan, muhim hodisalar).
+    events_retention_days: int = 90
+    events_retention_keep: str = "ransomware,leak"
 
     @property
     def notify_categories_list(self) -> list[str]:
         return [c.strip() for c in self.notify_categories.split(",") if c.strip()]
+
+    @property
+    def events_retention_keep_list(self) -> list[str]:
+        return [c.strip() for c in self.events_retention_keep.split(",") if c.strip()]
 
     @staticmethod
     def _split_chats(value: str) -> list[str]:

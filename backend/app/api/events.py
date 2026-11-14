@@ -55,6 +55,10 @@ class CollectorStatus(BaseModel):
     notify_telegram: bool
     notify_categories: list[str]
     notified_total: int
+    retention_days: int  # 0 = eski hodisalar o'chirilmaydi
+    retention_keep: list[str]  # muddatidan qat'i nazar saqlanadigan kategoriyalar
+    last_purged: int
+    purged_total: int
 
 
 @router.get("/status", response_model=CollectorStatus)
@@ -78,6 +82,10 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
         notify_telegram=settings.notify_telegram,
         notify_categories=settings.notify_categories_list,
         notified_total=s.notified_total,
+        retention_days=max(0, settings.events_retention_days),
+        retention_keep=settings.events_retention_keep_list,
+        last_purged=s.last_purged,
+        purged_total=s.purged_total,
     )
 
 

@@ -55,8 +55,13 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Qidiruv tarixi sahifasi (`/dashboard/history`): filtr, qidiruv, natijalarni ko'rish, o'chirish
 - ✅ Tarix API: `kind`/`q`/`limit`/`offset`, `DELETE /jobs/{id}`, `DELETE /history`
 
+## Bosqich 11 — Hisobot eksporti va retention ✅
+- ✅ `GET /api/search/jobs/{id}/export` (JSON hisobot)
+- ✅ JSON yuklash + chop etish sahifasi `/report/[id]` (brauzerda PDF sifatida saqlash)
+- ✅ Eksport tugmalari: tarix sahifasi va qidiruv natijasi
+- ✅ Events retention (`EVENTS_RETENTION_DAYS`, `EVENTS_RETENTION_KEEP`); sahifalash ("Ko'proq yuklash")
+
 ## Keyingi — Kengaytirish
-- ⬜ Hisobot (report) eksporti (PDF/JSON)
-- ⬜ Events sahifalash, eski hodisalarni tozalash (retention)
 - ⬜ Rate limiting, natijalarni keshlash
+- ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
 - ⬜ Testlar (pytest), Alembic migratsiyalar

@@ -37,7 +37,8 @@ class BaseCollector:
 Bu yangi modul qo'shishni oson qiladi — faqat yangi collector yozib, ro'yxatga qo'shiladi.
 
 Mavjud collectorlar: `username`, `email`, `phone`, `domain` (domen yoki IP). Har biri `POST /api/search/<kind>` orqali
-chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, `GET|DELETE /api/search/jobs/{id}`).
+chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, `GET|DELETE /api/search/jobs/{id}`; hisobot: `GET /api/search/jobs/{id}/export` →
+JSON fayl yoki `/report/{id}` chop etish sahifasi orqali PDF).
 
 `DomainCollector` qoidalari: foydalanuvchi kiritgan host'ga to'g'ridan-to'g'ri ulanmaydi (SSRF) — faqat DNS so'rovlari va
 qat'iy belgilangan ochiq xizmatlar (rdap.org, crt.sh, WHOIS serverlari); WHOIS/RDAP'dagi shaxsiy ma'lumotlar

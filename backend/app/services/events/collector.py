@@ -6,6 +6,11 @@ Telegram "Saved Messages" chatiga xabar yuboradi.
 
 Birinchi ishga tushishda (jadval bo'sh) eski hodisalar uchun ogohlantirish yuborilmaydi —
 faqat "monitoring boshlandi" xabari.
+
+Retention: `events_retention_days` dan eski hodisalar har yig'ishdan keyin o'chiriladi
+(`events_retention_keep` kategoriyalaridan tashqari). Manbalar eski yozuvlarni qayta-qayta
+qaytarishi mumkin, shuning uchun muddati o'tgan element bazaga umuman yozilmaydi — aks holda
+u har tsiklda "yangi" bo'lib qayta paydo bo'lardi.
 """
 
 from __future__ import annotations
@@ -14,9 +19,9 @@ import asyncio
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal
@@ -35,6 +40,8 @@ class CollectorState:
     last_error: str | None = None
     runs: int = 0
     notified_total: int = 0
+    last_purged: int = 0
+    purged_total: int = 0
     _task: asyncio.Task | None = field(default=None, repr=False)
     _lock: asyncio.Lock = field(default_factory=asyncio.Lock, repr=False)
 
@@ -45,6 +52,37 @@ state = CollectorState()
 def _uid(item: EventItem) -> str:
     raw = f"{item.category}|{item.source}|{item.title}|{item.url}"
     return hashlib.sha256(raw.encode("utf-8")).hexdigest()
+
+
+def retention_cutoff(now: datetime | None = None) -> datetime | None:
+    """Shu vaqtdan eski hodisalar saqlanmaydi. Retention o'chiq bo'lsa — None."""
+    days = settings.events_retention_days
+    if days <= 0:
+        return None
+    return (now or datetime.now(UTC)) - timedelta(days=days)
+
+
+def is_expired(category: str, when: datetime | None, cutoff: datetime | None) -> bool:
+    """Hodisa retention muddatidan o'tganmi (saqlanadigan kategoriyalar hech qachon o'tmaydi)."""
+    if cutoff is None or when is None or category in settings.events_retention_keep_list:
+        return False
+    if when.tzinfo is None:
+        when = when.replace(tzinfo=UTC)
+    return when < cutoff
+
+
+async def _purge_expired(db, cutoff: datetime | None) -> int:
+    if cutoff is None:
+        return 0
+    stmt = delete(EventRecord).where(
+        func.coalesce(EventRecord.published, EventRecord.first_seen) < cutoff
+    )
+    keep = settings.events_retention_keep_list
+    if keep:
+        stmt = stmt.where(EventRecord.category.notin_(keep))
+    result = await db.execute(stmt)
+    await db.commit()
+    return result.rowcount or 0
 
 
 def _format_alert(records: list[EventRecord]) -> str:
@@ -81,7 +119,11 @@ async def run_once() -> int:
     async with state._lock:  # parallel ishga tushishning oldini olish
         started = datetime.now(UTC)
         try:
-            items = await collect_all(force=True)
+            cutoff = retention_cutoff(started)
+            items = [
+                i for i in await collect_all(force=True)
+                if not is_expired(i.category, i.published, cutoff)
+            ]
             async with AsyncSessionLocal() as db:
                 is_bootstrap = (await db.scalar(select(func.count(EventRecord.id)))) == 0
 
@@ -122,6 +164,12 @@ async def run_once() -> int:
                             r.notified = True
                         await db.commit()
                         state.notified_total += len(to_notify)
+
+                purged = await _purge_expired(db, cutoff)
+                state.last_purged = purged
+                state.purged_total += purged
+                if purged:
+                    log.info("Retention: %d ta eski hodisa o'chirildi (< %s)", purged, cutoff.date())
 
             state.last_new = len(new_records)
             state.last_error = None

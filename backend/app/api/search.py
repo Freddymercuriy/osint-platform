@@ -1,10 +1,22 @@
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, HTTPException, Query, Response, status
 from sqlalchemy import delete, select
 
 from app.api.deps import CurrentUser, DbSession
+from app.core.config import settings
 from app.models import Result, SearchJob
 from app.models.user import User
-from app.schemas import CollectResultOut, SearchJobOut, SearchRequest, SearchResponse
+from app.schemas import (
+    CollectResultOut,
+    JobReport,
+    ReportJob,
+    ReportMeta,
+    ReportSummary,
+    SearchJobOut,
+    SearchRequest,
+    SearchResponse,
+)
 from app.services.collectors.base import BaseCollector
 from app.services.collectors.domain import DomainCollector
 from app.services.collectors.email import EmailCollector
@@ -137,6 +149,42 @@ async def _own_job(job_id: int, user: User, db: DbSession) -> SearchJob:
 async def job_detail(job_id: int, current_user: CurrentUser, db: DbSession) -> SearchResponse:
     job = await _own_job(job_id, current_user, db)
     return _response_from_job(job, job.results)
+
+
+_STATUS_ORDER = {"found": 0, "error": 1, "not_found": 2}
+_REPORT_NOTICE = (
+    "Hisobot faqat ochiq (public) manbalardan olingan ma'lumotlar asosida tuzilgan. "
+    "Natijalar tekshiruv bajarilgan vaqtdagi holatni aks ettiradi."
+)
+
+
+@router.get("/jobs/{job_id}/export", response_model=JobReport)
+async def export_job(
+    job_id: int, response: Response, current_user: CurrentUser, db: DbSession
+) -> JobReport:
+    """Qidiruv hisoboti (JSON). Brauzerda ochilsa fayl sifatida yuklanadi."""
+    job = await _own_job(job_id, current_user, db)
+    results = sorted(job.results, key=lambda r: (_STATUS_ORDER.get(r.status, 3), r.source.lower()))
+    by_status = {"found": 0, "not_found": 0, "error": 0}
+    for r in results:
+        # noma'lum holatlar UI'dagi kabi "noaniq" (error) hisoblanadi
+        by_status[r.status if r.status in by_status else "error"] += 1
+
+    response.headers["Content-Disposition"] = (
+        f'attachment; filename="osint-hisobot-{job.kind}-{job.id}.json"'
+    )
+    return JobReport(
+        report=ReportMeta(
+            platform=settings.app_name,
+            generated_at=datetime.now(UTC),
+            notice=_REPORT_NOTICE,
+        ),
+        job=ReportJob(
+            id=job.id, kind=job.kind, query=job.query, status=job.status, created_at=job.created_at
+        ),
+        summary=ReportSummary(checked=len(results), **by_status),
+        results=[CollectResultOut.model_validate(r) for r in results],
+    )
 
 
 @router.delete("/jobs/{job_id}", status_code=status.HTTP_204_NO_CONTENT)

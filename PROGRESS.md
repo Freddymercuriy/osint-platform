@@ -4,7 +4,7 @@
 
 ## Hozirgi holat
 
-**Bosqich:** 10 — Domen / IP / WHOIS moduli va Qidiruv tarixi sahifasi qo'shildi; Bosqich 9 (motion design) tekshiruvlari yopildi
+**Bosqich:** 11 — Hisobot eksporti (JSON / PDF) va Events retention qo'shildi (undan oldin: Bosqich 10 — Domen / IP / WHOIS, Qidiruv tarixi)
 **Oxirgi yangilanish:** 2026-11-14
 
 ## ▶️ DAVOM ETISH UCHUN
@@ -32,6 +32,34 @@ docker-compose build backend && docker-compose up -d        # yoki: docker compo
 cd frontend && npm install && cp .env.example .env.local && npm run dev   # http://localhost:3000
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### 2026-11-14, 2-sessiya (Bosqich 11: hisobot eksporti + Events retention)
+- **Hisobot eksporti** — tarix sahifasidagi har qatorda va qidiruv natijasi kartasida `JSON` / `PDF` tugmalari
+  (`components/ExportButtons.tsx`):
+  - API: `GET /api/search/jobs/{id}/export` → `JobReport` (`report` meta, `job`, `summary` {checked/found/not_found/error},
+    `results` — holat bo'yicha saralangan). `Content-Disposition: attachment`. Faqat o'z yozuvi (begona/yo'q → 404, tokensiz → 401).
+  - JSON: `lib/report.ts` `downloadReportJson()` — fayl nomi `osint-hisobot-<modul>-<so'rov>-<id>.json`.
+  - PDF: alohida sahifa **`/report/[id]`** (dashboard qobig'idan tashqarida, oq "qog'oz" varaq) → «Chop etish / PDF» tugmasi
+    `window.print()`; brauzerda «PDF sifatida saqlash». `globals.css` da `@media print` + `@page A4`; asboblar paneli va Aurora
+    foni chop etishda yashiriladi; `document.title` = fayl nomi (PDF shu nom bilan saqlanadi).
+    PDF kutubxonasi (jsPDF/reportlab) ataylab ishlatilmadi: qo'shimcha paket yo'q, kirill/o'zbek harflari muammosiz.
+  - Tor ekranda hisobot jadvalida "Holat" ustuni yashirinib, nishon manba nomi ostiga tushadi.
+- **Events retention** — `EVENTS_RETENTION_DAYS=90` (0 = o'chiq), `EVENTS_RETENTION_KEEP=ransomware,leak`:
+  - har yig'ishdan keyin `coalesce(published, first_seen)` muddatdan eski hodisalar o'chiriladi; `KEEP` dagi kategoriyalar
+    **hech qachon o'chirilmaydi** (ransomware yozuvlari 2023 yildan beri — tarixiy qiymati bor);
+  - muddati o'tgan element bazaga umuman yozilmaydi (`is_expired`) — aks holda manba uni qaytargan sari har tsiklda
+    "yangi" bo'lib qayta paydo bo'lardi;
+  - `GET /api/events/status` ga `retention_days`, `retention_keep`, `last_purged`, `purged_total` qo'shildi; Events holat
+    panelida "saqlash 90 kun" (tooltip'da tafsilot).
+  - ⚠️ `.env` da bu kalitlar yo'q bo'lsa default (90 kun) ishlaydi. Hozir bazada 90 kundan eski news/telegram yo'q — hech narsa o'chmadi.
+- **Events sahifalash** allaqachon bor edi ("Ko'proq yuklash", `offset`) — ro'yxatdan olib tashlandi.
+- Smoke-test endi `/report/<oxirgi qidiruv>` ni ham tekshiradi (`API=` muhit o'zgaruvchisi, default `http://localhost:8000`).
+- Tekshirildi: ✅ `tsc --noEmit`; ✅ `NEXT_DIST_DIR=.next-build npm run build` (13 route); ✅ smoke 22/22;
+  ✅ eksport API (200 / 401 / 404); ✅ brauzerda JSON yuklanishi (tarix va qidiruv natijasidan), `/report` desktop + mobil 360px,
+  headless Chrome `printToPDF` bilan A4 PDF (domen va username hisobotlari), xato holatlari (yo'q id, noto'g'ri id);
+  ✅ retention: sun'iy 2025-yilgi news yozuvi o'chdi, 80 kunlik yozuv va 2023-yilgi ransomware qoldi, mantiq testi (naive sana, 0 = o'chiq).
+- ⚠️ Tekshirilmadi: haqiqiy printerda chop etish va Firefox/Safari'ning print ko'rinishi (faqat Chrome); ko'p sahifali
+  (50+ qatorli) hisobotning sahifa bo'linishi.
 
 ### 2026-11-14 sessiyasida qilingan (Bosqich 9 yopildi + Bosqich 10)
 - **Kechagi ⚠️ tekshiruvlar bajarildi:** qidiruv sahifalari (natija kartalari, filtr almashishi — username/phone), register,
@@ -73,12 +101,12 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
 
 ### Keyingi qadamlar (tartib bilan)
 1. Foydalanuvchi UI'ni ko'rib fikr bildiradi → sayqallash (animatsiya tezligi/kuchi, ranglar).
-2. Hisobot eksporti (qidiruv natijasi → JSON/PDF) — tarix sahifasidan.
-3. Events: sahifalash (API'da `offset` bor), eski hodisalarni tozalash (retention);
-   intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak), ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
-4. Domen moduli: crt.sh o'rniga/yoniga tezroq CT manbasi; natijalarni qisqa muddat keshlash.
+2. Rate limiting (qidiruv endpointlari) va natijalarni qisqa muddat keshlash; domen moduli: crt.sh o'rniga/yoniga tezroq CT manbasi.
+3. Events manbalari: intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak),
+   ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
+4. Hisobot: bir nechta qidiruvni bitta hisobotga jamlash; Events lentasini eksport qilish (CSV/JSON).
 5. Texnik qarz: Alembic migratsiyalar; pytest to'plami (hozir API testlari qo'lda); Next 15+ ga ko'chish (npm audit: 2 ta ogohlantirish);
-   test hisobi `test@example.com / password123` ni o'chirish (hozir QA uchun ishlatiladi); rate limiting (qidiruv endpointlari).
+   test hisobi `test@example.com / password123` ni o'chirish (hozir QA uchun ishlatiladi).
 
 ## Stack (tasdiqlangan)
 
@@ -182,6 +210,8 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
   - Tekshiruv: headless Chrome (CDP) skrinshotlari — landing, login, dashboard, events, username (skan + natija) ✅
 
 - [x] **Domen / IP / WHOIS + Qidiruv tarixi (Bosqich 10, 2026-11-14)** — tafsilotlar yuqorida ("2026-11-14 sessiyasida qilingan")
+
+- [x] **Hisobot eksporti (JSON / PDF) + Events retention (Bosqich 11, 2026-11-14)** — tafsilotlar yuqorida ("2-sessiya")
 
 ## ⚠️ Docker eslatmasi (muhim)
 - `docker-compose.yml` dagi `env_file` qiymatlari konteyner **yaratilganda** muhrlanadi. `.env` dagi MAVJUD kalitni o'zgartirsangiz
