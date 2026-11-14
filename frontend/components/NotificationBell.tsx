@@ -75,13 +75,13 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
         <Icon key={ring} className={cn("h-[18px] w-[18px]", unread > 0 && "text-red-300", ring > 0 && "animate-bell-ring")} />
         {unread > 0 && (
           <>
-            <span className="absolute -right-1 -top-1 h-5 min-w-5 animate-pulse-ring rounded-full bg-red-500/60" />
+            <span className="absolute right-0 -top-1 h-5 min-w-5 animate-pulse-ring rounded-full bg-red-500/60" />
             <motion.span
               key={unread}
               initial={{ scale: 0.4, y: 4 }}
               animate={{ scale: 1, y: 0 }}
               transition={SPRING}
-              className="absolute -right-1 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-ink-950"
+              className="absolute right-0 -top-1 grid h-5 min-w-5 place-items-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white ring-2 ring-ink-950"
             >
               {unread > 99 ? "99+" : unread}
             </motion.span>

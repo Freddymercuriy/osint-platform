@@ -77,6 +77,35 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 — Bosqich 4: kategoriyalar va klassifikator (2026-11-14)
+- `services/events/classifier.py` — qoidalar ma'lumot sifatida (`categories.rules`: `stems` {til: [...]},
+  `patterns`, `exclude`, `weight`, `min_score`); ball: sarlavhadagi stem 2, matndagi 1, pattern 3, × weight; tengda —
+  jiddiyroq kategoriya. Normallashtirish: kichik harf, ё→е, apostroflar, TOPIC_NOISE, UZCERT'ning turkcha harflari
+  (ş→sh, ç→ch, ö→o', ğ→g'). Tartib: manbaning qat'iy kategoriyasi → ulagich bilgani → qoidalar → `other`.
+  Hodisada `extra.fixed_category` yoki `extra.classifier` {score, hits}; ulagich ko'targan jiddiylik — `extra.severity_floor`.
+- `0008_category_rules` — 14 kategoriya uchun boshlang'ich qoidalar (`TOPIC_STEMS`, `TOPIC_PATTERNS`, `dedup._TOPICS`
+  asosida, en/ru/uz/kk) va eski news/telegram/tg_group yozuvlarini tasniflash; ransomware/leak o'z kategoriyasida qoladi.
+- API: `GET /api/categories` (hamma; nomlar en/ru/uz, rang, ikon, hodisalar soni), admin:
+  `GET|POST /api/admin/categories`, `GET|PATCH|DELETE /api/admin/categories/{id}` (o'chirishda hodisalar `other` ga,
+  tizim kategoriyalari faqat disable, `other` ni o'chirib bo'lmaydi; jiddiylik o'zgarsa hodisalarga qo'llanadi),
+  `POST /api/admin/categories/reorder`, `POST /api/admin/categories/reclassify?dry_run=true|false` (o'tishlar soni va
+  namunalar), `PATCH /api/events/{id}` (qo'lda kategoriya → `category_locked`).
+- `GET /api/events` filtrlari (hammasi birlashadi, ro'yxatlar vergul yoki takror bilan): `category`, `severity`,
+  `country`, `channel`, `source` (ID yoki nom), `scope` (standart `regional`; `global`, `all`), `lang`, `date_from`,
+  `date_to` (Toshkent kuni), `q` (sarlavha/matn/manba/guruh; `%` va `_` ekranlanadi). v1 `category=news|telegram|tg_group`
+  → kanal filtri (eski Events tablari ishlaydi).
+- Jonli: 0008 qo'llandi (`~/osint-backups/osint-pre-phase4-*.sql`); qoidalar admin API orqali kuchaytirildi (hujjat
+  o'g'irlash → leak/espionage), qayta tasniflash: dry-run 3 o'tish → qo'llandi. ❗ Shu qo'llashda 8 ta KEV hodisasining
+  jiddiyligi `high` → `medium` ga tushdi (0008 dan oldin ulagich darajasi saqlanmagan edi) — SQL bilan tiklandi,
+  0008 ga himoya qo'shildi (kategoriyadan yuqori daraja `severity_floor` ga yoziladi) va regressiya testi.
+  Hozirgi taqsimot: vulnerability 18, other ~12, fraud 6, leak 8, espionage 7, law-enforcement 3, malware 2.
+- Mobil: bildirishnoma nishoni 1px chetga chiqib gorizontal skroll berardi — tuzatildi.
+- Tekshirildi: ✅ 164 pytest (22 ta haqiqiy sarlavha bo'yicha klassifikator, qoidalar validatsiyasi, CRUD/422/409,
+  reorder, o'chirishda `other`, qayta tasniflash dry-run/apply va lock, qo'lda o'zgartirish, jiddiylik "floor", barcha
+  filtrlar kombinatsiyasi, pipeline tasnifi, 0008 upgrade/downgrade); ✅ `tsc`, smoke (admin, analyst) toza.
+- ⚠️ Cheklov: umumiy "xakerlar hujum qildi" xabarlari (aniq tur aytilmagan) `other` ga tushadi — 15 kategoriyada umumiy
+  "hujum" yo'q; qoidalarni admin panelida (Bosqich 7) sozlash mumkin.
+
 ### v2 — Bosqich 3: manbalar (2026-11-14)
 - **Telegram** (`0006_telegram_sources`): `TG_CHATS ∪ TG_LEAK_CHATS` dagi har chat — alohida manba `Telegram: <kalit>`
   (22 ta), `config.chat`, kursor `state.last_id` (faqat yangi xabarlar), leak chatlar — qat'iy kategoriya `leak`.

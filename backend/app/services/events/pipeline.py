@@ -26,6 +26,7 @@ from app.models import Category, EventRecord, Source, SourceRun
 from app.models.category import SEVERITY_RANK
 from app.services.connectors.base import RawItem
 from app.services.connectors.google_news import GOOGLE_NEWS_TAG
+from app.services.events.classifier import Classification, CompiledCategory, classify, compile_categories
 from app.services.events.dedup import TitleSig, same_story, signature
 from app.services.events.geo import detect_countries, detect_sector
 
@@ -58,11 +59,15 @@ def aware(when: datetime | None, default: datetime) -> datetime:
     return when if when.tzinfo else when.replace(tzinfo=UTC)
 
 
-def legacy_category(item: RawItem, fixed: str | None) -> str:
-    """Bosqich 4 dagi klassifikatorgacha: ulagich / manba kategoriyasi, aks holda kanal bo'yicha v1 nomi."""
-    return item.category or fixed or {"telegram_channel": "telegram", "telegram_group": "tg_group"}.get(
-        item.channel, "news"
-    )
+def categorize(item: RawItem, fixed: str | None, compiled: list[CompiledCategory],
+               known: set[str]) -> tuple[str, Classification | None]:
+    """Manbaning qat'iy kategoriyasi → ulagich bilgan kategoriya → qoidalar → `other`."""
+    if fixed:
+        return fixed, None
+    if item.category and item.category in known:
+        return item.category, None
+    c = classify(item.title, item.summary, compiled)
+    return c.slug, c
 
 
 def retention_cutoff(category: Category | None, slug: str, now: datetime) -> datetime | None:
@@ -111,6 +116,8 @@ class _Prepared:
     slug: str
     when: datetime
     old: bool  # backfill oynasidan eski — yoziladi, lekin ogohlantirish bermaydi
+    fixed: bool = False  # kategoriya manba / ulagichdan (qayta tasniflashda o'zgarmaydi)
+    classified: Classification | None = None
 
 
 async def store_items(
@@ -119,6 +126,8 @@ async def store_items(
     stats = StoreStats(received=len(items))
     cats = {c.slug: c for c in (await db.scalars(select(Category))).all()}
     fixed = next((c for c in cats.values() if c.id == source.category_id), None) if source.category_id else None
+    compiled = compile_categories(sorted(cats.values(), key=lambda c: c.sort_order))
+    known = {slug for slug, c in cats.items() if c.enabled}
     since = settings.events_since_dt
     window = now - timedelta(days=max(0, source.backfill_days))
     if since and since > window:
@@ -131,7 +140,7 @@ async def store_items(
         if not item.title or not valid_url(item.url):
             stats.invalid += 1
             continue
-        slug = legacy_category(item, fixed.slug if fixed else None)
+        slug, classified = categorize(item, fixed.slug if fixed else None, compiled, known)
         when = aware(item.published, now)
         if since and when < since:
             stats.expired += 1
@@ -145,7 +154,8 @@ async def store_items(
             stats.expired += 1  # baseline: faqat backfill oynasi
             continue
         display = (item.source_name or source.name)[:128]
-        prepared.append(_Prepared(item, make_uid(display, item.url, item.title), display, slug, when, old))
+        prepared.append(_Prepared(item, make_uid(display, item.url, item.title), display, slug, when, old,
+                                  fixed=classified is None, classified=classified))
 
     if not prepared:
         return stats
@@ -208,6 +218,12 @@ async def store_items(
             extra = dict(it.extra)
             if it.dedup_key:
                 extra["dedup_key"] = it.dedup_key
+            if p.fixed:
+                extra["fixed_category"] = p.slug
+            elif p.classified is not None:
+                extra["classifier"] = {"score": p.classified.score, "hits": p.classified.hits}
+            if it.severity:
+                extra["severity_floor"] = it.severity
             rec = EventRecord(
                 uid=p.uid, source=p.display, source_id=source.id, category=p.slug,
                 category_id=cat.id if cat else None,

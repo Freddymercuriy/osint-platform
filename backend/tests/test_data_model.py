@@ -99,9 +99,14 @@ def test_legacy_rows_backfilled_and_restored():
         assert rows["u4"]["channel"] == "api" and rows["u4"]["cat"] == "ransomware"
         assert rows["u4"]["severity"] == "critical"
         assert rows["u5"]["summary"] == "matn prefikssiz" and rows["u5"]["matched_keywords"] == []
+        # 0008: eski news/telegram yozuvlari qoidalar bilan tasniflanadi, ransomware o'z kategoriyasida qoladi
+        assert rows["u1"]["cat"] == "fraud" and rows["u4"]["cat"] == "ransomware"
+        assert rows["u3"]["cat"] == "leak"
 
         _migrate("downgrade", "0002_user_roles")
         back = {by_title[r["title"]]: r["summary"] for r in asyncio.run(_q("select title, summary from events"))}
+        cats_back = {by_title[r["title"]]: r["category"] for r in asyncio.run(_q("select title, category from events"))}
+        assert cats_back["u1"] == "news" and cats_back["u3"] == "tg_group" and cats_back["u4"] == "ransomware"
         assert back["u1"] == "🔎 мошенничество онлайн · В Ташкенте задержан"
         assert back["u3"] == "🔎 kazakh, .kz · text"
         assert back["u5"] == "matn prefikssiz"
