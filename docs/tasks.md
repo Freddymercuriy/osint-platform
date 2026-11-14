@@ -88,9 +88,9 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 6 — Interfeys: Light/Dark/System, uz/ru/en
 - ✅ Bosqich 7 — Admin bo'limi va Events sahifasi
 - ✅ Bosqich 8 — Interaktiv statistika dashboard'i
-- ⬜ Bosqich 9 — Xavfsizlik, testlar, hujjatlar
+- ✅ Bosqich 9 — Xavfsizlik (rate limiting, QA hisobi o'chirildi), testlar, hujjatlar
 
 ## Keyingi — Kengaytirish
-- ⬜ Rate limiting, natijalarni keshlash
+- ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
 - ⬜ Testlar (pytest), Alembic migratsiyalar

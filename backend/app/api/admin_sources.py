@@ -13,6 +13,8 @@ from sqlalchemy import case, func, select
 
 from app.core.errors import api_error
 from app.api.deps import AdminUser, DbSession
+from app.core import ratelimit
+from app.core.config import settings
 from app.models import Category, EventRecord, Source, SourceRun
 from app.services.connectors import CONNECTORS, get_connector
 from app.services.connectors.base import ConfigError, ConnectorError
@@ -405,7 +407,8 @@ async def test_source(source_id: int, _: AdminUser, db: DbSession) -> TestOut:
 
 
 @router.post("/sources/{source_id}/run", response_model=RunNowOut)
-async def run_source_now(source_id: int, _: AdminUser, db: DbSession) -> RunNowOut:
+async def run_source_now(source_id: int, admin: AdminUser, db: DbSession) -> RunNowOut:
+    ratelimit.check("source-run", str(admin.id), settings.refresh_rate * 6, settings.refresh_rate_window)
     await _get(db, source_id)
     if source_id in scheduler.state.active:
         raise api_error(status.HTTP_409_CONFLICT, "source_busy")

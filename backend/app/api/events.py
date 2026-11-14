@@ -6,6 +6,7 @@ from sqlalchemy import func, or_, select
 
 from app.core.errors import api_error
 from app.api.deps import AdminUser, CurrentUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.models import Category, EventRecord, EventTranslation, Source
 from app.schemas import EventItemOut, EventsResponse
@@ -276,6 +277,7 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
 
 @router.post("/refresh")
 async def refresh(current_user: AdminUser, db: DbSession) -> dict[str, int]:
+    ratelimit.check("refresh", str(current_user.id), settings.refresh_rate, settings.refresh_rate_window)
     """Hozir yig'ish: yoqilgan, backoff'da bo'lmagan va oxirgi tekshiruvi intervalining yarmidan eski manbalar.
 
     Rate limit'i qattiq manbalar (Google News, ransomware.live) shu qoida bilan ortiqcha so'ralmaydi.

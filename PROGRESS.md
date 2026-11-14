@@ -4,8 +4,8 @@
 
 ## Hozirgi holat
 
-**Bosqich:** v2 yangilanishi — tarmoq `feat/v2-upgrade` (spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md), bosqichlar ro'yxati: `docs/tasks.md` → "v2"). `main` da — v1 (Bosqich 13).
-**Oxirgi yangilanish:** 2026-11-14
+**Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
+**Oxirgi yangilanish:** 2026-11-15
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -76,6 +76,34 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 — Bosqich 9: mustahkamlash va topshirish (2026-11-15)
+- **Rate limiting** (`core/ratelimit.py`, jarayon xotirasida, sirpanuvchi oyna; Redis yo'q): login — IP bo'yicha 20 va
+  email bo'yicha 10 urinish / 15 daq; tekshiruvlar (`/api/search/*`) — foydalanuvchiga 30 / daq; `POST /api/events/refresh`
+  — 5 / 10 daq; manbani "hozir yig'ish" — 30 / 10 daq. Oshsa: 429, `Retry-After`, `code: too_many_requests` (3 tilda).
+  Sozlamalar `.env` da (`RATE_LIMIT_*`, `LOGIN_RATE_*`, `SEARCH_RATE*`, `REFRESH_RATE*`).
+- Events qidiruvida `%` va `_` ekranlanadi (Bosqich 4 da qilingan, testi bor).
+- **QA hisobi o'chirildi**: `test@example.com` bazadan o'chirildi (35 ta QA qidiruvi bilan; nusxa
+  `~/osint-backups/osint-pre-phase9-20261115-011527.sql`), parol hujjatlardan olib tashlandi. ⚠️ Parol git tarixida
+  qolgan (repo ochiq) — hisob endi mavjud emas, shuning uchun parol yaroqsiz. Testlar o'z foydalanuvchilarini yaratadi;
+  smoke uchun `backend/scripts/qa_token.py --role admin|analyst [--delete]` (parolsiz, qisqa muddatli JWT).
+  `.claude/agents/qa-tester.md` yangilandi.
+- Testlar: `tests/test_ratelimit.py` — sirpanuvchi oyna, login (email/IP), tekshiruvlar va refresh limitlari, o'chirish;
+  **har bir admin route** (`app.routes` dan avtomatik yig'iladi, 30+) analyst uchun 403 `admin_only`, tokensiz 401.
+  Qolgan talab qilingan testlar oldingi bosqichlarda: klassifikator (Bosqich 4), rejalashtiruvchi — jitter, backoff,
+  baseline (Bosqich 2), sog'liq holatlari (2), tarjima navbati soxta provayder bilan (5), statistika (8),
+  migratsiyalar base↔head vaqtinchalik bazada (0).
+- Hujjatlar: `README.md` (v2: imkoniyatlar, ishga tushirish, kalitlar jadvali, migratsiya va orqaga qaytarish, testlar),
+  `docs/architecture.md` (kategoriyalar, tarjima, statistika, admin API, xatolar, rate limiting, rollar),
+  `backend/.env.example` (APP_TIMEZONE, SOURCE_DOWN_ALERT_HOURS, rate limit, eski sozlamalar izohi), `docs/tasks.md`.
+  Ishlatilmay qolgan `EVENTS_POLL_SECONDS` sozlamasi olib tashlandi.
+- Maxfiy qiymatlar tekshiruvi: `backend/.env` dagi SECRET_KEY / TG_API_ID / TG_API_HASH na kuzatiladigan fayllarda, na git
+  tarixida yo'q; `.env` va `*.session` git'da emas.
+- Tekshirildi: ✅ backend **273 pytest** (to'liq to'plam, 16.5 daq); ✅ jonli: rate limit bilan backend qayta ishga tushdi;
+  ✅ smoke — analyst tokeni (qa_token) bilan dark/en barcha sahifalar 26/26, admin bilan light/ru 28/28, Bosqich 8 dagi
+  matritsa 108/108; ✅ `tsc`, production build, i18n (903 kalit × 3 til), kontrast.
+- ⚠️ Tekshirilmadi: bir nechta uvicorn worker (rate limit va advisory lock bitta jarayon uchun mo'ljallangan — README'da);
+  proxy ortida ishlaganda haqiqiy mijoz IP'si (`X-Forwarded-For` hozir o'qilmaydi).
 
 ### v2 — Bosqich 8: interaktiv statistika dashboard'i (2026-11-15)
 - **Backend** (`api/stats_v2.py`, commit f04c7ef da kiritilgan): hamma endpoint `/api/events` bilan bir xil filtrlar +
@@ -535,14 +563,14 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
   sinalgan); WHOIS port-43 parseri faqat `.uz` da sinalgan (boshqa ccTLD formatlari tanilmasa qator "Noaniq" bo'ladi);
   `next lint` (ESLint sozlanmagan).
 
-### Keyingi qadamlar (tartib bilan)
-1. Foydalanuvchi UI'ni ko'rib fikr bildiradi → sayqallash (animatsiya tezligi/kuchi, ranglar).
-2. Rate limiting (qidiruv endpointlari) va natijalarni qisqa muddat keshlash; domen moduli: crt.sh o'rniga/yoniga tezroq CT manbasi.
-3. Events manbalari: intelforums.cc ochiq bo'limlari (foydalanuvchi qarori kutilmoqda), Reddit (API kaliti kerak),
-   ARADA SPY chatlarini `TG_CHATS` ga qo'shish.
-4. Hisobot: bir nechta qidiruvni bitta hisobotga jamlash; Events lentasini eksport qilish (CSV/JSON).
-5. Texnik qarz: Alembic migratsiyalar; pytest to'plami (hozir API testlari qo'lda); Next 15+ ga ko'chish (npm audit: 2 ta ogohlantirish);
-   test hisobi `test@example.com / password123` ni o'chirish (hozir QA uchun ishlatiladi).
+### Keyingi qadamlar (v2 dan keyin)
+1. **Telegram'ga qayta login** (sessiya Telegram tomonidan bekor qilingan): `docker-compose exec backend python scripts/tg_login.py`
+   — 22 ta Telegram manbasi `auth_missing` holatidan o'zi chiqadi.
+2. Kalitlarni olish va `backend/.env` ga qo'yish: `GOOGLE_TRANSLATE_API_KEY`, `RANSOMWARE_LIVE_API_KEY`, `ABUSECH_AUTH_KEY`,
+   `OTX_API_KEY` (ixtiyoriy: `NVD_API_KEY`, `CLOUDFLARE_API_TOKEN`); backend konteynerini qayta yaratish; admin panelda manbani yoqish.
+3. v2 ni `main` bilan solishtirib, qaror qilinsa merge (egasi qiladi).
+4. Ixtiyoriy: proxy ortida rate limit uchun `X-Forwarded-For`; `/api/stats/overview` o'rniga tarix sahifasi uchun alohida
+   hisoblagich; Events sana filtrini soat aniqligiga o'tkazish; Next 15 ga ko'chish (alohida ish).
 
 ## Stack (tasdiqlangan)
 

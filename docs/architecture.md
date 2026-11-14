@@ -69,7 +69,17 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline
   (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi.
 - Kalit so'zlar va regexlar kodda: `services/events/feeds.py` (hudud, mavzu, chet el belgilari), `dedup.py`, `geo.py`.
-- Admin API: `/api/admin/sources` (CRUD, test, run, runs, export/import), `/api/admin/collector`.
+- Kategoriyalar: `categories` (15 ta, en/ru/uz, jiddiylik, rang, ikon, notify, saqlash muddati, `rules`) —
+  `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).
+- Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
+  Google Cloud Translation navbati (kesh, oylik chegara, qayta urinish).
+- Statistika: `api/stats_v2.py` — `/api/stats/kpis|timeseries|breakdown|heatmap|source-health|latest`, hammasi
+  `/api/events` filtrlari bilan, vaqt bo'laklari `APP_TIMEZONE` da.
+- Admin API: `/api/admin/sources` (CRUD, test, run, runs, export/import), `/api/admin/collector`,
+  `/api/admin/categories` (CRUD, reorder, reclassify), `/api/admin/translations`, `/api/admin/users`;
+  adminlar uchun tizim ogohlantirishlari (`admin_alerts`, uzoq ishlamayotgan manba).
+- Xatolar: `core/errors.py` — `{"detail": <tarjima>, "code": ...}` (`core/i18n.py`, `Accept-Language`);
+  rate limiting: `core/ratelimit.py` (login, tekshiruvlar, qo'lda yig'ish; jarayon xotirasida).
 - Rollar: `admin` (manbalar, kategoriyalar, yig'uvchi, Telegram) va `analyst`.
 - Sxema: Alembic (`backend/migrations/`), konteyner ishga tushganda `scripts/migrate.py` → `upgrade head`.
 
@@ -87,11 +97,15 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 
 ## Autentifikatsiya
 
-- JWT token (backend beradi), frontend `localStorage`/cookie da saqlaydi.
-- Parollar `bcrypt`/`argon2` bilan hash qilinadi.
+- JWT (PyJWT, HS256) — frontend `localStorage` da saqlaydi; parollar `bcrypt` bilan.
+- Rollar: `admin` (`ADMIN_EMAILS` yoki eng eski foydalanuvchi) va `analyst`; `require_admin` — barcha `/api/admin/*`,
+  `/api/telegram/*`, `POST /api/events/refresh`, `PATCH /api/events/{id}`. `REGISTRATION_OPEN`; production'da standart
+  `SECRET_KEY` bilan backend ishga tushmaydi.
 
 ## Xavfsizlik & axloq
 
-- Rate limiting (tashqi manbalarni ortiqcha yuklamaslik uchun).
+- Rate limiting: login (IP va email bo'yicha), tekshiruvlar, qo'lda yig'ish — 429 + `Retry-After`.
+- Tashqi manbalarga: xost bo'yicha navbat va pauza, jadval jitter bilan, backoff, `Retry-After` hurmati.
+- SSRF: manba so'rovlari (redirect'lar ham) xususiy/loopback/link-local manzillarga yuborilmaydi.
 - Faqat ochiq (public) ma'lumotlar yig'iladi.
 - Maxfiy kalitlar `.env` da, hech qachon git'ga tushmaydi.

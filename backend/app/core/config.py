@@ -51,7 +51,6 @@ class Settings(BaseSettings):
 
     # Fon yig'uvchi (Events)
     events_poll_enabled: bool = True
-    events_poll_seconds: int = 300  # har necha soniyada yig'ish
     # Ogohlantirish: shu kategoriyalardagi yangi hodisalar saytdagi 🔔 da ko'rsatiladi.
     # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi.
     notify_telegram: bool = False
@@ -71,6 +70,16 @@ class Settings(BaseSettings):
     otx_api_key: str | None = None
     nvd_api_key: str | None = None
     cloudflare_api_token: str | None = None
+
+    # Rate limiting (jarayon xotirasida): urinishlar soni / oyna (soniya)
+    rate_limit_enabled: bool = True
+    login_rate_ip: int = 20  # bitta IP dan 15 daqiqada
+    login_rate_email: int = 10  # bitta email uchun 15 daqiqada
+    login_rate_window: int = 900
+    search_rate: int = 30  # tekshiruvlar: foydalanuvchi boshiga daqiqada
+    search_rate_window: int = 60
+    refresh_rate: int = 5  # qo'lda yig'ish: foydalanuvchi boshiga 10 daqiqada
+    refresh_rate_window: int = 600
 
     # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
     app_timezone: str = "Asia/Tashkent"

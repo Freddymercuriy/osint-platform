@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.core.errors import api_error
 from app.core.security import create_access_token, hash_password, verify_password
@@ -47,9 +48,13 @@ async def register(data: UserCreate, db: DbSession) -> User:
 
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: DbSession,
 ) -> Token:
+    # Parol tanlashni sekinlatish: IP va email bo'yicha (muvaffaqiyatli urinishlar ham sanaladi)
+    ratelimit.check("login-ip", ratelimit.client_ip(request), settings.login_rate_ip, settings.login_rate_window)
+    ratelimit.check("login-email", form.username.lower(), settings.login_rate_email, settings.login_rate_window)
     # OAuth2 formasi 'username' maydonini ishlatadi — bu yerda email
     user = await db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):

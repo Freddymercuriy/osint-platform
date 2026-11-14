@@ -99,6 +99,10 @@ def t(code: str, lang: str | None = None, /, **params: Any) -> str:
 
 # fmt: off
 MESSAGES: dict[str, dict[str, str]] = {
+    "too_many_requests": {
+        "uz": "So'rovlar juda ko'p. {seconds} soniyadan keyin qayta urinib ko'ring",
+        "ru": "Слишком много запросов. Повторите через {seconds} с",
+        "en": "Too many requests. Try again in {seconds} s"},
     # ------------------------------------------------------------ HTTP xatolar
     "not_authenticated": {
         "uz": "Autentifikatsiya talab qilinadi",

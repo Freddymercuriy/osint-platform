@@ -141,6 +141,14 @@ async def _clean_tables():
     yield
 
 
+@pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    from app.core import ratelimit
+
+    ratelimit.limiter.clear()
+    yield
+
+
 @pytest.fixture
 async def db():
     from app.core.db import AsyncSessionLocal

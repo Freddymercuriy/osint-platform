@@ -6,6 +6,7 @@ from sqlalchemy import delete, select
 from app.core.errors import api_error
 from app.core.i18n import CodedValueError
 from app.api.deps import CurrentUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.models import Result, SearchJob
 from app.models.user import User
@@ -55,6 +56,7 @@ async def _run_and_save(
     user: User,
     db: DbSession,
 ) -> SearchResponse:
+    ratelimit.check("search", str(user.id), settings.search_rate, settings.search_rate_window)
     try:
         results = await collector.run(data.query)
     except CodedValueError as exc:
