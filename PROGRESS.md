@@ -28,7 +28,7 @@ docker-compose up -d                      # db + backend + frontend (production 
 # frontend kodi o'zgarsa (production): docker-compose build frontend && docker-compose stop frontend &&
 #   docker-compose rm -f frontend && docker-compose up -d frontend
 ```
-Hamma port faqat `127.0.0.1` da (3000, 8000, 5432) — LAN va internetdan ko'rinmaydi (Tailscale yo'q).
+3000 va 8000 — `0.0.0.0` da (localhost va LAN: `http://<LAN-IP>:3000`), PostgreSQL 5432 — faqat `127.0.0.1`.
 
 ### Boshqa kompyuterda ishga tushirish
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
@@ -83,7 +83,7 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
-### v2 dan keyin — 127.0.0.1 ga bog'lash, frontend Docker'da (2026-11-16; Tailscale rejasi bekor qilindi)
+### v2 dan keyin — frontend Docker'da, qayta yoqilganda avtomatik; LAN qaytarildi (2026-11-16)
 - Foydalanuvchi talabi: platforma faqat tailnet'dan `https://<mashina>.<tailnet>.ts.net` da ochilsin (Serve, Funnel
   emas); LAN va internetdan 3000/8000 yopiq; localhost ishlab chiqish uchun qoladi. Reja: 1) Tailscale o'rnatish va
   `tailscale up --operator=$USER --hostname=<nom>` (foydalanuvchi o'zi, sudo; login URL'ni o'zi ochadi; sertifikatdan
@@ -101,6 +101,13 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   OS dan o'chirish kerak edi, bo'ldi"*. Tailscale kompyuterda yo'q (paket, xizmat, apt manbasi, `tailscale0` — tekshirildi).
   Natija: platforma faqat shu kompyuterdan (localhost); LAN'dan ochish kerak bo'lsa — portlarni `0.0.0.0` ga qaytarish
   (`docker-compose.yml` 3000/8000, `backend/.env` da `CORS_ALLOW_LAN=true` allaqachon bor).
+- Keyin foydalanuvchi LAN'ni qaytarishni tanladi: compose `0.0.0.0:3000` va `0.0.0.0:8000`, `next dev|start -H 0.0.0.0`;
+  5432 — `127.0.0.1`. Frontend Docker'da va `restart: unless-stopped` qoldi.
+  ⚠️ docker-compose 1.29: `up -d backend` `db` konfiguratsiyasi o'zgargani (`restart`) uchun db'ni ham qayta yaratdi va
+  `KeyError: 'ContainerConfig'` bilan to'xtadi — eski db `<hash>_osint_db_1` nomida qoldi. Tuzatish: ma'lumot
+  `osint_postgres-data` volume'da ekanini tekshirib, `docker rm <hash>_osint_db_1 && docker-compose up -d db backend`.
+  Tekshirildi: ✅ ma'lumot joyida (users/events/sources), LAN IP orqali 3000/8000 — 200, 5432 — yopiq, CORS LAN — ruxsat,
+  begona — rad; smoke LAN IP orqali (16 sahifa × desktop/360px) — toza.
 
 ### v2 dan keyin — API kalitlari tekshiruvi (2026-11-16)
 - Foydalanuvchi `backend/.env` ga kalitlarni kiritdi; konteyner qayta yaratildi, kalitli manbalar dry-run qilindi:

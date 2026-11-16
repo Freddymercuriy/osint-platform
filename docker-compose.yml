@@ -35,10 +35,9 @@ services:
       db:
         condition: service_healthy
     ports:
-      # Faqat shu kompyuterdan (127.0.0.1) — LAN/internetdan ko'rinmaydi. Docker chiqargan portlar ufw'ni chetlab
-      # o'tadi, shuning uchun himoya — aynan shu bog'lash. Tashqi kirish faqat reverse proxy orqali (Tailscale Serve,
-      # TRUSTED_PROXIES). DB porti ham faqat shu kompyuterda.
-      - "127.0.0.1:8000:8000"
+      # Barcha interfeyslarda: localhost va LAN (http://<LAN-IP>:8000). ⚠️ Docker chiqargan portlar ufw'ni chetlab
+      # o'tadi — faqat shu kompyuterdan kerak bo'lsa "127.0.0.1:8000:8000". DB porti faqat shu kompyuterda qoladi.
+      - "0.0.0.0:8000:8000"
     volumes:
       - ./backend:/app
 
@@ -53,7 +52,7 @@ services:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:3000"  # faqat shu kompyuterdan — tashqariga reverse proxy (Tailscale Serve) orqali
+      - "0.0.0.0:3000:3000"  # localhost va LAN (http://<LAN-IP>:3000); faqat shu kompyuter — "127.0.0.1:3000:3000"
 
 volumes:
   postgres-data:

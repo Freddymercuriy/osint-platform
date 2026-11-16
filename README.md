@@ -53,10 +53,10 @@ npm run dev                            # tugagach: docker-compose start frontend
 ```
 
 - Frontend: http://localhost:3000 · Backend API: http://localhost:8000 (Swagger: `/docs`)
-- Hamma xizmat faqat `127.0.0.1` da tinglaydi (`next dev -H 127.0.0.1`, compose'da `127.0.0.1:8000` va
-  `127.0.0.1:5432`) — LAN va internetdan ko'rinmaydi. Boshqa qurilmalardan kirish — faqat reverse proxy orqali
-  (Tailscale Serve: frontend `/` da, backend `/api` da; `NEXT_PUBLIC_API_URL`, `CORS_ORIGINS`, `TRUSTED_PROXIES`).
-  `CORS_ALLOW_LAN=true` (ichki tarmoq manzillari :3000) faqat xizmatlar LAN interfeysida tinglaganda kerak.
+- LAN'dan (boshqa kompyuter/telefon): frontend va backend `0.0.0.0` da (compose: `0.0.0.0:3000`, `0.0.0.0:8000`;
+  `next dev -H 0.0.0.0`), PostgreSQL — faqat `127.0.0.1`. `NEXT_PUBLIC_API_URL` bo'sh (API sahifa ochilgan host'ning
+  8000-portiga ergashadi) va `backend/.env` da `CORS_ALLOW_LAN=true` (ichki tarmoqdagi istalgan manzil :3000).
+  Faqat shu kompyuterdan kerak bo'lsa — compose'da `127.0.0.1:PORT:PORT` (Docker portlari ufw'ni chetlab o'tadi).
 - Birinchi ro'yxatdan o'tgan foydalanuvchi (yoki `ADMIN_EMAILS` dagilar) — admin. Ro'yxatdan o'tish
   `ENVIRONMENT=development` da ochiq, boshqa muhitda `REGISTRATION_OPEN=true` kerak.
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
