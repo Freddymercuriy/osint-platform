@@ -78,6 +78,17 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — API kalitlari tekshiruvi (2026-11-16)
+- Foydalanuvchi `backend/.env` ga kalitlarni kiritdi; konteyner qayta yaratildi, kalitli manbalar dry-run qilindi:
+  `RANSOMWARE_LIVE_API_KEY` ✅ (200), `OTX_API_KEY` ✅ (200), `CLOUDFLARE_API_TOKEN` ✅ (`/user/tokens/verify` — active),
+  `ABUSECH_AUTH_KEY` ❌ — abuse.ch javobi `unknown_auth_key` (kalitning o'zi tanilmadi; auth.abuse.ch dan qayta olish kerak),
+  `NVD_API_KEY` — bo'sh (ixtiyoriy; kalitsiz NVD vaqt tugashi bilan javob berdi).
+- Tuzatildi: Cloudflare Radar API endi faqat `dateStart` bilan 400 qaytaradi ("The dateEnd must be after dateStart") —
+  `cloudflare_radar.py` `dateEnd=now` ham yuboradi (test qo'shildi).
+- Kalitli manbalar (86, 90–92, 94, 95) hali **o'chiq** (`enabled=false`) — yoqish admin → Manbalar.
+- Eslatma: `.env` dagi kalit o'zgarsa backend konteynerini **qayta yaratish** kerak (`stop && rm -f && up -d`):
+  `env_file` qiymatlari `os.environ` da qoladi va `api_key_for` ularni `.env` faylidan ustun qo'yadi.
+
 ### v2 dan keyin — "Ўзбекча" interfeysi va `translit_uz` → jaybi dvigateli (2026-11-16)
 - Foydalanuvchi talabi: *"ikkalasini ham jaybi dvigateliga o'tkaz"* — (a) eski `translit_uz` o'rniga latin.jaybi.uz
   dvigateli; (b) interfeysda o'zbek kirill tili.

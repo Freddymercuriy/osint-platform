@@ -51,7 +51,9 @@ class CloudflareRadarConnector(Connector):
         for code in wanted:
             resp = await ctx.http.get(
                 API, headers={"Authorization": f"Bearer {ctx.api_key}"},
-                params={"location": code, "dateStart": _iso(start), "limit": limit, "format": "JSON"},
+                # dateEnd majburiy: faqat dateStart bilan API 400 qaytaradi ("The dateEnd must be after dateStart")
+                params={"location": code, "dateStart": _iso(start), "dateEnd": _iso(now), "limit": limit,
+                        "format": "JSON"},
             )
             status = resp.status_code
             body = resp.json()

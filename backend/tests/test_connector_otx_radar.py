@@ -95,6 +95,7 @@ async def test_radar_outage_items_and_auth_header():
     res = await cloudflare_radar.CloudflareRadarConnector().fetch(_ctx("cloudflare_radar", h))
     assert [r.url.params["location"] for r in seen] == ["UZ", "KZ", "KG", "TJ", "TM"]
     assert all(r.headers["authorization"] == "Bearer x" and r.url.params["dateStart"] for r in seen)
+    assert all(r.url.params["dateEnd"] > r.url.params["dateStart"] for r in seen)  # dateEnd'siz API — 400
     assert len(res.items) == 2  # id bo'yicha takrorsiz, AQSh tashlandi
     a, b = res.items
     assert a.title == "Internet outage in Kazakhstan: power outage" and a.url == "https://example.org/report"
