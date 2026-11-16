@@ -74,8 +74,11 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
   navbat (`worker.py`: kesh, oylik chegara — 0 = chegarasiz, qayta urinish; 422 / noma'lum til — darhol `failed`).
   Provayder — o'z NLLB servisimiz (`translator.py`, `TRANSLATE_API_URL`, kalitsiz): ISO kod → FLORES-200
-  (`uz→uzn_Latn`, `ru→rus_Cyrl`, `en→eng_Latn`, `kk→kaz_Cyrl`, `ky→kir_Cyrl`, `tg→tgk_Cyrl`, `tk→tuk_Latn`); servisda
-  `uzn_Cyrl` yo'q — o'zbek kirill avval lotinga o'giriladi. `/translate/batch` ≤ 64 matn; `max_input_length`
+  (`uz→uzn_Latn`, `ru→rus_Cyrl`, `en→eng_Latn`, `kk→kaz_Cyrl`, `ky→kir_Cyrl`, `tg→tgk_Cyrl`, `tk→tuk_Latn`; NLLB
+  kodlarining o'zi ham qabul qilinadi). Servisda `uzn_Cyrl` yo'q — o'zbek kirill (`uz-Cyrl` / `uzn_Cyrl`) uchun model
+  `uzn_Latn` bilan ishlaydi, yozuv latin.jaybi.uz dvigateli bilan almashtiriladi (`i18n/vendor/uztranslit.py` — MIT,
+  o'zgartirilmagan, `text.uz_to_cyrillic` / `uz_to_latin`): manba kirill → avval lotinga, maqsad kirill → tarjimadan
+  keyin kirillga; o'zbek ↔ o'zbek — servissiz. `/translate/batch` ≤ 64 matn; `max_input_length`
   (`GET /model`) dan uzun matn gaplar bo'yicha bo'linadi. Ulanish xatosi / 5xx — 2 marta qayta urinish, timeout va 422 —
   yo'q. Navbatda xato → qator `pending` (asl matn tarjima sifatida saqlanmaydi); navbatdan tashqari chaqiruvlar uchun
   `translate_or_original()` (ogohlantirish + asl matn). Mijoz ulagichlardan alohida: SSRF filtri va pauzasiz

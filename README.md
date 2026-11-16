@@ -56,6 +56,8 @@ npm run dev
   `docker-compose exec backend python scripts/tg_login.py`.
 - Tarjima: o'z NLLB servisimiz, kalit kerak emas — `TRANSLATE_API_URL` (standart `https://translate.deepcore.uz`),
   `TRANSLATE_TIMEOUT_SECONDS=30`; o'chirish — `TRANSLATE_ENABLED=false`. Holati: admin → Tizim → Tarjima.
+  O'zbek kirill (`uzn_Cyrl`) — lotin tarjimadan [latin.jaybi.uz](https://latin.jaybi.uz) dvigateli bilan
+  (`backend/app/services/i18n/vendor/`, MIT).
 
 - Reverse proxy (nginx, Caddy...) ortida ishlatilsa: `TRUSTED_PROXIES` ga proxy manzilini yozing (IP/CIDR) —
   aks holda login limiti hamma foydalanuvchini bitta proxy IP'si deb hisoblaydi. Rate limit va yig'uvchi bitta

@@ -91,6 +91,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 9 — Xavfsizlik (rate limiting, QA hisobi o'chirildi), testlar, hujjatlar
 - ✅ Keyin: Events `range` (soat aniqligida), `TRUSTED_PROXIES` / `X-Forwarded-For`, tarix hisoblagichi
 - ✅ Tarjima provayderi: Google Cloud Translation → o'z NLLB servisi (`TRANSLATE_API_URL`, kalitsiz)
+- ✅ O'zbek kirill (`uzn_Cyrl`): NLLB `uzn_Latn` + latin.jaybi.uz dvigateli (lotin ↔ kirill)
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish

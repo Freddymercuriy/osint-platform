@@ -1,8 +1,10 @@
-"""Til aniqlash (evristik, API'siz), o'zbek kirill → lotin transliteratsiyasi va o'zbek matnini normallashtirish."""
+"""Til aniqlash (evristik, API'siz), o'zbek kirill ↔ lotin transliteratsiyasi va o'zbek matnini normallashtirish."""
 
 from __future__ import annotations
 
 import re
+
+from app.services.i18n.vendor import uztranslit as _uzt
 
 LANGS = ("en", "ru", "uz")  # har hodisa saqlanadigan tillar
 
@@ -93,3 +95,20 @@ def translit_uz(text: str) -> str:
         out.append(lat)
         prev = ch
     return normalize_apostrophes("".join(out))
+
+
+# ---------------------------------------------------------------- latin.jaybi.uz dvigateli (vendor/uztranslit.py)
+_ASCII_APOS = {"okina": "'", "tutuq": "'"}  # platforma qoidasi: lotinda oddiy ' (normalize_apostrophes bilan bir xil)
+
+
+def uz_to_cyrillic(text: str) -> str:
+    """O'zbek lotin (1995 yoki 2026 alifbosi) → kirill, latin.jaybi.uz qoidalari bilan: ye/e, ts → ц, yo'l → йўл,
+    o'zlashma so'zlar lug'ati (obyekt → объект, iyul → июль), bosh harflar; URL, e-mail va @username o'zgarmaydi.
+    Matn allaqachon kirillda bo'lsa — o'zgarishsiz."""
+    return _uzt.convert(text or "", "auto", "cyr")
+
+
+def uz_to_latin(text: str) -> str:
+    """O'zbek kirill → lotin (1995), latin.jaybi.uz qoidalari bilan (е/э, ц, ъ/ь, сентябрь → sentabr ...);
+    apostroflar oddiy '. Lotin harflari o'zgarmaydi."""
+    return _uzt.convert(text or "", "cyr", "lat", _ASCII_APOS)

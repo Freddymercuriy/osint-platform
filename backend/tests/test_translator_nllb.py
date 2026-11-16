@@ -74,7 +74,10 @@ async def test_success_maps_codes_and_caches_model_info():
 
 
 @pytest.mark.parametrize("code,nllb", [("uz", "uzn_Latn"), ("ru", "rus_Cyrl"), ("en", "eng_Latn"), ("kk", "kaz_Cyrl"),
-                                       ("ky", "kir_Cyrl"), ("tg", "tgk_Cyrl"), ("tk", "tuk_Latn")])
+                                       ("ky", "kir_Cyrl"), ("tg", "tgk_Cyrl"), ("tk", "tuk_Latn"),
+                                       # o'zbek kirill → model uzn_Latn bilan; NLLB kodlarining o'zi ham qabul qilinadi
+                                       ("uz-Cyrl", "uzn_Latn"), ("uzn_Cyrl", "uzn_Latn"), ("rus_Cyrl", "rus_Cyrl"),
+                                       ("UZN_LATN", "uzn_Latn")])
 def test_language_map(code, nllb):
     assert tr_mod.to_nllb(code) == nllb
 
@@ -110,6 +113,36 @@ async def test_uzbek_cyrillic_is_transliterated_before_sending():
     sent = batches(seen)[0]
     assert sent["source_lang"] == "uzn_Latn"  # servisda uzn_Cyrl yo'q
     assert sent["texts"] == ["O'zbekistonda kiberjinoyatchilar qo'lga olindi"]
+
+
+def _uz_reply(req: httpx.Request) -> httpx.Response:
+    body = json.loads(req.content)
+    return httpx.Response(200, json={"source_lang": body["source_lang"], "target_lang": body["target_lang"], "model": "m",
+                                     "results": [{"text": t, "translation": "Toshkentda kiberjinoyatchilar qo'lga olindi"}
+                                                 for t in body["texts"]]})
+
+
+@pytest.mark.parametrize("target", ["uz-Cyrl", "uzn_Cyrl"])
+async def test_target_uzbek_cyrillic_via_latin(target):
+    t, seen = make(_uz_reply)
+    assert await t.translate(["В Ташкенте задержаны киберпреступники"], "ru", target) == \
+        ["Тошкентда кибержиноятчилар қўлга олинди"]
+    assert batches(seen)[0]["target_lang"] == "uzn_Latn"  # servisda uzn_Cyrl yo'q — lotinda olinib kirillga
+
+
+async def test_source_uzbek_cyrillic_code():
+    t, seen = make(ok)
+    await t.translate(["Ўзбекистонда кибержиноятчилар қўлга олинди"], "uzn_Cyrl", "en")
+    sent = batches(seen)[0]
+    assert sent["source_lang"] == "uzn_Latn" and sent["texts"] == ["O'zbekistonda kiberjinoyatchilar qo'lga olindi"]
+
+
+async def test_uzbek_script_conversion_needs_no_service():
+    t = NllbTranslator("", http=None)  # sozlanmagan ham bo'lsa ishlaydi — so'rov yuborilmaydi
+    assert await t.translate(["Toshkent shahri", ""], "uz", "uz-Cyrl") == ["Тошкент шаҳри", ""]
+    assert await t.translate(["Тошкент шаҳри"], "uz-Cyrl", "uz") == ["Toshkent shahri"]
+    assert await t.translate(["Ўзбекистон"], "uz", "uz") == ["O'zbekiston"]  # o'zbekcha — doim lotinda
+    assert await t.translate(["Привет"], "ru", "ru") == ["Привет"]  # boshqa tillar — o'zgarishsiz
 
 
 async def test_empty_texts_are_not_sent():

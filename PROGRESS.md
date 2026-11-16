@@ -77,6 +77,26 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — o'zbek kirill (`uzn_Cyrl`) latin.jaybi.uz dvigateli bilan (2026-11-16)
+- Foydalanuvchi talabi: *"uzn_Cyrl ni latin.jaybi.uz dan foydalangan holda lotindan kirillga o'tsin"*.
+- latin.jaybi.uz — server API'siz (brauzerda, WASM). Uning dvigateli ochiq: `github.com/kool277/uz-latn-kiril` (MIT,
+  Copyright (c) 2026 jaybi.uz). Rasmiy Python porti `core/python/uztranslit.py` v1.3.0 (commit `ba20af5`) **o'zgartirishsiz**
+  `backend/app/services/i18n/vendor/` ga ko'chirildi (+ `LICENSE.uztranslit`, `README.md`: manba, commit, SHA-256,
+  yangilash tartibi). Faqat `re`; tarmoqqa chiqmaydi — sayt bilan bir xil qoidalar (ye/e, ts → ц, yo'l → йўл,
+  o'zlashma so'zlar lug'ati: obyekt → объект, iyul → июль, 15-iyuldagi → 15-июлдаги; URL / e-mail / @username tegilmaydi).
+- `text.py`: `uz_to_cyrillic()` (lotin 1995/2026 → kirill), `uz_to_latin()` (kirill → lotin, ASCII `'`).
+- `translator.py`: `uz-Cyrl` / `uzn_Cyrl` kodlari (NLLB kodlarining o'zi ham qabul qilinadi) → model `uzn_Latn`; maqsad
+  kirill bo'lsa tarjima lotinda olinib kirillga o'giriladi; manba kirill — avval lotinga (endi `translit_uz` o'rniga
+  jaybi dvigateli); o'zbek ↔ o'zbek (`uz` ↔ `uz-Cyrl`) — servissiz, faqat yozuv; boshqa bir xil til juftlari — o'zgarishsiz.
+- Platformaning saqlanadigan tillari o'zgarmadi (en/ru/uz-lotin); `plan_rows` va worker'dagi `_fix_uz` hali `translit_uz`
+  ishlatadi (alohida qaror: ularni ham jaybi dvigateliga o'tkazish / UI'da o'zbek kirill ko'rinishi).
+- Testlar: `tests/test_uztranslit_vendor.py` — yuqori oqim conformance to'plami (224 case, 10 roundtrip, 9 detect,
+  3 optional; `tests/fixtures/uztranslit_fixtures.json`, guruhlab — to'plamni sekinlatmaslik uchun) + o'ramlar;
+  `test_translator_nllb.py` — `uzn_Cyrl` maqsad/manba, servissiz yozuv almashtirish, kod jadvali.
+- Jonli: ru → `uzn_Cyrl` "Хакеры атаковали аккаунты президента Азербайджана в социальных сетях" →
+  "Озарбайжон президентининг ижтимоий тармоқлардаги аккаунтларига хакерлар ҳужум қилди".
+- Tekshirildi: ✅ vendor conformance + klient + tarjima testlari 65/65; jonli ru → uzn_Cyrl. To'liq to'plam — keyingi yozuvda.
+
 ### v2 dan keyin — tarjima servisi: Google → o'z NLLB servisi (2026-11-16)
 - **Provayder**: Google Cloud Translation olib tashlandi (`GOOGLE_TRANSLATE_API_KEY` kod, `.env.example`, joriy hujjatlardan;
   tarixiy yozuvlarda izoh bilan qoldi). Yangi: `TRANSLATE_API_URL` (standart `https://translate.deepcore.uz`, kalitsiz,

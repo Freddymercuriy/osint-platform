@@ -1,9 +1,12 @@
 """Tarjima provayderi: o'z NLLB servisimiz (facebook/nllb-200), kalitsiz — `TRANSLATE_API_URL`.
 
 Servis FLORES-200 / NLLB til kodlarini kutadi (`uzn_Latn`, `rus_Cyrl`, `eng_Latn` ...), platforma esa ISO kodlarini
-ishlatadi (`uz`, `ru`, `en` ...) — `NLLB_CODES` jadvali. Manba tili har doim aniq beriladi: uni navbatga qo'yishdan oldin
-`text.detect_lang` aniqlaydi (servisda avto-aniqlash yo'q). Servisda `uzn_Cyrl` yo'q — o'zbek kirill matni avval lotinga
-o'giriladi (`translit_uz`).
+ishlatadi (`uz`, `ru`, `en` ...) — `NLLB_CODES` jadvali (NLLB kodlarining o'zi ham qabul qilinadi). Manba tili har doim
+aniq beriladi: uni navbatga qo'yishdan oldin `text.detect_lang` aniqlaydi (servisda avto-aniqlash yo'q).
+
+O'zbek kirill (`uz-Cyrl` / `uzn_Cyrl`): servisda `uzn_Cyrl` yo'q, shuning uchun model `uzn_Latn` bilan ishlaydi, yozuv esa
+latin.jaybi.uz dvigateli (`vendor/uztranslit.py`) bilan almashtiriladi — manba kirill bo'lsa avval lotinga, maqsad
+`uzn_Cyrl` bo'lsa tarjima lotinda olinib kirillga o'giriladi. O'zbek ↔ o'zbek (lotin ↔ kirill) — servissiz, faqat yozuv.
 
 - `NllbTranslator.translate` — navbat (worker) uchun: xatoda **istisno** ko'taradi, worker qatorni `pending` da
   qoldirib keyinroq qayta urinadi (asl matn tarjima sifatida keshga yozilib qolmasin).
@@ -27,7 +30,7 @@ import httpx
 
 from app.services.connectors.base import ConfigError, ConnectorError, RateLimited
 from app.services.connectors.http import HttpFetcher, parse_retry_after
-from app.services.i18n.text import is_cyrillic, translit_uz
+from app.services.i18n.text import is_cyrillic, uz_to_cyrillic, uz_to_latin
 
 log = logging.getLogger("osint.i18n")
 
@@ -48,6 +51,10 @@ NLLB_CODES = {
     "tg": "tgk_Cyrl",
     "tk": "tuk_Latn",
 }
+_BY_NLLB = {v.lower(): v for v in NLLB_CODES.values()}  # "rus_cyrl" → "rus_Cyrl"
+UZN = "uzn_Latn"
+# Servisda yo'q — uzn_Latn + latin.jaybi.uz lotin → kirill
+UZ_CYRILLIC = frozenset({"uz-cyrl", "uz_cyrl", "uzn_cyrl"})
 
 _SENTENCE_END = re.compile(r"(?<=[.!?…])\s+")
 _max_input_cache: dict[str, int] = {}  # base_url → max_input_length
@@ -71,10 +78,15 @@ class Translator(Protocol):
 
 
 def to_nllb(code: str) -> str:
-    try:
-        return NLLB_CODES[(code or "").lower()]
-    except KeyError:
-        raise UnsupportedLanguage(f"Tarjima servisi uchun til kodi yo'q: {code!r}") from None
+    """Platforma (`uz`, `uz-Cyrl` ...) yoki NLLB kodi → servis kodi. O'zbek kirill → `uzn_Latn` (yozuv alohida)."""
+    key = (code or "").lower()
+    if key in UZ_CYRILLIC:
+        return UZN
+    if key in NLLB_CODES:
+        return NLLB_CODES[key]
+    if key in _BY_NLLB:
+        return _BY_NLLB[key]
+    raise UnsupportedLanguage(f"Tarjima servisi uchun til kodi yo'q: {code!r}")
 
 
 def split_text(text: str, limit: int) -> list[str]:
@@ -137,22 +149,28 @@ class NllbTranslator:
     async def translate(self, texts: list[str], source: str, target: str) -> list[str]:
         if not texts:
             return []
+        src, tgt = to_nllb(source), to_nllb(target)
+        to_cyr = (target or "").lower() in UZ_CYRILLIC
+        if src == tgt:
+            if src == UZN:  # o'zbek lotin ↔ kirill — model kerak emas
+                return [uz_to_cyrillic(t) if to_cyr else uz_to_latin(t) for t in texts]
+            return list(texts)
         if not self.base_url:
             raise ConnectorError("TRANSLATE_API_URL sozlanmagan")
-        src, tgt = to_nllb(source), to_nllb(target)
         limit = await self.chunk_chars()
         pieces: list[str] = []
         spans: list[tuple[int, int]] = []
         for text in texts:
-            if source.lower() == "uz" and is_cyrillic(text):
-                text = translit_uz(text)  # servisda uzn_Cyrl yo'q
+            if src == UZN and is_cyrillic(text):
+                text = uz_to_latin(text)  # servisda uzn_Cyrl yo'q — latin.jaybi.uz qoidalari bilan lotinga
             parts = split_text(text, limit) if text.strip() else []
             spans.append((len(pieces), len(parts)))
             pieces.extend(parts)
         out: list[str] = []
         for i in range(0, len(pieces), MAX_STRINGS):
             out.extend(await self._batch(pieces[i:i + MAX_STRINGS], src, tgt))
-        return [" ".join(out[start:start + n]) for start, n in spans]
+        result = [" ".join(out[start:start + n]) for start, n in spans]
+        return [uz_to_cyrillic(r) for r in result] if to_cyr else result
 
     async def chunk_chars(self) -> int:
         """Bitta bo'lakning belgilar chegarasi: `max_input_length` (token) − zaxira. Bir marta so'raladi va keshlanadi."""
