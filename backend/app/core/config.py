@@ -55,7 +55,12 @@ class Settings(BaseSettings):
     # Qaysi chatlarni o'qish: bo'sh = a'zo bo'lgan barcha kanal/guruhlar,
     # yoki vergul bilan: "kanal_username,-1001234567890"
     tg_chats: str = ""
-    tg_dialog_limit: int = 100  # nechta dialogni ko'rib chiqish
+    tg_dialog_limit: int = 100  # asosiy ro'yxatdan nechta dialogni ko'rib chiqish
+    # true — Telegram "Arxiv" papkasidagi barcha kanal/guruhlar ham kuzatiladi: har biri uchun alohida manba avtomatik
+    # yaratiladi (yangi arxivlanganlari ham, ~soatiga bir tekshiruv). O'chirib qo'yilgan (disabled) manba qayta
+    # yoqilmaydi (services/events/telegram_archive.py).
+    tg_monitor_archived: bool = False
+    tg_archive_limit: int = 500  # arxivdan nechta dialogni ko'rib chiqish
     tg_messages_per_chat: int = 30  # har chatdan nechta so'nggi xabar
     tg_uz_filter: bool = True  # faqat O'zbekistonga oid xabarlar
     tg_extra_keywords: str = ""  # qo'shimcha kalit so'zlar, vergul bilan

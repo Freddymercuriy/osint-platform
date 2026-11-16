@@ -25,6 +25,7 @@ class TgChat(BaseModel):
     title: str
     username: str | None
     kind: str
+    archived: bool = False  # Telegram "Arxiv" papkasida
 
 
 @router.get("/status", response_model=TgStatus)
@@ -57,4 +58,4 @@ async def tg_chats(current_user: AdminUser) -> list[TgChat]:
         chats = await tg.list_chats()
     except tg.TelegramNotConfigured as exc:
         raise api_error(status.HTTP_409_CONFLICT, "telegram_not_configured", message=str(exc)) from exc
-    return [TgChat(id=c.id, title=c.title, username=c.username, kind=c.kind) for c in chats]
+    return [TgChat(id=c.id, title=c.title, username=c.username, kind=c.kind, archived=c.archived) for c in chats]

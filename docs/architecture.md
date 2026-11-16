@@ -68,6 +68,10 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   [`docs/connectors.md`](connectors.md). `http.py` — xost navbati va pauzalar, shartli so'rov, holat kodlari, SSRF.
 - **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline
   (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi.
+- Telegram: har kuzatiladigan chat — alohida `telegram_user` manbasi (`{"chat": username yoki -100id}`); dialoglar
+  asosiy ro'yxat (`TG_DIALOG_LIMIT`) va "Arxiv" papkasidan (folder 1, `TG_ARCHIVE_LIMIT`) o'qiladi.
+  `TG_MONITOR_ARCHIVED=true` — `services/events/telegram_archive.py` arxivdagi har kanal/guruh uchun manba yaratadi
+  (housekeeping'da, soatiga bir; mavjud yoki o'chirib qo'yilgan manbaga tegmaydi; `state.origin = "archive"`).
 - Kalit so'zlar va regexlar kodda: `services/events/feeds.py` (hudud, mavzu, chet el belgilari), `dedup.py`, `geo.py`.
 - Kategoriyalar: `categories` (15 ta, en/ru/uz, jiddiylik, rang, ikon, notify, saqlash muddati, `rules`) —
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).

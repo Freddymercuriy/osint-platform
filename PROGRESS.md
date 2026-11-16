@@ -83,6 +83,25 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — Telegram "Arxiv" papkasidagi kanal/guruhlar (2026-11-16)
+- Foydalanuvchi talabi: *"telegramdagi archive chats dagi barcha kanal va guruhlarni ham monitoring qilsin"*.
+- Avval: yig'uvchi faqat `TG_CHATS` dagi 22 chatni (har biri alohida manba, 0006 migratsiyasi) o'qirdi; dialoglar
+  `iter_dialogs(limit=TG_DIALOG_LIMIT)` bilan — arxiv alohida so'ralmasdi.
+- `telegram_user.py`: `iter_chat_dialogs()` — asosiy ro'yxat (folder 0, `TG_DIALOG_LIMIT`) + Arxiv (folder 1,
+  `TG_ARCHIVE_LIMIT=500`), takrorsiz; `ChatInfo.archived`; `list_archived_chats()`; `_dialog_map` arxivni ham ko'radi
+  (arxivdagi chat manbasi "topilmadi" bo'lmaydi). `GET /api/telegram/chats` → `archived` maydoni.
+- `services/events/telegram_archive.py`: `TG_MONITOR_ARCHIVED=true` bo'lsa housekeeping'da (muvaffaqiyatdan keyin
+  soatiga bir; sessiya yo'q bo'lsa 10 daqiqada qayta) arxivdagi har kanal/guruh uchun `telegram_user` manbasi:
+  `Telegram: <nom> [<kalit>]`, 0006 bilan bir xil sozlama (10 daq, ochiq kanal — tarjima yoqiq, yopiq — o'chiq),
+  `state.origin = "archive"`. Mavjud manba (username yoki ID bo'yicha, o'chirib qo'yilgani ham) tegilmaydi.
+  Kalit so'z filtri (`TG_UZ_FILTER`, `TG_EXTRA_KEYWORDS`) boshqa Telegram manbalari bilan bir xil.
+- `backend/.env`: `TG_MONITOR_ARCHIVED=true` (nusxa `.env.bak-*`); `.env.example` — `false` + izoh.
+- Jonli: Telegram sessiyasi endi ulangan; arxivda 28 chat (15 kanal, 13 guruh) — 21 tasiga yangi manba, 7 tasi
+  `TG_CHATS` da bor edi; 28/28 qamrab olingan. Sinov: ochiq kanal va yopiq guruh manbalari — `ok`, xabarlar o'qildi
+  (`last_id` saqlandi), filtrdan o'tgani 0. ⚠️ Telethon sessiya fayli (SQLite) backend jarayonida band — ikkinchi
+  jarayondan `get_client()` qilmang (`database is locked`), tekshiruv — `/api/telegram/*` orqali.
+- Testlar: `test_telegram_archive.py` (2) + Telegram/manbalar testlari — 85 ✅.
+
 ### v2 dan keyin — frontend Docker'da, qayta yoqilganda avtomatik; LAN qaytarildi (2026-11-16)
 - Foydalanuvchi talabi: platforma faqat tailnet'dan `https://<mashina>.<tailnet>.ts.net` da ochilsin (Serve, Funnel
   emas); LAN va internetdan 3000/8000 yopiq; localhost ishlab chiqish uchun qoladi. Reja: 1) Tailscale o'rnatish va

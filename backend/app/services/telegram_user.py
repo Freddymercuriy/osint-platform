@@ -84,6 +84,7 @@ class ChatInfo:
     title: str
     username: str | None
     kind: str  # "channel" | "group"
+    archived: bool = False  # Telegram "Arxiv" papkasida (folder 1)
 
 
 @dataclass
@@ -104,7 +105,7 @@ class TgMessage:
         return f"https://t.me/c/{internal}/{self.msg_id}"
 
 
-def _chat_info(dialog) -> ChatInfo | None:
+def _chat_info(dialog, archived: bool = False) -> ChatInfo | None:
     ent = dialog.entity
     if isinstance(ent, Channel):
         kind = "group" if ent.megagroup else "channel"
@@ -117,17 +118,37 @@ def _chat_info(dialog) -> ChatInfo | None:
         title=dialog.name or "?",
         username=getattr(ent, "username", None),
         kind=kind,
+        archived=archived,
     )
+
+
+ARCHIVE_FOLDER = 1  # Telegram arxivni har doim folder 1 ga qo'yadi; 0 — asosiy ro'yxat
+
+
+async def iter_chat_dialogs(client, *, main: bool = True, archive: bool = True):
+    """(dialog, ChatInfo) — kanal va guruhlar: asosiy ro'yxat (`TG_DIALOG_LIMIT`) va Arxiv papkasi
+    (`TG_ARCHIVE_LIMIT`), takrorsiz. Shaxsiy suhbatlar va botlar o'tkazib yuboriladi."""
+    seen: set[int] = set()
+    folders = ([(0, settings.tg_dialog_limit)] if main else []) + \
+        ([(ARCHIVE_FOLDER, settings.tg_archive_limit)] if archive else [])
+    for folder, limit in folders:
+        async for d in client.iter_dialogs(limit=limit, folder=folder):
+            info = _chat_info(d, archived=folder == ARCHIVE_FOLDER)
+            if info is None or info.id in seen:
+                continue
+            seen.add(info.id)
+            yield d, info
 
 
 async def list_chats() -> list[ChatInfo]:
     client = await get_client()
-    chats: list[ChatInfo] = []
-    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
-        info = _chat_info(d)
-        if info:
-            chats.append(info)
-    return chats
+    return [info async for _, info in iter_chat_dialogs(client)]
+
+
+async def list_archived_chats() -> list[ChatInfo]:
+    """Faqat Arxiv papkasidagi kanal/guruhlar."""
+    client = await get_client()
+    return [info async for _, info in iter_chat_dialogs(client, main=False)]
 
 
 def chat_matches(info: ChatInfo, keys: list[str]) -> bool:
@@ -144,9 +165,8 @@ async def fetch_messages() -> list[TgMessage]:
     client = await get_client()
     wanted = settings.tg_chats_list
     out: list[TgMessage] = []
-    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
-        info = _chat_info(d)
-        if info is None or not _selected(info, wanted):
+    async for d, info in iter_chat_dialogs(client, archive=settings.tg_monitor_archived or bool(wanted)):
+        if not _selected(info, wanted):
             continue
         try:
             async for m in client.iter_messages(d.entity, limit=settings.tg_messages_per_chat):
@@ -172,10 +192,7 @@ async def _dialog_map(force: bool = False) -> dict[str, tuple[object, ChatInfo]]
         return _dialog_cache
     client = await get_client()
     out: dict[str, tuple[object, ChatInfo]] = {}
-    async for d in client.iter_dialogs(limit=settings.tg_dialog_limit):
-        info = _chat_info(d)
-        if info is None:
-            continue
+    async for d, info in iter_chat_dialogs(client):  # arxivdagi chatlar ham (manbasi bo'lsa — o'qiladi)
         out[str(info.id)] = (d.entity, info)
         if info.username:
             out[info.username.lower()] = (d.entity, info)

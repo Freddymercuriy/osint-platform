@@ -402,6 +402,12 @@ async def housekeeping() -> None:
         purged = await pipeline.purge_expired(db, datetime.now(UTC))
     if purged:
         log.info("Retention: %d ta eski hodisa o'chirildi", purged)
+    from app.services.events import telegram_archive
+
+    try:
+        await telegram_archive.maybe_sync()  # TG_MONITOR_ARCHIVED: arxivdagi kanal/guruhlar → manbalar
+    except Exception:
+        log.exception("Telegram arxivi sinxronlash xatosi")
 
 
 async def try_lock(conn: AsyncConnection) -> bool:
