@@ -53,3 +53,6 @@ tmp/
 
 # UI smoke-test skrinshotlari (frontend/scripts/qa)
 .qa-shots/
+
+# Lokal NewsNow bazasi (dump + docker-compose, parol .env da) — repo'ga tushmaydi
+newsnow/
