@@ -142,6 +142,17 @@ async def _clean_tables():
 
 
 @pytest.fixture(autouse=True)
+def _no_real_translation(monkeypatch):
+    """Testlar haqiqiy tarjima servisiga (standart TRANSLATE_API_URL) chiqmasin — kerakli testlar o'zi beradi."""
+    from app.core.config import settings
+    from app.services.i18n import translator
+
+    monkeypatch.setattr(settings, "translate_api_url", "")
+    translator._max_input_cache.clear()
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _reset_rate_limits():
     from app.core import ratelimit
 

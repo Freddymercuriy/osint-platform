@@ -3,20 +3,17 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from urllib.parse import parse_qs
 
-import httpx
 import pytest
 from sqlalchemy import select
 
 from app.core.config import settings
 from app.models import EventRecord, EventTranslation, Source, TranslationCache, TranslationUsage
 from app.services.connectors.base import AuthMissing, ConnectorError, RateLimited
-from app.services.connectors.http import HttpFetcher
 from app.services.i18n import worker
 from app.services.i18n.templates import render_title
 from app.services.i18n.text import detect_lang, normalize_uz, translit_uz
-from app.services.i18n.translator import FakeTranslator, GoogleTranslator
+from app.services.i18n.translator import FakeTranslator, NllbTranslator
 
 
 @pytest.fixture(autouse=True)
@@ -117,7 +114,7 @@ async def test_queue_translates_with_cache_and_priority(db):
     assert stats.done == 2
     assert all("Шифровальщик" in c[2][0] for c in fake.calls)  # birinchi navbatda — critical hodisa
     done_events = {t.event_id for t in (await db.scalars(
-        select(EventTranslation).where(EventTranslation.status == "done", EventTranslation.provider == "google"))).all()}
+        select(EventTranslation).where(EventTranslation.status == "done", EventTranslation.provider == "fake"))).all()}
     assert done_events == {high.id}
 
     stats = await worker.process_pending(db, fake)
@@ -188,7 +185,7 @@ async def test_auth_and_rate_limit_pause(db):
 async def test_no_key_leaves_pending(db):
     await _store(db)
     await worker.ensure_rows(db)
-    t = GoogleTranslator(None, http=None)
+    t = NllbTranslator(None, http=None)  # TRANSLATE_API_URL bo'sh
     stats = await worker.process_pending(db, t)
     assert stats.stopped == "no_key"
 
@@ -201,38 +198,6 @@ async def test_source_translate_switch_off(db):
     await worker.ensure_rows(db)
     rows = {r.lang: r.status for r in (await db.scalars(select(EventTranslation))).all()}
     assert rows == {"ru": "done", "en": "skipped", "uz": "skipped"}
-
-
-# ---------------------------------------------------------------- Google provayderi (tarmoqsiz)
-async def test_google_request_shape_and_errors():
-    seen = []
-
-    def handler(req):
-        seen.append(req)
-        body = parse_qs(req.content.decode())
-        if body["target"] == ["ru"]:
-            return httpx.Response(200, json={"data": {"translations": [{"translatedText": f"RU {t}"} for t in body["q"]]}})
-        if body["target"] == ["uz"]:
-            return httpx.Response(400, json={"error": {"message": "API key not valid. Please pass a valid API key."}})
-        if body["target"] == ["kk"]:
-            return httpx.Response(403, json={"error": {"errors": [{"reason": "dailyLimitExceeded"}]}})
-        return httpx.Response(500)
-
-    http = HttpFetcher.create(transport=httpx.MockTransport(handler), ssrf_guard=False)
-    g = GoogleTranslator("secret-key", http)
-    assert await g.translate(["a", "b"], "en", "ru") == ["RU a", "RU b"]
-    req = seen[0]
-    assert req.url.path == "/language/translate/v2" and "key=" not in str(req.url)
-    assert req.headers["x-goog-api-key"] == "secret-key"
-    assert parse_qs(req.content.decode())["format"] == ["text"]
-    with pytest.raises(AuthMissing):
-        await g.translate(["a"], "en", "uz")
-    with pytest.raises(RateLimited):
-        await g.translate(["a"], "en", "kk")
-    with pytest.raises(ConnectorError) as exc:
-        await g.translate(["a"], "en", "en")
-    assert "secret-key" not in str(exc.value)
-    await http.aclose()
 
 
 # ---------------------------------------------------------------- API
@@ -267,7 +232,7 @@ async def test_admin_translation_endpoints(client, admin_headers, analyst_header
     await worker.ensure_rows(db)
     body = (await client.get("/api/admin/translations", headers=admin_headers)).json()
     assert body["configured"] is False and body["counts"]["pending"] == {"en": 1, "uz": 1}
-    assert body["counts"]["done"] == {"ru": 1} and body["char_limit"] == 450000 and body["remaining"] == 450000
+    assert body["counts"]["done"] == {"ru": 1} and body["char_limit"] == 0 and body["provider"] == "nllb"
     r = await client.post("/api/admin/translations/run", headers=admin_headers)
     assert r.status_code == 200 and r.json()["stopped"] == "no_key"
     assert (await client.post("/api/admin/translations/retry-failed", headers=admin_headers)).json() == {"requeued": 0}

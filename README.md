@@ -23,7 +23,7 @@ hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / tel
 - **Hodisalar lentasi** — ~100 manba (RSS, Google News, ransomware.live, RansomLook, HIBP, CISA KEV, URLhaus, ThreatFox,
   OpenPhish, OTX, Cloudflare Radar, milliy CERT'lar, Telegram kanal/guruhlari); har manba o'z tasodifiy jadvali bilan,
   sog'liq holati, backoff, baseline; takrorlar birlashtiriladi ("N ta manba xabar qildi"); 15 mavzu kategoriyasi
-  (qoidalar admin panelida); har hodisa en/ru/uz (Google Cloud Translation).
+  (qoidalar admin panelida); har hodisa en/ru/uz (o'z NLLB tarjima servisi, `TRANSLATE_API_URL`).
 - **Filtrlar** — kategoriya, jiddiylik, davlat, kanal, manba, qamrov (mintaqa/global), asl til, sana, matn — URL'da.
 - **Dashboard** — KPI (oldingi davrga nisbatan), vaqt bo'yicha, kategoriyalar, davlatlar, jiddiylik trendi, hafta×soat,
   manbalar, ransomware guruhlari, sohalar, so'nggi muhim hodisalar, manbalar sog'lig'i; kesishma filtr, jadval, CSV.
@@ -54,6 +54,8 @@ npm run dev
   `ENVIRONMENT=development` da ochiq, boshqa muhitda `REGISTRATION_OPEN=true` kerak.
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
   `docker-compose exec backend python scripts/tg_login.py`.
+- Tarjima: o'z NLLB servisimiz, kalit kerak emas — `TRANSLATE_API_URL` (standart `https://translate.deepcore.uz`),
+  `TRANSLATE_TIMEOUT_SECONDS=30`; o'chirish — `TRANSLATE_ENABLED=false`. Holati: admin → Tizim → Tarjima.
 
 - Reverse proxy (nginx, Caddy...) ortida ishlatilsa: `TRUSTED_PROXIES` ga proxy manzilini yozing (IP/CIDR) —
   aks holda login limiti hamma foydalanuvchini bitta proxy IP'si deb hisoblaydi. Rate limit va yig'uvchi bitta
@@ -66,7 +68,6 @@ npm run dev
 
 | O'zgaruvchi | Nima uchun |
 |---|---|
-| `GOOGLE_TRANSLATE_API_KEY` | Hodisalarni en/ru/uz ga tarjima (Cloud Translation Basic v2) |
 | `RANSOMWARE_LIVE_API_KEY` | ransomware.live PRO API (bepul shaxsiy kalit) |
 | `ABUSECH_AUTH_KEY` | URLhaus va ThreatFox |
 | `OTX_API_KEY` | LevelBlue (AlienVault) OTX |

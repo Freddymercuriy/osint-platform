@@ -22,7 +22,7 @@ The problems this upgrade removes:
 2. Every source is fetched on its own randomised schedule.
 3. The most important threat-intelligence sources are connected and their data is stored.
 4. More than ten topic categories, with CRUD, used as filters everywhere.
-5. Every event is stored in English, Russian and Uzbek (Latin script), translated through Google Cloud Translation.
+5. Every event is stored in English, Russian and Uzbek (Latin script), translated through Google Cloud Translation. *(2026-11-16: o'z NLLB servisi bilan almashtirildi — replaced by the self-hosted NLLB translation service, see `PROGRESS.md`.)*
 6. A clean interface that is easy to understand, with Light, Dark and System themes and complete uz / ru / en localisation.
 7. A dashboard of real, interactive statistics.
 
@@ -132,6 +132,8 @@ Seed fifteen: `ransomware`, `leak` (data breaches and leaks), `darkweb-sale` (ac
 
 - `event_translations (event_id, lang, title, summary, provider, status, error, translated_at)`, one row per language in `en`, `ru`, `uz`. The row for the source language is a copy (`provider = source`).
 - Use the official Google Cloud Translation API behind a small `Translator` interface. The key goes in `GOOGLE_TRANSLATE_API_KEY`; the Basic edition accepts an API key, and target code `uz` gives Uzbek. Do not use `googletrans`-style libraries that scrape the public web endpoint, because they break without warning and get the server's address blocked. With no key configured, translations stay `pending` and the UI shows the original with a "not translated yet" mark.
+  *(2026-11-16: o'z NLLB servisi bilan almashtirildi — Google Cloud Translation and `GOOGLE_TRANSLATE_API_KEY` were replaced by the self-hosted
+  NLLB service: `TRANSLATE_API_URL`, no key; see `PROGRESS.md` → "v2 dan keyin — tarjima servisi".)*
 - Translate asynchronously after insert, in batches, highest severity first, with retries. Cache by a hash of source language, target language and text, so repeated text is never paid for twice.
 - Cost guard: the first 500,000 characters a month are free, then about $20 per million. Clip titles to 300 characters and summaries to 600, count the characters sent, stop at `TRANSLATE_MONTHLY_CHAR_LIMIT` (default 450,000), and show that state in admin.
 - Do not machine-translate structured items. Build ransomware-victim, CVE and indicator titles from localised templates on the backend and send only free text to Google.

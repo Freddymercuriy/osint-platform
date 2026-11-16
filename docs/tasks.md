@@ -84,12 +84,13 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
 - ✅ Bosqich 3 — Manbalar: bazaga seed, Telegram chatlari alohida, yangi threat-intel manbalari
 - ✅ Bosqich 4 — Kategoriyalar (15 ta) CRUD va klassifikator, filtrlar
-- ✅ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali (kalit kutilmoqda)
+- ✅ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali (kalit kutilmoqda) — 2026-11-16 o'z NLLB servisi bilan almashtirildi
 - ✅ Bosqich 6 — Interfeys: Light/Dark/System, uz/ru/en
 - ✅ Bosqich 7 — Admin bo'limi va Events sahifasi
 - ✅ Bosqich 8 — Interaktiv statistika dashboard'i
 - ✅ Bosqich 9 — Xavfsizlik (rate limiting, QA hisobi o'chirildi), testlar, hujjatlar
 - ✅ Keyin: Events `range` (soat aniqligida), `TRUSTED_PROXIES` / `X-Forwarded-For`, tarix hisoblagichi
+- ✅ Tarjima provayderi: Google Cloud Translation → o'z NLLB servisi (`TRANSLATE_API_URL`, kalitsiz)
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish

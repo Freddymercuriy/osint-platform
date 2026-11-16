@@ -234,7 +234,7 @@ export type TranslationStatus = {
   month: string;
   chars_used: number;
   requests: number;
-  char_limit: number;
+  char_limit: number; // 0 — chegarasiz
   remaining: number;
   budget_exhausted: boolean;
   key_rejected: boolean;

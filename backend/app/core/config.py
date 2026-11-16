@@ -92,11 +92,12 @@ class Settings(BaseSettings):
     # Manba shuncha soat davomida down/blocked bo'lsa — adminlarga ogohlantirish
     source_down_alert_hours: int = 3
 
-    # Tarjima (Google Cloud Translation, Basic v2 — API kalit bilan). Kalit bo'lmasa tarjimalar "pending" qoladi.
-    google_translate_api_key: str | None = None
+    # Tarjima — o'z NLLB servisimiz (facebook/nllb-200, FLORES-200 kodlari, kalitsiz). Bo'sh URL — tarjimalar "pending".
+    translate_api_url: str = "https://translate.deepcore.uz"
+    translate_timeout_seconds: float = 30.0
     translate_enabled: bool = True
-    # Oylik belgilar chegarasi (birinchi 500 000 belgi bepul; undan keyin ~$20 / 1 mln) — shundan oshsa to'xtaydi
-    translate_monthly_char_limit: int = 450_000
+    # Oylik belgilar chegarasi; 0 — chegarasiz (o'z servisimiz, to'lov yo'q). Hisob statistika uchun baribir yuritiladi.
+    translate_monthly_char_limit: int = 0
 
     @property
     def is_development(self) -> bool:

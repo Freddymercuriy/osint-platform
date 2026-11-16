@@ -4,7 +4,8 @@
    transliteratsiya; tuzilgan elementlar sarlavhasi — shablon (`templates.py`); qolgani — `pending` (yoki manba
    tarjimaga ruxsat bermasa `skipped`).
 2. `process_pending` — navbatni jiddiylik bo'yicha (avval critical), paketlab tarjima qiladi: avval kesh, keyin
-   provayder; oylik belgi chegarasi; xatoda qayta urinish (3 marta), rate limitda kutish.
+   provayder (o'z NLLB servisi); oylik belgi chegarasi (0 — chegarasiz); xatoda qator `pending` da qoladi va qayta
+   urinadi (3 marta, hodisa shu orada asl tilda ko'rsatiladi), 422 / noma'lum tilda — darhol `failed`; rate limitda kutish.
 Sarlavha 300, matn 600 belgigacha qisqartiriladi.
 """
 
@@ -25,7 +26,13 @@ from app.models.category import SEVERITIES
 from app.services.connectors.base import AuthMissing, ConnectorError, RateLimited
 from app.services.i18n.templates import render_title
 from app.services.i18n.text import LANGS, detect_lang, is_cyrillic, normalize_uz, translit_uz
-from app.services.i18n.translator import MAX_CHARS, MAX_STRINGS, Translator
+from app.services.i18n.translator import (
+    MAX_CHARS,
+    MAX_STRINGS,
+    TranslationRequestError,
+    Translator,
+    UnsupportedLanguage,
+)
 
 log = logging.getLogger("osint.i18n")
 
@@ -158,8 +165,8 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
         stats.stopped = "paused"
         return stats
     usage = await usage_row(db, now)
-    cap = settings.translate_monthly_char_limit
-    state.budget_exhausted = usage.chars >= cap
+    cap = settings.translate_monthly_char_limit  # 0 — chegarasiz
+    state.budget_exhausted = cap > 0 and usage.chars >= cap
     if state.budget_exhausted:
         stats.stopped = "budget"
         await db.commit()
@@ -200,9 +207,10 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                 tr.provider = "cache" if tr.provider == "none" else tr.provider
             else:
                 todo.append((tr, fld, text))
-        # provayder — paketlar (≤128 satr, ≤25k belgi); takror matnlar bir marta
+        # provayder — paketlar (≤64 satr, ≤12k belgi; uzun matnlarni klient o'zi bo'ladi); takror matnlar bir marta
         unique: list[str] = list(dict.fromkeys(t for _, _, t in todo))
         results: dict[str, str] = {}
+        errors: dict[str, tuple[str, bool]] = {}  # matn → (xato, qayta urinish befoyda)
         i = 0
         while i < len(unique):
             batch, size = [], 0
@@ -213,7 +221,7 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
             if not batch:  # bitta matn ham sig'madi (bo'lmasligi kerak — qisqartirilgan)
                 batch, size = [unique[i][:MAX_CHARS]], min(len(unique[i]), MAX_CHARS)
                 i += 1
-            if usage.chars + size > cap:
+            if cap > 0 and usage.chars + size > cap:
                 state.budget_exhausted = True
                 stats.stopped = "budget"
                 break
@@ -230,10 +238,14 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                 stats.stopped, stats.errors = "rate_limited", [str(exc)]
                 break
             except ConnectorError as exc:
+                permanent = isinstance(exc, (TranslationRequestError, UnsupportedLanguage))
+                log.warning("Tarjima %s→%s (%d ta matn) bajarilmadi%s: %s", src, tgt, len(batch),
+                            "" if permanent else " — keyinroq qayta urinadi", exc)
                 stats.errors.append(str(exc))
                 state.last_error = str(exc)
                 for t in batch:
                     results[t] = None  # type: ignore[assignment]
+                    errors[t] = (str(exc), permanent)
                 continue
             state.key_rejected = False
             usage.chars += size
@@ -245,16 +257,16 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                 results[text] = translated
                 db.add(TranslationCache(key=cache_key(src, tgt, text), source_lang=src, target_lang=tgt,
                                         text=translated, chars=len(text)))
-        failed_rows: dict[int, EventTranslation] = {}
+        failed_rows: dict[int, tuple[EventTranslation, str, bool]] = {}
         for tr, fld, text in todo:
             if text in results and results[text] is not None:
                 setattr(tr, fld, results[text])
-                tr.provider = "google" if tr.provider in ("none", "cache") else tr.provider
+                tr.provider = translator.name if tr.provider in ("none", "cache") else tr.provider
             elif text in results:  # provayder xatosi (qator bo'yicha bir marta hisoblanadi)
-                failed_rows[id(tr)] = tr
-        for tr in failed_rows.values():
-            tr.attempts += 1
-            tr.error = (stats.errors[-1] if stats.errors else "xato")[:500]
+                failed_rows[id(tr)] = (tr, *errors.get(text, ("xato", False)))
+        for tr, error, permanent in failed_rows.values():
+            tr.attempts = MAX_ATTEMPTS if permanent else tr.attempts + 1
+            tr.error = error[:500]
             if tr.attempts >= MAX_ATTEMPTS:
                 tr.status = "failed"
                 stats.failed += 1

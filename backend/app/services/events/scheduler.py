@@ -94,6 +94,7 @@ class SchedulerState:
     _task: asyncio.Task | None = field(default=None, repr=False)
     _sem: asyncio.Semaphore | None = field(default=None, repr=False)
     _http: HttpFetcher | None = field(default=None, repr=False)
+    _tr_http: HttpFetcher | None = field(default=None, repr=False)  # tarjima servisi uchun alohida mijoz
     _last_housekeeping: float = 0.0
 
 
@@ -342,9 +343,13 @@ async def _guarded_run(source_id: int, manual: bool = False) -> RunSummary | Non
 
 
 def translator():
-    from app.services.i18n.translator import GoogleTranslator
+    from app.services.i18n.translator import NllbTranslator
 
-    return GoogleTranslator(settings.google_translate_api_key, _http())
+    if state._tr_http is None:
+        # O'z servisimiz: URL operator sozlamasidan (foydalanuvchi kiritmaydi) — SSRF filtri va xushmuomalalik
+        # pauzasi kerak emas (servis ichki manzilga ko'chirilsa ham ishlaydi)
+        state._tr_http = HttpFetcher.create(transport=HTTP_TRANSPORT, ssrf_guard=False, pause_range=(0.0, 0.0))
+    return NllbTranslator(settings.translate_api_url, state._tr_http, timeout=settings.translate_timeout_seconds)
 
 
 async def translation_tick() -> dict:
@@ -486,6 +491,9 @@ async def stop() -> None:
     if state._http is not None:
         await state._http.aclose()
         state._http = None
+    if state._tr_http is not None:
+        await state._tr_http.aclose()
+        state._tr_http = None
     state._sem = None
 
 

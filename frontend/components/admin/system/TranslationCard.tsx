@@ -57,6 +57,7 @@ export default function TranslationCard() {
     } finally { setAction(null); }
   };
 
+  const unlimited = !!data && data.char_limit <= 0; // 0 — chegarasiz (o'z servisimiz)
   const pct = data && data.char_limit > 0 ? Math.min(100, (data.chars_used / data.char_limit) * 100) : 0;
   const barTone = pct >= 100 ? "bg-danger" : pct >= 80 ? "bg-warning" : "bg-primary";
 
@@ -114,21 +115,26 @@ export default function TranslationCard() {
             <div className="mb-1 flex flex-wrap items-baseline justify-between gap-2 text-sm">
               <span className="font-medium text-fg">{t("translation.usage")}</span>
               <span className="text-fg-muted">
-                {t("translation.usageOf", { used: f.number(data.chars_used), limit: f.number(data.char_limit) })}
+                {unlimited
+                  ? t("translation.usageUnlimited", { used: f.number(data.chars_used) })
+                  : t("translation.usageOf", { used: f.number(data.chars_used), limit: f.number(data.char_limit) })}
               </span>
             </div>
-            <div
-              role="progressbar"
-              aria-label={t("translation.usage")}
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={Math.round(pct)}
-              className="h-2 overflow-hidden rounded-full bg-surface-2"
-            >
-              <div className={`h-full ${barTone}`} style={{ width: `${pct}%` }} />
-            </div>
+            {!unlimited && (
+              <div
+                role="progressbar"
+                aria-label={t("translation.usage")}
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={Math.round(pct)}
+                className="h-2 overflow-hidden rounded-full bg-surface-2"
+              >
+                <div className={`h-full ${barTone}`} style={{ width: `${pct}%` }} />
+              </div>
+            )}
             <p className="mt-1 text-xs text-fg-muted">
-              {t("translation.remaining", { count: f.number(data.remaining) })} · {t("translation.month", { month: f.date(data.month, { short: true }) })}
+              {!unlimited && <>{t("translation.remaining", { count: f.number(data.remaining) })} · </>}
+              {t("translation.month", { month: f.date(data.month, { short: true }) })}
             </p>
           </div>
 

@@ -31,7 +31,7 @@ class TranslationStatus(BaseModel):
     month: date
     chars_used: int
     requests: int
-    char_limit: int
+    char_limit: int  # 0 — chegarasiz
     remaining: int
     budget_exhausted: bool
     key_rejected: bool
@@ -48,16 +48,18 @@ async def translation_status(_: AdminUser, db: DbSession) -> TranslationStatus:
     usage = await worker.usage_row(db)
     await db.commit()
     st = worker.state
+    tr = scheduler.translator()
+    cap = settings.translate_monthly_char_limit  # 0 — chegarasiz
     failed = (await db.scalars(
         select(EventTranslation).where(EventTranslation.status == "failed")
         .order_by(EventTranslation.id.desc()).limit(20)
     )).all()
     return TranslationStatus(
-        provider="google", configured=bool(settings.google_translate_api_key), enabled=settings.translate_enabled,
+        provider=tr.name, configured=tr.configured, enabled=settings.translate_enabled,
         month=usage.month, chars_used=usage.chars, requests=usage.requests,
-        char_limit=settings.translate_monthly_char_limit,
-        remaining=max(0, settings.translate_monthly_char_limit - usage.chars),
-        budget_exhausted=usage.chars >= settings.translate_monthly_char_limit, key_rejected=st.key_rejected,
+        char_limit=cap,
+        remaining=max(0, cap - usage.chars),
+        budget_exhausted=cap > 0 and usage.chars >= cap, key_rejected=st.key_rejected,
         paused_until=st.paused_until, last_run=st.last_run, last_error=st.last_error,
         counts=await worker.counts(db),
         cache_entries=await db.scalar(select(func.count()).select_from(TranslationCache)) or 0,

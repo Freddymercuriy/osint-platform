@@ -72,7 +72,14 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - Kategoriyalar: `categories` (15 ta, en/ru/uz, jiddiylik, rang, ikon, notify, saqlash muddati, `rules`) —
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
-  Google Cloud Translation navbati (kesh, oylik chegara, qayta urinish).
+  navbat (`worker.py`: kesh, oylik chegara — 0 = chegarasiz, qayta urinish; 422 / noma'lum til — darhol `failed`).
+  Provayder — o'z NLLB servisimiz (`translator.py`, `TRANSLATE_API_URL`, kalitsiz): ISO kod → FLORES-200
+  (`uz→uzn_Latn`, `ru→rus_Cyrl`, `en→eng_Latn`, `kk→kaz_Cyrl`, `ky→kir_Cyrl`, `tg→tgk_Cyrl`, `tk→tuk_Latn`); servisda
+  `uzn_Cyrl` yo'q — o'zbek kirill avval lotinga o'giriladi. `/translate/batch` ≤ 64 matn; `max_input_length`
+  (`GET /model`) dan uzun matn gaplar bo'yicha bo'linadi. Ulanish xatosi / 5xx — 2 marta qayta urinish, timeout va 422 —
+  yo'q. Navbatda xato → qator `pending` (asl matn tarjima sifatida saqlanmaydi); navbatdan tashqari chaqiruvlar uchun
+  `translate_or_original()` (ogohlantirish + asl matn). Mijoz ulagichlardan alohida: SSRF filtri va pauzasiz
+  (URL operator sozlamasi).
 - Hodisalar: `GET /api/events` — filtrlar birlashadi (AND): `category`, `severity`, `country`, `channel`, `source`,
   `scope`, `source_lang`, `q`, davr: `range=24h|7d|30d|90d` (hozirdan orqaga, soat aniqligida) yoki `date_from`/`date_to`
   (Toshkent kuni; berilsa `range` e'tiborsiz — statistika bilan bir xil qoida).

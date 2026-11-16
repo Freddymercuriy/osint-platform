@@ -172,14 +172,18 @@ def raise_for_status(resp: httpx.Response, expect_html: bool = False) -> None:
 class HttpFetcher:
     """Ulagichlar ishlatadigan HTTP mijoz (bitta jarayonda bitta `httpx.AsyncClient`)."""
 
-    def __init__(self, client: httpx.AsyncClient, ssrf_guard: bool = True) -> None:
+    def __init__(self, client: httpx.AsyncClient, ssrf_guard: bool = True,
+                 pause_range: tuple[float, float] | None = None) -> None:
         self.client = client
         self.ssrf_guard = ssrf_guard
+        # None — umumiy PAUSE_RANGE (begona saytlarga xushmuomalalik); o'z servislarimiz uchun (0, 0)
+        self.pause_range = pause_range
         self.requests = 0
         self.last_status: int | None = None
 
     @classmethod
-    def create(cls, transport: httpx.AsyncBaseTransport | None = None, ssrf_guard: bool = True) -> HttpFetcher:
+    def create(cls, transport: httpx.AsyncBaseTransport | None = None, ssrf_guard: bool = True,
+               pause_range: tuple[float, float] | None = None) -> HttpFetcher:
         holder: dict[str, HttpFetcher] = {}
 
         async def _check(request: httpx.Request) -> None:
@@ -194,7 +198,7 @@ class HttpFetcher:
             transport=transport,
             event_hooks={"request": [_check]},
         )
-        fetcher = cls(client, ssrf_guard=ssrf_guard)
+        fetcher = cls(client, ssrf_guard=ssrf_guard, pause_range=pause_range)
         holder["self"] = fetcher
         return fetcher
 
@@ -233,7 +237,7 @@ class HttpFetcher:
             except httpx.HTTPError as exc:
                 raise ConnectorError(f"Ulanish xatosi: {host}: {type(exc).__name__}") from exc
             finally:
-                lo, hi = PAUSE_RANGE
+                lo, hi = PAUSE_RANGE if self.pause_range is None else self.pause_range
                 gate.ready_at = time.monotonic() + (random.uniform(lo, hi) if hi > 0 else 0)
         self.requests += 1
         self.last_status = resp.status_code

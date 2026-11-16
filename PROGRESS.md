@@ -77,6 +77,37 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — tarjima servisi: Google → o'z NLLB servisi (2026-11-16)
+- **Provayder**: Google Cloud Translation olib tashlandi (`GOOGLE_TRANSLATE_API_KEY` kod, `.env.example`, joriy hujjatlardan;
+  tarixiy yozuvlarda izoh bilan qoldi). Yangi: `TRANSLATE_API_URL` (standart `https://translate.deepcore.uz`, kalitsiz,
+  `facebook/nllb-200-3.3B`, cuda), `TRANSLATE_TIMEOUT_SECONDS=30`; `TRANSLATE_MONTHLY_CHAR_LIMIT` standarti endi **0 =
+  chegarasiz** (hisob yuritiladi; admin kartochkasida "chegarasiz", progress bar yashiriladi).
+- **Klient** `services/i18n/translator.py` → `NllbTranslator` (interfeys o'zgarmadi: `translate(texts, source, target)`,
+  `configured`, `name`): ISO → FLORES-200 (`uz→uzn_Latn, ru→rus_Cyrl, en→eng_Latn, kk→kaz_Cyrl, ky→kir_Cyrl,
+  tg→tgk_Cyrl, tk→tuk_Latn`, hammasi `GET /languages` bilan tekshirilgan). ⚠️ Servisda **`uzn_Cyrl` yo'q** — o'zbek
+  kirill matni `translit_uz` bilan lotinga o'girilib `uzn_Latn` sifatida yuboriladi. Manba tili avvaldan ham aniq
+  beriladi (`detect_lang`), Google avto-aniqlashiga tayanilmagan edi — yangi aniqlagich kerak bo'lmadi.
+  `/translate/batch` ≤ 64 matn; `max_input_length` (`GET /model`, 512 token, bir marta keshlanadi) − 8 belgidan uzun
+  matn gaplar bo'yicha bo'linadi va qayta birlashtiriladi. Ulanish xatosi / 5xx — 2 marta qayta urinish (1 s, 2 s +
+  jitter); timeout (GPU yukini takrorlamaslik uchun), 422 (`detail[].loc/msg` bilan aniq xato) va noma'lum til — yo'q;
+  429 → `RateLimited`. `translate_or_original()` — navbatdan tashqari chaqiruvlar uchun (warning + asl matn).
+- **Navbat** (`worker.py`): xatoda klient istisno ko'taradi → qator `pending`, warning logi, 3 urinish (asl matn
+  tarjima sifatida keshga yozilmaydi — foydalanuvchi bilan kelishildi); 422 / noma'lum til → darhol `failed`; har
+  qatorga o'z xatosi; provayder nomi `translator.name` (`nllb`).
+- **HTTP**: tarjima uchun alohida `HttpFetcher` (`scheduler.state._tr_http`) — SSRF filtri yo'q (URL operator
+  sozlamasi) va `pause_range=(0, 0)` (yangi parametr; ulagichlar uchun 1–4 s pauza o'zgarmadi).
+- Testlar: `tests/test_translator_nllb.py` (27 holat: kodlar, 64 lik bo'lish, uzun matn, kirill o'zbek, bo'sh matnlar,
+  noma'lum til, 422, 5xx qayta urinish/taslim, ulanish xatosi, timeout, 429, `/model` ishlamasa, fallback, worker:
+  pending / darhol failed / 0 = chegarasiz, scheduler fabrikasi); Google testlari olib tashlandi; conftest testlarni
+  haqiqiy servisdan ajratadi (`translate_api_url=""`).
+- Jonli: backend qayta ishga tushgach navbat o'zi ishladi — 9 so'rovda 98 qator `nllb` (29 465 belgi), xatosiz;
+  namunalar ru→en/uz, uz→en/ru to'g'ri (bitta ru→en sarlavhada "В Ташкенте" tushib qolgan — NLLB xususiyati).
+  `/health` → ok/cuda; `/translate` "Toshkentda kiberjinoyatchilar qo'lga olindi." → "В Ташкенте были задержаны
+  киберпреступники.".
+- `backend/.env`: avval qo'shilgan bo'sh `GOOGLE_TRANSLATE_API_KEY=` qatori olib tashlandi (nusxa `.env.bak-*`);
+  `TRANSLATE_*` qatorlari shart emas (standartlar).
+- Tekshirildi: ✅ backend **314 pytest** (to'liq to'plam, 19.5 daq, xatosiz); ✅ `tsc`, i18n 904 kalit × 3 til.
+
 ### v2 dan keyin — kichik ishlar (2026-11-16)
 "Keyingi qadamlar" 4-bandidan (Next 15 ga ko'chish — alohida ish, qilinmadi):
 - **Events davri soat aniqligida**: `GET /api/events?range=24h|7d|30d|90d` (hozirdan orqaga). Ilgari "24 soat" tugmasi
@@ -233,6 +264,8 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   422 ro'yxati sifatida — matni o'zbekcha; ulagich `ConfigError` matnlari ru/en da o'zbekcha qism bilan.
 
 ### v2 — Bosqich 5: tarjima — en / ru / uz (2026-11-14)
+> 2026-11-16: Google Cloud Translation o'z NLLB servisi bilan almashtirildi — pastdagi Google'ga oid qismlar (`translator.py`,
+> `GOOGLE_TRANSLATE_API_KEY`, 450 000 belgi chegarasi) tarixiy. Joriy holat: "v2 dan keyin — tarjima servisi" yozuvi.
 - Jadvallar (`0009_translations`): `event_translations` (hodisa × til: title, summary, provider
   `source|template|translit|google|cache|none`, status `done|pending|failed|skipped`, xato, urinishlar, keyingi urinish),
   `translation_cache` (sha256(manba til | maqsad til | matn) → tarjima), `translation_usage` (oy bo'yicha belgilar).
@@ -586,7 +619,7 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
 ### Keyingi qadamlar (v2 dan keyin)
 1. **Telegram'ga qayta login** (sessiya Telegram tomonidan bekor qilingan): `docker-compose exec backend python scripts/tg_login.py`
    — 22 ta Telegram manbasi `auth_missing` holatidan o'zi chiqadi.
-2. Kalitlarni olish va `backend/.env` ga qo'yish: `GOOGLE_TRANSLATE_API_KEY`, `RANSOMWARE_LIVE_API_KEY`, `ABUSECH_AUTH_KEY`,
+2. Kalitlarni olish va `backend/.env` ga qo'yish: `RANSOMWARE_LIVE_API_KEY`, `ABUSECH_AUTH_KEY`,
    `OTX_API_KEY` (ixtiyoriy: `NVD_API_KEY`, `CLOUDFLARE_API_TOKEN`); backend konteynerini qayta yaratish; admin panelda manbani yoqish.
 3. v2 ni `main` bilan solishtirib, qaror qilinsa merge (egasi qiladi).
 4. ✅ (2026-11-16) `X-Forwarded-For` (`TRUSTED_PROXIES`), tarix hisoblagichi, Events `range` (soat aniqligida).
