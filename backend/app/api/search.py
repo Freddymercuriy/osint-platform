@@ -1,7 +1,8 @@
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Query, Response, status
-from sqlalchemy import delete, select
+from pydantic import BaseModel
+from sqlalchemy import delete, func, select
 
 from app.core.errors import api_error
 from app.core.i18n import CodedValueError
@@ -126,6 +127,21 @@ async def history(
         stmt.order_by(SearchJob.created_at.desc(), SearchJob.id.desc()).limit(limit).offset(offset)
     )
     return list(rows)
+
+
+class HistoryCounts(BaseModel):
+    total: int
+    by_kind: dict[str, int]
+
+
+@router.get("/history/counts", response_model=HistoryCounts)
+async def history_counts(current_user: CurrentUser, db: DbSession) -> HistoryCounts:
+    """Tarix sahifasidagi tur tablari uchun: foydalanuvchining qidiruvlari soni turlar bo'yicha."""
+    by_kind = dict((await db.execute(
+        select(SearchJob.kind, func.count(SearchJob.id))
+        .where(SearchJob.user_id == current_user.id).group_by(SearchJob.kind)
+    )).all())
+    return HistoryCounts(total=sum(by_kind.values()), by_kind=by_kind)
 
 
 @router.delete("/history")

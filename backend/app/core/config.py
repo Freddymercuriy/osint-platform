@@ -1,7 +1,9 @@
+import ipaddress
 import os
 from datetime import UTC, datetime, timedelta, timezone
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -80,6 +82,9 @@ class Settings(BaseSettings):
     search_rate_window: int = 60
     refresh_rate: int = 5  # qo'lda yig'ish: foydalanuvchi boshiga 10 daqiqada
     refresh_rate_window: int = 600
+    # Ishonchli reverse proxy'lar (IP yoki CIDR, vergul bilan). Faqat so'rov shulardan kelsa `X-Forwarded-For`
+    # o'qiladi (o'ngdan birinchi ishonchsiz manzil = mijoz). Bo'sh — sarlavha e'tiborsiz (to'g'ridan-to'g'ri ulanish).
+    trusted_proxies: str = ""
 
     # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
     app_timezone: str = "Asia/Tashkent"
@@ -144,6 +149,15 @@ class Settings(BaseSettings):
     @property
     def tg_extra_keywords_list(self) -> list[str]:
         return [k.strip().lower() for k in self.tg_extra_keywords.split(",") if k.strip()]
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _check_trusted_proxies(cls, value: str) -> str:
+        """Noto'g'ri IP/CIDR — ishga tushishdayoq xato (birinchi login so'rovida emas)."""
+        for part in value.split(","):
+            if part.strip():
+                ipaddress.ip_network(part.strip(), strict=False)
+        return value
 
     @property
     def cors_origins_list(self) -> list[str]:

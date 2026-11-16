@@ -37,7 +37,7 @@ class BaseCollector:
 Bu yangi modul qo'shishni oson qiladi — faqat yangi collector yozib, ro'yxatga qo'shiladi.
 
 Mavjud collectorlar: `username` (faqat Telegram — `telegram_account.py`: akkaunt, username tarixi, umumiy guruhlar), `email`, `phone`, `domain` (domen yoki IP). Har biri `POST /api/search/<kind>` orqali
-chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, `GET|DELETE /api/search/jobs/{id}`; hisobot: `GET /api/search/jobs/{id}/export` →
+chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, tur bo'yicha sonlar `GET /api/search/history/counts`, `GET|DELETE /api/search/jobs/{id}`; hisobot: `GET /api/search/jobs/{id}/export` →
 JSON fayl yoki `/report/{id}` chop etish sahifasi orqali PDF).
 
 `DomainCollector` qoidalari: foydalanuvchi kiritgan host'ga to'g'ridan-to'g'ri ulanmaydi (SSRF) — faqat DNS so'rovlari va
@@ -73,13 +73,18 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
   Google Cloud Translation navbati (kesh, oylik chegara, qayta urinish).
+- Hodisalar: `GET /api/events` — filtrlar birlashadi (AND): `category`, `severity`, `country`, `channel`, `source`,
+  `scope`, `source_lang`, `q`, davr: `range=24h|7d|30d|90d` (hozirdan orqaga, soat aniqligida) yoki `date_from`/`date_to`
+  (Toshkent kuni; berilsa `range` e'tiborsiz — statistika bilan bir xil qoida).
 - Statistika: `api/stats_v2.py` — `/api/stats/kpis|timeseries|breakdown|heatmap|source-health|latest`, hammasi
   `/api/events` filtrlari bilan, vaqt bo'laklari `APP_TIMEZONE` da.
 - Admin API: `/api/admin/sources` (CRUD, test, run, runs, export/import), `/api/admin/collector`,
   `/api/admin/categories` (CRUD, reorder, reclassify), `/api/admin/translations`, `/api/admin/users`;
   adminlar uchun tizim ogohlantirishlari (`admin_alerts`, uzoq ishlamayotgan manba).
 - Xatolar: `core/errors.py` — `{"detail": <tarjima>, "code": ...}` (`core/i18n.py`, `Accept-Language`);
-  rate limiting: `core/ratelimit.py` (login, tekshiruvlar, qo'lda yig'ish; jarayon xotirasida).
+  rate limiting: `core/ratelimit.py` (login, tekshiruvlar, qo'lda yig'ish; jarayon xotirasida). Proxy ortida:
+  `TRUSTED_PROXIES` (IP/CIDR) — faqat shulardan kelgan so'rovda `X-Forwarded-For` o'qiladi (o'ngdan birinchi ishonchsiz
+  manzil = mijoz); bo'sh bo'lsa sarlavha e'tiborsiz (soxtalashtirib bo'lmaydi).
 - Rollar: `admin` (manbalar, kategoriyalar, yig'uvchi, Telegram) va `analyst`.
 - Sxema: Alembic (`backend/migrations/`), konteyner ishga tushganda `scripts/migrate.py` → `upgrade head`.
 

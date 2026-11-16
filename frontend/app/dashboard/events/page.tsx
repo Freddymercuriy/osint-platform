@@ -9,6 +9,7 @@ import { EventCard, eventTime, type FilterKey } from "@/components/events/EventC
 import { EventFilterBar, SCOPES, type Scope } from "@/components/events/EventFilterBar";
 import { StatusStrip } from "@/components/events/StatusStrip";
 import {
+  EVENT_RANGES,
   eventFiltersToParams,
   getCollectorStatus,
   getEvents,
@@ -18,6 +19,7 @@ import {
   type CollectorStatus,
   type EventFilters,
   type EventItem,
+  type EventRange,
   type TgStatus,
 } from "@/lib/api";
 import { getEventFacets, type EventFacets } from "@/lib/adminApi";
@@ -41,6 +43,10 @@ function parseFilters(sp: URLSearchParams): { filters: EventFilters; scope: Scop
   const to = sp.get("date_to");
   if (from && DATE_RE.test(from)) filters.date_from = from;
   if (to && DATE_RE.test(to)) filters.date_to = to;
+  const range = sp.get("range");
+  if (range && (EVENT_RANGES as readonly string[]).includes(range) && !filters.date_from && !filters.date_to) {
+    filters.range = range as EventRange;
+  }
   const sc = sp.get("scope");
   const scope = (SCOPES as string[]).includes(sc ?? "") ? (sc as Scope) : "regional";
   return { filters, scope };

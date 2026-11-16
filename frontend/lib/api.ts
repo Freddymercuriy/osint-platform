@@ -241,6 +241,16 @@ export async function deleteJob(id: number): Promise<void> {
 }
 
 /** Tarixni tozalash (kind berilsa — faqat shu modul). O'chirilganlar sonini qaytaradi. */
+export type HistoryCounts = { total: number; by_kind: Record<string, number> };
+
+/** Tarix tablari uchun: qidiruvlar soni turlar bo'yicha. */
+export async function getHistoryCounts(): Promise<HistoryCounts> {
+  const res = await apiFetch(`${API_URL}/api/search/history/counts`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<HistoryCounts>(res);
+}
+
 export async function clearHistory(kind?: string): Promise<{ deleted: number }> {
   const res = await apiFetch(`${API_URL}/api/search/history${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`, {
     method: "DELETE",
@@ -389,7 +399,12 @@ export type EventFilters = {
   source_lang?: string[];
   date_from?: string;
   date_to?: string;
+  /** Nisbiy davr hozirdan orqaga (soat aniqligida). date_from/date_to bilan birga kelmaydi — sanalar ustun. */
+  range?: EventRange;
 };
+
+export const EVENT_RANGES = ["24h", "7d", "30d", "90d"] as const;
+export type EventRange = (typeof EVENT_RANGES)[number];
 
 export function eventFiltersToParams(f: EventFilters, params = new URLSearchParams()): URLSearchParams {
   for (const [k, v] of Object.entries(f)) {

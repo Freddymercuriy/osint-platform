@@ -55,6 +55,10 @@ npm run dev
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
   `docker-compose exec backend python scripts/tg_login.py`.
 
+- Reverse proxy (nginx, Caddy...) ortida ishlatilsa: `TRUSTED_PROXIES` ga proxy manzilini yozing (IP/CIDR) —
+  aks holda login limiti hamma foydalanuvchini bitta proxy IP'si deb hisoblaydi. Rate limit va yig'uvchi bitta
+  uvicorn jarayoni uchun mo'ljallangan (bir nechta worker ishlatilmaydi).
+
 > Eslatma: bu kompyuterda eski `docker-compose` v1. Kod o'zgargach: `docker-compose restart backend`
 > (`--reload` yo'q). `.env` dagi yangi kalitlar uchun konteynerni qayta yarating (PROGRESS.md → Docker eslatmasi).
 

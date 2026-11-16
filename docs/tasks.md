@@ -89,6 +89,8 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 7 — Admin bo'limi va Events sahifasi
 - ✅ Bosqich 8 — Interaktiv statistika dashboard'i
 - ✅ Bosqich 9 — Xavfsizlik (rate limiting, QA hisobi o'chirildi), testlar, hujjatlar
+- ✅ Keyin: Events `range` (soat aniqligida), `TRUSTED_PROXIES` / `X-Forwarded-For`, tarix hisoblagichi
+- ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish
 - ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash

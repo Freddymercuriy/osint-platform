@@ -16,23 +16,13 @@ export const SCOPES: Scope[] = ["regional", "global", "all"];
 const COUNTRIES = ["UZ", "KZ", "KG", "TJ", "TM"];
 const CHANNELS = ["news", "telegram_channel", "telegram_group", "api"];
 const SEVERITIES = ["critical", "high", "medium", "low", "info"];
+// Tez davrlar — nisbiy, hozirdan orqaga soat aniqligida (`range`), kalendar kuni emas
 const PRESETS = [
-  { key: "d1", days: 1 },
-  { key: "d7", days: 7 },
-  { key: "d30", days: 30 },
-  { key: "d90", days: 90 },
+  { key: "d1", range: "24h" },
+  { key: "d7", range: "7d" },
+  { key: "d30", range: "30d" },
+  { key: "d90", range: "90d" },
 ] as const;
-
-function ymd(d: Date) {
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${d.getFullYear()}-${m}-${day}`;
-}
-function daysAgo(n: number) {
-  const d = new Date();
-  d.setDate(d.getDate() - n);
-  return ymd(d);
-}
 
 type ChipKey = "category" | "severity" | "country" | "channel" | "source" | "source_lang";
 
@@ -139,6 +129,10 @@ export function EventFilterBar({
   if (scope !== "regional") {
     chips.push({ id: "scope", text: `${tf("scope")}: ${ts(scope)}`, remove: () => onChange({ scope: "regional" }) });
   }
+  const preset = PRESETS.find((p) => p.range === filters.range);
+  if (preset) {
+    chips.push({ id: "range", text: `${tf("date")}: ${tf(`presets.${preset.key}`)}`, remove: () => onChange({ range: undefined }) });
+  }
   if (filters.date_from) {
     chips.push({
       id: "from",
@@ -165,8 +159,6 @@ export function EventFilterBar({
       },
     });
   }
-
-  const presetActive = (days: number) => !filters.date_to && filters.date_from === daysAgo(days);
 
   return (
     <section aria-label={tf("panel")} className="space-y-3">
@@ -247,13 +239,17 @@ export function EventFilterBar({
               <button
                 key={p.key}
                 type="button"
-                aria-pressed={presetActive(p.days)}
+                aria-pressed={filters.range === p.range}
                 onClick={() =>
-                  onChange(presetActive(p.days) ? { date_from: undefined } : { date_from: daysAgo(p.days), date_to: undefined })
+                  onChange(
+                    filters.range === p.range
+                      ? { range: undefined }
+                      : { range: p.range, date_from: undefined, date_to: undefined },
+                  )
                 }
                 className={cn(
                   "focus-ring h-10 flex-1 whitespace-nowrap px-3 text-sm font-medium transition-colors",
-                  presetActive(p.days) ? "bg-primary text-primary-fg" : "text-fg-muted hover:bg-surface-2 hover:text-fg",
+                  filters.range === p.range ? "bg-primary text-primary-fg" : "text-fg-muted hover:bg-surface-2 hover:text-fg",
                 )}
               >
                 {tf(`presets.${p.key}`)}
@@ -266,7 +262,7 @@ export function EventFilterBar({
               type="date"
               value={filters.date_from ?? ""}
               max={filters.date_to || undefined}
-              onChange={(ev) => onChange({ date_from: ev.target.value || undefined })}
+              onChange={(ev) => onChange({ date_from: ev.target.value || undefined, range: undefined })}
               className="focus-ring h-10 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-fg"
             />
           </label>
@@ -276,7 +272,7 @@ export function EventFilterBar({
               type="date"
               value={filters.date_to ?? ""}
               min={filters.date_from || undefined}
-              onChange={(ev) => onChange({ date_to: ev.target.value || undefined })}
+              onChange={(ev) => onChange({ date_to: ev.target.value || undefined, range: undefined })}
               className="focus-ring h-10 min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 text-sm text-fg"
             />
           </label>

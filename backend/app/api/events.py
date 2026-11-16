@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, time, timedelta
+from typing import Literal
 
 from fastapi import APIRouter, Query, status
 from pydantic import BaseModel
@@ -18,6 +19,9 @@ router = APIRouter(prefix="/api/events", tags=["events"])
 # v1 frontend tablari: endi bular kategoriya emas, kanal
 LEGACY_CHANNEL = {"news": "news", "telegram": "telegram_channel", "tg_group": "telegram_group"}
 TASHKENT = timedelta(hours=5)
+# Nisbiy davrlar (hozirdan orqaga, soat aniqligida) — Events va statistika uchun bir xil
+RANGES = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30), "90d": timedelta(days=90)}
+RangeKey = Literal["24h", "7d", "30d", "90d"]
 
 
 def _csv(values: list[str] | None) -> list[str]:
@@ -50,6 +54,7 @@ def event_filters(
     date_from: date | None,
     date_to: date | None,
     q: str | None,
+    since: datetime | None = None,
 ) -> list:
     """Barcha filtrlar birlashadi (AND), har biri ichida — YOKI."""
     f = []
@@ -85,6 +90,8 @@ def event_filters(
         f.append(when >= _day_bound(date_from, end=False))
     if date_to:
         f.append(when < _day_bound(date_to, end=True))
+    if since:
+        f.append(when >= since)
     if q and q.strip():
         like = f"%{like_escape(q.strip())}%"
         in_translations = select(EventTranslation.id).where(
@@ -113,12 +120,16 @@ async def list_events(
     source_lang: list[str] | None = Query(None, description="Asl til filtri (en, ru, uz, kk ...)"),
     date_from: date | None = Query(None, description="YYYY-MM-DD (Toshkent vaqti)"),
     date_to: date | None = Query(None, description="YYYY-MM-DD, shu kun ham kiradi"),
+    range: RangeKey | None = Query(None, description="Nisbiy davr hozirdan orqaga (24h = aynan 24 soat). date_from/date_to berilsa e'tiborsiz"),  # noqa: A002
     lang: str | None = Query(None, pattern="^(en|ru|uz)$", description="Ko'rsatish tili: sarlavha/matn shu tilda"),
 ) -> EventsResponse:
     """Bazadagi hodisalar; barcha filtrlar birlashadi. `lang` — ko'rsatish tili (asl matn ham qaytadi)."""
+    # Statistika bilan bir xil qoida: aniq sanalar bo'lsa — ular, aks holda nisbiy davr
+    since = datetime.now(UTC) - RANGES[range] if range and not (date_from or date_to) else None
     filters = event_filters(
         categories=_csv(category), severity=_csv(severity), countries=_csv(country), channel=_csv(channel),
         sources=_csv(source), scope=scope, lang=_csv(source_lang), date_from=date_from, date_to=date_to, q=q,
+        since=since,
     )
     order = func.coalesce(EventRecord.published, EventRecord.first_seen).desc()
     rows = (await db.scalars(

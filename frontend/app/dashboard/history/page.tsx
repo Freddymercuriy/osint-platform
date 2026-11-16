@@ -33,6 +33,7 @@ import {
   clearHistory,
   deleteJob,
   getHistory,
+  getHistoryCounts,
   getJob,
   type CollectResult,
   type SearchJob,
@@ -40,7 +41,6 @@ import {
 import { cn } from "@/lib/cn";
 import { useFormat } from "@/lib/format";
 import { MODULES, moduleLink, moduleMeta } from "@/lib/modules";
-import { getOverview } from "@/lib/stats";
 
 const LIMIT = 30;
 const ARM_MS = 4000;
@@ -343,8 +343,8 @@ export default function HistoryPage() {
   }, [qInput]);
 
   const loadCounts = useCallback(() => {
-    getOverview()
-      .then((o) => setCounts({ total: o.searches_total ?? 0, byKind: o.searches_by_kind ?? {} }))
+    getHistoryCounts()
+      .then((o) => setCounts({ total: o.total, byKind: o.by_kind }))
       .catch(() => {
         /* sanoqlar ixtiyoriy */
       });

@@ -17,14 +17,13 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
-from app.api.events import _csv, event_filters, localize
+from app.api.events import RANGES, _csv, event_filters, localize
 from app.core.config import settings
 from app.models import EventRecord, Source, SourceRun
 from app.schemas import EventItemOut
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
 
-RANGES = {"24h": timedelta(hours=24), "7d": timedelta(days=7), "30d": timedelta(days=30), "90d": timedelta(days=90)}
 AUTO_BUCKET = {"24h": "hour", "7d": "day", "30d": "day", "90d": "week"}
 Bucket = Literal["hour", "day", "week", "month"]
 GroupBy = Literal["category", "country", "source", "channel", "severity"]

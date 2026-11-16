@@ -66,7 +66,7 @@ export function useDashboardFilters() {
 
   const activeCount = DIMS.reduce((n, d) => n + (filters[d]?.length ?? 0), 0) + (filters.scope !== "regional" ? 1 : 0);
 
-  /** Xuddi shu filtrlar bilan Events sahifasi (davr → date_from, Events sanalari kun aniqligida). */
+  /** Xuddi shu filtrlar bilan Events sahifasi (davr ham xuddi shunday: nisbiy `range` yoki aniq sanalar). */
   const eventsHref = useMemo(() => {
     const p = new URLSearchParams();
     for (const d of DIMS) if (filters[d]?.length) p.set(d, filters[d]!.join(","));
@@ -75,9 +75,7 @@ export function useDashboardFilters() {
       if (filters.date_from) p.set("date_from", filters.date_from);
       if (filters.date_to) p.set("date_to", filters.date_to);
     } else {
-      const days = { "24h": 1, "7d": 7, "30d": 30, "90d": 90 }[filters.range ?? "7d"] ?? 7;
-      const d = new Date(Date.now() - days * 86400_000);
-      p.set("date_from", `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`);
+      p.set("range", filters.range ?? "7d");
     }
     return `/dashboard/events?${p.toString()}`;
   }, [filters]);

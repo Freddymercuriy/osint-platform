@@ -5,7 +5,7 @@
 ## Hozirgi holat
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-15
+**Oxirgi yangilanish:** 2026-11-16
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -76,6 +76,26 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 dan keyin — kichik ishlar (2026-11-16)
+"Keyingi qadamlar" 4-bandidan (Next 15 ga ko'chish — alohida ish, qilinmadi):
+- **Events davri soat aniqligida**: `GET /api/events?range=24h|7d|30d|90d` (hozirdan orqaga). Ilgari "24 soat" tugmasi
+  `date_from=kecha` yuborardi — kecha kun boshidan, ya'ni 24–48 soat ko'rsatardi. `date_from`/`date_to` berilsa `range`
+  e'tiborsiz (statistika bilan bir xil qoida); `RANGES` endi `api/events.py` da, `stats_v2` undan oladi.
+  Frontend: Events tez tugmalari `range` yozadi (chip "Davr: 24 soat"), qo'lda sana tanlansa `range` olib tashlanadi;
+  dashboard → Events havolasi ham `range` uzatadi (ilgari kunga yaxlitlanardi).
+- **Proxy ortida mijoz IP'si**: `TRUSTED_PROXIES` (IP/CIDR, vergul bilan; noto'g'ri qiymat — ishga tushishda xato).
+  Faqat ishonchli proxy'dan kelgan so'rovda `X-Forwarded-For` o'qiladi: zanjir o'ngdan, ishonchli hop'lar o'tkaziladi,
+  birinchi ishonchsiz manzil — mijoz; buzilgan zanjirda proxy IP'si. Bo'sh (standart) — sarlavha e'tiborsiz.
+- **Tarix hisoblagichi**: `GET /api/search/history/counts` → `{total, by_kind}`; tarix sahifasi endi butun
+  `/api/stats/overview` ni (hodisalar bo'yicha 5 ta so'rov) chaqirmaydi. Ishlatilmay qolgan `frontend/lib/stats.ts`
+  o'chirildi (backend'dagi v1 `/api/stats/overview` endpoint'i saqlandi).
+- Testlar: `tests/test_followups.py` — range (23s/25s chegarasi, sana ustunligi, 422), `client_ip` 11 holat
+  (soxta chap hop, ichki zanjir, bir nechta sarlavha, port, IPv6, buzilgan zanjir), sozlama validatsiyasi, proxy ortida
+  login limiti mijoz bo'yicha, tarix sonlari (begona foydalanuvchi hisoblanmaydi, 401).
+- Tekshirildi: ✅ jonli API (`range=24h` → 4, `7d` → 53); ✅ brauzerda preset → URL/chip/aria-pressed, chip'ni olib
+  tashlash, `?range=7d` to'g'ridan-to'g'ri, dashboard havolalari `range=24h`, tarix sahifasi; ✅ smoke 26/26
+  (desktop + 360px); ✅ `tsc`; ✅ backend **288 pytest** (to'liq to'plam, xatosiz).
 
 ### v2 — Bosqich 9: mustahkamlash va topshirish (2026-11-15)
 - **Rate limiting** (`core/ratelimit.py`, jarayon xotirasida, sirpanuvchi oyna; Redis yo'q): login — IP bo'yicha 20 va
@@ -569,8 +589,8 @@ breached/cracked/darkforums) qanday ma'lumot olish mumkin → saytning o'ziga ki
 2. Kalitlarni olish va `backend/.env` ga qo'yish: `GOOGLE_TRANSLATE_API_KEY`, `RANSOMWARE_LIVE_API_KEY`, `ABUSECH_AUTH_KEY`,
    `OTX_API_KEY` (ixtiyoriy: `NVD_API_KEY`, `CLOUDFLARE_API_TOKEN`); backend konteynerini qayta yaratish; admin panelda manbani yoqish.
 3. v2 ni `main` bilan solishtirib, qaror qilinsa merge (egasi qiladi).
-4. Ixtiyoriy: proxy ortida rate limit uchun `X-Forwarded-For`; `/api/stats/overview` o'rniga tarix sahifasi uchun alohida
-   hisoblagich; Events sana filtrini soat aniqligiga o'tkazish; Next 15 ga ko'chish (alohida ish).
+4. ✅ (2026-11-16) `X-Forwarded-For` (`TRUSTED_PROXIES`), tarix hisoblagichi, Events `range` (soat aniqligida).
+   Qolgan ixtiyoriy: Next 15 ga ko'chish (alohida ish; 2 ta npm audit ogohlantirishi shu bilan yopiladi).
 
 ## Stack (tasdiqlangan)
 

@@ -4,7 +4,7 @@ import { apiFetch, eventFiltersToParams, getToken, handle, type EventFilters, ty
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export type RangeKey = "24h" | "7d" | "30d" | "90d" | "custom";
-export type StatsFilters = Omit<EventFilters, "q" | "source_lang"> & { range?: RangeKey };
+export type StatsFilters = Omit<EventFilters, "q" | "source_lang" | "range"> & { range?: RangeKey };
 export const OTHER = "__other__";
 export const NONE = "__none__";
 
