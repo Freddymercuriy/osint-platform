@@ -14,7 +14,7 @@ Uchta tema — **Light / Dark / System** (standart: System) va uchta til — **o
 | `frontend/scripts/gen-tones.mjs` | `.tone-*` CSS bloklarini Tailwind palitrasidan yaratadi |
 | `frontend/components/ui/index.tsx` | Umumiy komponentlar |
 | `frontend/components/theme/*` | `ThemeProvider` (next-themes), `ThemeToggle`, `LocaleSwitcher` |
-| `frontend/i18n/request.ts`, `frontend/messages/{uz,ru,en}.json` | next-intl: til cookie'dan, xabarlar |
+| `frontend/i18n/request.ts`, `frontend/messages/{uz,uz-Cyrl,ru,en}.json` | next-intl: til cookie'dan, xabarlar |
 | `frontend/lib/format.ts` | Sana/son formatlash (uz — qo'lda oy nomlari; ru/en — `Intl`) |
 | `frontend/components/shell/*` | Sidebar, navigatsiya (`nav.ts`) |
 
@@ -60,11 +60,16 @@ Rang hech qachon yolg'iz ma'no tashimaydi — doim matn (va kerak bo'lsa ikon) b
 ## Til (i18n)
 - `next-intl`, URL'da til prefiksi yo'q. Til cookie `NEXT_LOCALE` da va `users.locale` da; birinchi tashrifda brauzer
   tili, bo'lmasa `uz`.
-- Hamma matn `messages/{uz,ru,en}.json` da (kalitlar uchala faylda bir xil — test tekshiradi). Komponentda
+- Tillar: `uz` (lotin), `uz-Cyrl` ("Ўзбекча", kirill), `ru`, `en`. `messages/uz-Cyrl.json` qo'lda **yozilmaydi** —
+  `uz.json` dan latin.jaybi.uz dvigateli bilan generatsiya qilinadi: `python3 backend/scripts/gen_uz_cyrl_messages.py`
+  (ICU tuzilmasi, `{param}`, `<tag>`, `<code>`, URL, qisqartmalar va texnik so'zlar lotinda qoladi). `uz.json` o'zgarsa —
+  generatorni qayta ishga tushiring (`npm run test:i18n` eskirganini topadi).
+- Hamma matn `messages/{uz,uz-Cyrl,ru,en}.json` da (kalitlar to'rtala faylda bir xil — test tekshiradi). Komponentda
   `useTranslations("namespace")`; ko'plik — ICU (`{count, plural, one {...} few {...} many {...} other {...}}`, rus tili uchun shart).
 - Sana/son: `useFormat()` (`lib/format.ts`). O'zbekcha oy nomlari qo'lda (brauzerlarda `uz-UZ` to'liq emas),
-  ru/en — `Intl`. **`toLocaleDateString("uz-UZ")` ishlatilmaydi.**
-- Hodisa matni interfeys tilida (`/api/events?lang=`), "Asl matn" tugmasi bilan; kategoriya nomlari bazadan (`name_uz/ru/en`).
+  ru/en — `Intl`. **`toLocaleDateString("uz-UZ")` ishlatilmaydi.** Ikkala o'zbek yozuvi uchun — `isUzbek(locale)`.
+- Hodisa matni interfeys tilida (`/api/events?lang=`), "Asl matn" tugmasi bilan; kategoriya nomlari bazadan (`name_uz/ru/en`;
+  kirill — API'dagi `name_uz_cyrl`, `categoryText(c, field, locale)` orqali).
 - Backend xatolari: javobda `code` + tarjima qilingan `detail` (`Accept-Language`).
 
 ## Sahifa tuzilishi (hamma sahifada bir xil)

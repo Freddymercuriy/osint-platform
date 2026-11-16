@@ -4,7 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useState } from "react";
 import { Badge, Button, ErrorBanner, Skeleton, useFormat } from "@/components/ui";
 import { reclassify, type CategoryAdmin, type ReclassifyResult } from "@/lib/adminApi";
-import { invalidateCategories } from "@/lib/useCategories";
+import { categoryText, invalidateCategories } from "@/lib/useCategories";
 import Drawer from "./Drawer";
 
 function Stat({ label, value, help }: { label: string; value: number; help?: string }) {
@@ -27,7 +27,7 @@ export default function ReclassifyDrawer({
   onApplied: () => void;
 }) {
   const t = useTranslations("adminCategories");
-  const locale = useLocale() as "uz" | "ru" | "en";
+  const locale = useLocale();
   const f = useFormat();
   const [preview, setPreview] = useState<ReclassifyResult | null>(null);
   const [applied, setApplied] = useState<ReclassifyResult | null>(null);
@@ -37,7 +37,7 @@ export default function ReclassifyDrawer({
   const nameOf = useCallback(
     (slug: string) => {
       const c = categories.find((x) => x.slug === slug);
-      return c ? c[`name_${locale}`] || c.name_en : slug;
+      return c ? categoryText(c, "name", locale) : slug;
     },
     [categories, locale],
   );

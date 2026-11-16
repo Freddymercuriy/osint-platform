@@ -10,12 +10,12 @@ import { deleteCategory, listAdminCategories, reorderCategories, type CategoryAd
 import { cn } from "@/lib/cn";
 import { asTone } from "@/lib/categories";
 import { categoryIcon } from "@/lib/icons";
-import { invalidateCategories } from "@/lib/useCategories";
+import { categoryText, invalidateCategories } from "@/lib/useCategories";
 
 export default function AdminCategoriesPage() {
   const t = useTranslations("adminCategories");
   const tn = useTranslations("adminCategories.tones");
-  const locale = useLocale() as "uz" | "ru" | "en";
+  const locale = useLocale();
   const f = useFormat();
 
   const [rows, setRows] = useState<CategoryAdmin[] | null>(null);
@@ -86,7 +86,7 @@ export default function AdminCategoriesPage() {
   };
 
   const nextOrder = (rows?.reduce((m, c) => Math.max(m, c.sort_order), 0) ?? 0) + 10;
-  const nameOf = (c: CategoryAdmin) => c[`name_${locale}`] || c.name_en;
+  const nameOf = (c: CategoryAdmin) => categoryText(c, "name", locale);
 
   return (
     <div className="space-y-4">

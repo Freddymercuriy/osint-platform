@@ -9,10 +9,12 @@ from app.core.errors import api_error
 from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core import ratelimit
 from app.core.config import settings
+from app.core.i18n import UZ_CYRL
 from app.models import Category, EventRecord, EventTranslation, Source
 from app.schemas import EventItemOut, EventsResponse
 from app.services.events import scheduler
 from app.services.events.categories import effective_severity
+from app.services.i18n.text import uz_to_cyrillic
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -121,7 +123,7 @@ async def list_events(
     date_from: date | None = Query(None, description="YYYY-MM-DD (Toshkent vaqti)"),
     date_to: date | None = Query(None, description="YYYY-MM-DD, shu kun ham kiradi"),
     range: RangeKey | None = Query(None, description="Nisbiy davr hozirdan orqaga (24h = aynan 24 soat). date_from/date_to berilsa e'tiborsiz"),  # noqa: A002
-    lang: str | None = Query(None, pattern="^(en|ru|uz)$", description="Ko'rsatish tili: sarlavha/matn shu tilda"),
+    lang: str | None = Query(None, pattern="^(en|ru|uz|uz-Cyrl)$", description="Ko'rsatish tili: sarlavha/matn shu tilda"),
 ) -> EventsResponse:
     """Bazadagi hodisalar; barcha filtrlar birlashadi. `lang` — ko'rsatish tili (asl matn ham qaytadi)."""
     # Statistika bilan bir xil qoida: aniq sanalar bo'lsa — ular, aks holda nisbiy davr
@@ -140,7 +142,19 @@ async def list_events(
 
 
 async def localize(db, rows, lang: str | None) -> list[EventItemOut]:
-    """Har hodisa: so'ralgan til → en → asl matn (sarlavha va matn alohida tanlanadi)."""
+    """Har hodisa: so'ralgan til → en → asl matn (sarlavha va matn alohida tanlanadi).
+
+    `uz-Cyrl` — o'zbekcha (lotin) matn latin.jaybi.uz dvigateli bilan kirillga o'giriladi (`display_lang = "uz-Cyrl"`);
+    bu tarjima emas, shuning uchun o'zbekcha asl matn uchun `translated` false qoladi.
+    """
+    if lang == UZ_CYRL:
+        items = await localize(db, rows, "uz")
+        for it in items:
+            if it.display_lang == "uz":
+                it.title = uz_to_cyrillic(it.title or "")
+                it.summary = uz_to_cyrillic(it.summary) if it.summary else it.summary
+                it.display_lang = UZ_CYRL
+        return items
     items = [EventItemOut.model_validate(r) for r in rows]
     for it, r in zip(items, rows, strict=True):
         it.source_lang = r.lang

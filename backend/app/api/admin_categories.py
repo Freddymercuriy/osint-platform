@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Any, Literal
 
 from fastapi import APIRouter, Query, Response, status
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validator
 from sqlalchemy import func, select
 
 from app.core.errors import api_error
@@ -14,6 +14,7 @@ from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.models import Category, EventRecord
 from app.services.events.categories import apply_category_severity, move_events_to_other, reclassify
 from app.services.events.classifier import FALLBACK, RuleError, validate_rules
+from app.services.i18n.text import uz_to_cyrillic
 
 router = APIRouter(tags=["categories"])
 
@@ -44,6 +45,17 @@ class CategoryOut(BaseModel):
     enabled: bool
     is_system: bool
     event_count: int = 0
+
+    # O'zbek kirill interfeysi uchun (latin.jaybi.uz dvigateli; bazada saqlanmaydi — name_uz dan hisoblanadi)
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def name_uz_cyrl(self) -> str:
+        return uz_to_cyrillic(self.name_uz)
+
+    @computed_field  # type: ignore[prop-decorator]
+    @property
+    def description_uz_cyrl(self) -> str:
+        return uz_to_cyrillic(self.description_uz)
 
 
 class CategoryAdminOut(CategoryOut):

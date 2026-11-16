@@ -457,6 +457,9 @@ export type Category = {
   description_en: string;
   description_ru: string;
   description_uz: string;
+  /** O'zbek kirill (backend hisoblaydi, latin.jaybi.uz dvigateli) */
+  name_uz_cyrl?: string;
+  description_uz_cyrl?: string;
   severity: string;
   color: string;
   icon: string;

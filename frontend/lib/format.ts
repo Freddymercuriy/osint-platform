@@ -6,6 +6,9 @@ import { useMemo } from "react";
 /* Brauzerlarning ko'pida "uz-UZ" lokali to'liq emas ("2026 M09 22") — o'zbekcha oy nomlari qo'lda; ru/en — Intl. */
 const UZ_MONTHS = ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avgust", "sentabr", "oktabr", "noyabr", "dekabr"];
 const UZ_MONTHS_SHORT = ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avg", "sen", "okt", "noy", "dek"];
+// O'zbek kirill (latin.jaybi.uz qoidalari: yanvar → январь ...)
+const UZC_MONTHS = ["январь", "февраль", "март", "апрель", "май", "июнь", "июль", "август", "сентябрь", "октябрь", "ноябрь", "декабрь"];
+const UZC_MONTHS_SHORT = ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
 const pad2 = (n: number) => String(n).padStart(2, "0");
 const TZ = "Asia/Tashkent";
 
@@ -30,9 +33,10 @@ function parts(d: Date) {
 export function formatDate(locale: string, v: DateLike, opts: { short?: boolean; year?: boolean } = {}): string {
   const d = toDate(v);
   if (!d) return "";
-  if (locale === "uz") {
+  if (locale === "uz" || locale === "uz-Cyrl") {
     const p = parts(d);
-    const month = (opts.short ? UZ_MONTHS_SHORT : UZ_MONTHS)[p.m];
+    const cyr = locale === "uz-Cyrl";
+    const month = (opts.short ? (cyr ? UZC_MONTHS_SHORT : UZ_MONTHS_SHORT) : cyr ? UZC_MONTHS : UZ_MONTHS)[p.m];
     return `${p.d} ${month}${opts.year === false ? "" : ` ${p.y}`}`;
   }
   return new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-GB", {
@@ -49,7 +53,7 @@ export function formatTime(v: DateLike): string {
 
 export function formatNumber(locale: string, n: number | null | undefined, opts: Intl.NumberFormatOptions = {}): string {
   if (n === null || n === undefined || Number.isNaN(n)) return "—";
-  if (locale === "uz") {
+  if (locale === "uz" || locale === "uz-Cyrl") {
     // 12 345,6 — o'zbek an'anasi (bo'shliq bilan guruhlash)
     return new Intl.NumberFormat("ru-RU", opts).format(n);
   }

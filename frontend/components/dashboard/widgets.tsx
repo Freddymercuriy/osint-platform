@@ -394,6 +394,7 @@ export function SectorsWidget(p: WidgetProps) {
 
 /* ------------------------------------------------------------------ issiqlik xaritasi */
 const UZ_DAYS = ["Du", "Se", "Ch", "Pa", "Ju", "Sh", "Ya"];
+const UZC_DAYS = ["Ду", "Се", "Чо", "Па", "Жу", "Ша", "Як"];
 
 export function HeatmapWidget({ filters, tick, onHide }: WidgetProps) {
   const t = useTranslations("dashboard");
@@ -402,6 +403,7 @@ export function HeatmapWidget({ filters, tick, onHide }: WidgetProps) {
   const { data, loading, error } = useStat<Heatmap>(() => getHeatmap(filters), key, tick);
   const days = useMemo(() => {
     if (locale === "uz") return UZ_DAYS;
+    if (locale === "uz-Cyrl") return UZC_DAYS;
     const fmt = new Intl.DateTimeFormat(locale === "ru" ? "ru-RU" : "en-GB", { weekday: "short", timeZone: "UTC" });
     return Array.from({ length: 7 }, (_, i) => fmt.format(new Date(Date.UTC(2024, 0, 1 + i)))); // 2024-01-01 — dushanba
   }, [locale]);

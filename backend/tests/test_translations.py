@@ -12,7 +12,7 @@ from app.models import EventRecord, EventTranslation, Source, TranslationCache, 
 from app.services.connectors.base import AuthMissing, ConnectorError, RateLimited
 from app.services.i18n import worker
 from app.services.i18n.templates import render_title
-from app.services.i18n.text import detect_lang, normalize_uz, translit_uz
+from app.services.i18n.text import detect_lang, normalize_uz, uz_to_latin
 from app.services.i18n.translator import FakeTranslator, NllbTranslator
 
 
@@ -37,8 +37,10 @@ def test_detect_lang(text, lang):
 
 
 def test_translit_and_normalize():
-    assert translit_uz("Ўзбекистонда қўлга олинди. Ер, акция, Ғалаба, ҳужжат") == \
+    assert uz_to_latin("Ўзбекистонда қўлга олинди. Ер, акция, Ғалаба, ҳужжат") == \
         "O'zbekistonda qo'lga olindi. Yer, aksiya, G'alaba, hujjat"
+    # latin.jaybi.uz qoidalari: сентябрь → sentabr, ъ/ь, с+ҳ, katta harfli digraflar, boshqa apostroflar → '
+    assert uz_to_latin("Сентябрь, объект, съезд, Исҳоқ, ШАҲАР, Ўзбек’") == "Sentabr, obyekt, syezd, Is'hoq, SHAHAR, O'zbek'"
     assert normalize_uz("Apaçe boşqariş qölga oʻzbek gʼalaba") == "Apache boshqarish qo'lga o'zbek g'alaba"
 
 

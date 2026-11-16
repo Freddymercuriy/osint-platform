@@ -1014,8 +1014,9 @@
   },
   "locale": {
     "label": "Language",
-    "uz": "Uzbek",
-    "ru": "Russian",
+    "uz": "O'zbekcha",
+    "uz-Cyrl": "Ўзбекча",
+    "ru": "Русский",
     "en": "English"
   },
   "nav": {

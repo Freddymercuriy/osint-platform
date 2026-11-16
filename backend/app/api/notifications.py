@@ -45,7 +45,7 @@ async def list_notifications(
     current_user: CurrentUser,
     db: DbSession,
     limit: int = Query(20, ge=1, le=100),
-    lang: str | None = Query(None, pattern="^(en|ru|uz)$", description="Ko'rsatish tili"),
+    lang: str | None = Query(None, pattern="^(en|ru|uz|uz-Cyrl)$", description="Ko'rsatish tili"),
 ) -> NotificationsResponse:
     # Ogohlantiriladigan kategoriyalar — bazadan (categories.notify). Baseline hodisalar ogohlantirish bermaydi.
     cats = list((await db.scalars(

@@ -13,7 +13,7 @@ hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / tel
 
 | Qatlam | Texnologiya |
 |--------|-------------|
-| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind, next-themes (Light/Dark/System), next-intl (uz/ru/en), Apache ECharts |
+| Frontend | Next.js 14 (App Router) + TypeScript + Tailwind, next-themes (Light/Dark/System), next-intl (uz/uz-Cyrl/ru/en), Apache ECharts |
 | Backend | Python 3.12 + FastAPI, SQLAlchemy (async), Alembic, Telethon, httpx |
 | Database | PostgreSQL 16 |
 | Infra | Docker Compose (Redis/Celery yo'q — yig'uvchi API jarayoni ichida, asyncio + PostgreSQL advisory lock) |
@@ -108,7 +108,7 @@ TOKEN=$(docker-compose exec -T backend python scripts/qa_token.py --role admin) 
 osint/
 ├── backend/          FastAPI: api/, core/ (config, i18n, errors, ratelimit), models/, services/ (connectors/, events/,
 │                     i18n/, collectors/), migrations/ (Alembic), scripts/, tests/
-├── frontend/         Next.js: app/, components/, lib/, messages/ (uz/ru/en), scripts/ (qa, i18n, kontrast)
+├── frontend/         Next.js: app/, components/, lib/, messages/ (uz/uz-Cyrl/ru/en), scripts/ (qa, i18n, kontrast)
 ├── docs/             Arxitektura, dizayn tizimi, ulagichlar, vazifalar, v2 spetsifikatsiyasi
 ├── .claude/agents/   AI agentlar ta'riflari
 ├── PROGRESS.md       Bajarilgan ishlar jurnali (sessiyalar orasida)

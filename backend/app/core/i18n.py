@@ -1,6 +1,8 @@
-"""Backend matnlarini lokalizatsiya qilish: kichik katalog (uz — standart, ru, en).
+"""Backend matnlarini lokalizatsiya qilish: kichik katalog (uz — standart, ru, en) + o'zbek kirill (`uz-Cyrl`).
 
-- `lang_from_header` — Accept-Language (q-qiymatlar bilan) → "uz" | "ru" | "en".
+- `lang_from_header` — Accept-Language (q-qiymatlar bilan) → "uz" | "uz-Cyrl" | "ru" | "en".
+- `uz-Cyrl` katalogda alohida yozilmaydi: uz matni latin.jaybi.uz dvigateli bilan kirillga o'giriladi ({param} lar
+  tegilmaydi, qiymatlar o'zgarmaydi — domen, ism va h.k. buzilmasin).
 - `t(code, lang, **params)` — katalogdan matn (`str.format` parametrlari bilan).
 - `current_lang()` — joriy so'rov tili (contextvar; `LangMiddleware` o'rnatadi), chuqur kod
   (collectorlar) uchun: `t("c_email_syntax_src", current_lang())`.
@@ -12,7 +14,9 @@ from __future__ import annotations
 from contextvars import ContextVar
 from typing import Any
 
-LANGS = ("uz", "ru", "en")
+LANGS = ("uz", "ru", "en")  # katalog tillari
+UZ_CYRL = "uz-Cyrl"
+DISPLAY_LANGS = ("uz", UZ_CYRL, "ru", "en")  # foydalanuvchi tanlay oladigan tillar
 DEFAULT_LANG = "uz"
 
 _lang_var: ContextVar[str] = ContextVar("osint_lang", default=DEFAULT_LANG)
@@ -35,8 +39,9 @@ def lang_from_header(accept_language: str | None) -> str:
                     q = float(p[2:])
                 except ValueError:
                     q = 0.0
-        primary = tag.lower().split("-", 1)[0]
-        if q > 0 and primary in LANGS:
+        low = tag.lower()
+        primary = UZ_CYRL if low == "uz-cyrl" or low.startswith("uz-cyrl-") else low.split("-", 1)[0]
+        if q > 0 and primary in DISPLAY_LANGS:
             ranked.append((-q, i, primary))
     return min(ranked)[2] if ranked else DEFAULT_LANG
 
@@ -46,7 +51,7 @@ def current_lang() -> str:
 
 
 def set_lang(lang: str) -> None:
-    _lang_var.set(lang if lang in LANGS else DEFAULT_LANG)
+    _lang_var.set(lang if lang in DISPLAY_LANGS else DEFAULT_LANG)
 
 
 class LangMiddleware:
@@ -86,11 +91,20 @@ class CodedValueError(ValueError):
         super().__init__(t(code, DEFAULT_LANG, **params))
 
 
+def _uz_cyrl(text: str) -> str:
+    from app.services.i18n.text import uz_to_cyrillic  # kech import: i18n.py yengil qolsin
+
+    return uz_to_cyrillic(text)
+
+
 def t(code: str, lang: str | None = None, /, **params: Any) -> str:
     entry = MESSAGES.get(code)
     if entry is None:
         return code
-    text = entry.get(lang or DEFAULT_LANG) or entry[DEFAULT_LANG]
+    if lang == UZ_CYRL:  # shablon o'giriladi, parametrlar — yo'q
+        text = _uz_cyrl(entry[DEFAULT_LANG])
+    else:
+        text = entry.get(lang or DEFAULT_LANG) or entry[DEFAULT_LANG]
     try:
         return text.format(**params)
     except (KeyError, IndexError, ValueError):

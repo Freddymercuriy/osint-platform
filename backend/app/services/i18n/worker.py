@@ -25,7 +25,7 @@ from app.models import EventRecord, EventTranslation, Source, TranslationCache, 
 from app.models.category import SEVERITIES
 from app.services.connectors.base import AuthMissing, ConnectorError, RateLimited
 from app.services.i18n.templates import render_title
-from app.services.i18n.text import LANGS, detect_lang, is_cyrillic, normalize_uz, translit_uz
+from app.services.i18n.text import LANGS, detect_lang, is_cyrillic, normalize_uz, uz_to_latin
 from app.services.i18n.translator import (
     MAX_CHARS,
     MAX_STRINGS,
@@ -69,8 +69,8 @@ def month_start(now: datetime | None = None) -> date:
 
 
 def _fix_uz(text: str) -> str:
-    """Provayder o'zbekchani kirillda qaytarsa — lotinga; apostroflar bir xil."""
-    return normalize_uz(translit_uz(text) if is_cyrillic(text) else text)
+    """Provayder o'zbekchani kirillda qaytarsa — lotinga (latin.jaybi.uz dvigateli); apostroflar bir xil."""
+    return normalize_uz(uz_to_latin(text) if is_cyrillic(text) else text)
 
 
 # ---------------------------------------------------------------- reja
@@ -88,7 +88,7 @@ def plan_rows(ev: EventRecord, allow_mt: bool, now: datetime) -> list[EventTrans
         t_title = clip(templ[lang], TITLE_MAX) if templ else None
         if lang == detected:
             if cyr_uz:
-                title, summary, provider = translit_uz(ev.title), translit_uz(ev.summary or ""), "translit"
+                title, summary, provider = uz_to_latin(ev.title), uz_to_latin(ev.summary or ""), "translit"
             elif lang == "uz":
                 title, summary, provider = normalize_uz(ev.title), normalize_uz(ev.summary or ""), "source"
             else:

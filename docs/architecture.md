@@ -101,7 +101,8 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 ## Frontend (`frontend/`)
 
 - Dizayn: [`docs/design-system.md`](design-system.md) — semantik tokenlar (Light/Dark/System, `next-themes`),
-  `next-intl` (uz/ru/en, cookie `NEXT_LOCALE` + `users.locale`, `messages/*.json`), `lib/format.ts`.
+  `next-intl` (uz/uz-Cyrl/ru/en, cookie `NEXT_LOCALE` + `users.locale`, `messages/*.json`; `uz-Cyrl.json` —
+  `backend/scripts/gen_uz_cyrl_messages.py` bilan `uz.json` dan), `lib/format.ts`.
 - Next.js App Router
 - `app/` — sahifalar (login, dashboard, search)
 - `lib/api.ts` — backend bilan ishlash (fetch wrapper)

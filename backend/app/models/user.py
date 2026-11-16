@@ -19,7 +19,7 @@ class User(Base):
     is_active: Mapped[bool] = mapped_column(default=True, nullable=False)
     # admin — manbalar, kategoriyalar, yig'uvchi, Telegram; analyst — ko'rish va tekshiruvlar
     role: Mapped[str] = mapped_column(String(16), default="analyst", server_default="analyst", nullable=False)
-    locale: Mapped[str | None] = mapped_column(String(8), nullable=True)  # uz | ru | en; None = brauzer
+    locale: Mapped[str | None] = mapped_column(String(8), nullable=True)  # uz | uz-Cyrl | ru | en; None = brauzer
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )

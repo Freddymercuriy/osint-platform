@@ -6,7 +6,7 @@
 //   TOKEN=<JWT> node scripts/qa/smoke.js        # BASE=http://localhost:3000, API=http://localhost:8000 (default)
 // JWT olish: POST /api/auth/login (username=<email>&password=<parol>) → access_token.
 // TOKEN berilmasa faqat ochiq sahifalar tekshiriladi. Muammo topilsa exit code 1.
-// MATRIX=1 — asosiy sahifalar light/dark × uz/ru/en (desktop va 360px) da; standart — hamma sahifa (light, uz).
+// MATRIX=1 — asosiy sahifalar light/dark × uz/uz-Cyrl/ru/en (desktop va 360px) da; standart — hamma sahifa (light, uz).
 // Tarjimasi yo'q kalit next-intl tomonidan konsolga xato sifatida chiqadi — u ham muammo hisoblanadi.
 const { run } = require("./cdp");
 
@@ -29,7 +29,7 @@ const PRIVATE = [
 const MAIN = ["/", "/login", "/dashboard", "/dashboard/events", "/dashboard/username", "/dashboard/history"];
 const MATRIX = process.env.MATRIX === "1";
 const COMBOS = MATRIX
-  ? ["light", "dark"].flatMap((theme) => ["uz", "ru", "en"].map((locale) => [theme, locale]))
+  ? ["light", "dark"].flatMap((theme) => ["uz", "uz-Cyrl", "ru", "en"].map((locale) => [theme, locale]))
   : [[process.env.THEME || "light", process.env.LOCALE || "uz"]];
 const VIEWPORTS = [
   ["desktop", 1440, 900, false],

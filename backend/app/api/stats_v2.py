@@ -359,7 +359,7 @@ async def latest(
     _: CurrentUser, db: DbSession, w: StatsWindow,
     min_severity: Literal["critical", "high", "medium", "low", "info"] = Query("high"),
     limit: int = Query(8, ge=1, le=50),
-    lang: str | None = Query(None, pattern="^(en|ru|uz)$"),
+    lang: str | None = Query(None, pattern="^(en|ru|uz|uz-Cyrl)$"),
 ) -> list[EventItemOut]:
     order = ["info", "low", "medium", "high", "critical"]
     sev = order[order.index(min_severity):]

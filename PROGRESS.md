@@ -77,6 +77,35 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — "Ўзбекча" interfeysi va `translit_uz` → jaybi dvigateli (2026-11-16)
+- Foydalanuvchi talabi: *"ikkalasini ham jaybi dvigateliga o'tkaz"* — (a) eski `translit_uz` o'rniga latin.jaybi.uz
+  dvigateli; (b) interfeysda o'zbek kirill tili.
+- (a) `text.py`: `translit_uz` olib tashlandi; worker (`plan_rows`, `_fix_uz`) — `uz_to_latin` (сентябрь → sentabr,
+  объект → obyekt, ШАҲАР → SHAHAR — eski funksiya "Sentyabr/Ob'ekt/ShAHAR" berardi).
+- `uz_to_cyrillic` endi himoyalangan: URL / e-mail / @username, `{placeholder}`, `<code>…</code>` va `` `kod` ``, teglar,
+  fayl yo'li va domenlar (`backend/.env`, `kun.uz`), harf+raqam (5G, CVE-2026-1234), qisqartmalar (API, OSINT, UZCERT;
+  bosh harfli so'z 6 harfgacha), CamelCase (RansomLook), o'zbek lotinida yo'q harfli so'zlar (`c` — "ch" dan tashqari,
+  `w`: Cybercab, Facebook, Twitter) va `KEEP_LATIN` ro'yxati (Google, username, backend, ransomware…) lotinda qoladi.
+  O'zbekcha qisqartmalar (`UZ_ABBREVIATIONS`: IIV → ИИВ, BMT, AQSh → АҚШ…) va apostrofli bo'laklar (ID'si → ID'си,
+  O'ZBEKISTON) kirillga; so'zlar orasidagi `/` — yo'l emas (ko'rsatish/yashirish → кўрсатиш/яшириш).
+- (b) Til `uz-Cyrl` ("Ўзбекча"):
+  - Backend: `core/i18n.py` — `UZ_CYRL`, `DISPLAY_LANGS`; `Accept-Language: uz-Cyrl[-UZ]`; `t(code, "uz-Cyrl")` uz
+    shablonini o'giradi (parametr qiymatlari tegilmaydi). `/api/events|notifications|stats/latest?lang=uz-Cyrl` —
+    o'zbekcha matn kirillga (`display_lang = "uz-Cyrl"`, `translated` o'zgarmaydi); o'zbekcha tarjimasi yo'q hodisa —
+    asl matn. Kategoriyalar: `name_uz_cyrl` / `description_uz_cyrl` (hisoblanadi, bazada yo'q). `users.locale` — `uz-Cyrl`.
+  - Frontend: `LOCALES = uz, uz-Cyrl, ru, en`; `messages/uz-Cyrl.json` **generatsiya**:
+    `python3 backend/scripts/gen_uz_cyrl_messages.py` (ICU plural/select ichidagi matn o'giriladi, kalitlar va `{arg}` —
+    yo'q; `--check` — eskirganmi; `npm run test:i18n` ham tekshiradi). Oy/hafta kunlari kirillda (`lib/format.ts`,
+    `widgets.tsx`), `isUzbek()`, `categoryText()`.
+  - Til tanlagichda har til o'z nomida (O'zbekcha / Ўзбекча / Русский / English) — ru'dagi uzun nomlar
+    ("Узбекский (латиница)") 360px da sahifani 50px kengaytirardi.
+- Jonli: `/api/events?lang=uz-Cyrl` → "Ўзбекистонда ИИВ ва банклар иштирокида 24/7 режимида…", "Тесла … \"Cybercab\"";
+  kategoriyalar "Маълумотлар сизиб чиқиши", "Фишинг"; xato matni "Аутентификация талаб қилинади".
+- Tekshirildi: ✅ `test_uz_cyrillic_ui.py` + `test_uztranslit_vendor.py` + `test_translations.py` (57), qoidalar
+  tuzatilgach `test_uz_cyrillic_ui` + `test_translations` + `test_followups` + `test_translator_nllb` (117); smoke `uz-Cyrl`
+  LAN orqali — 16 sahifa × desktop/360px toza; ochiq sahifalar uz/uz-Cyrl/ru/en × 360px toza; `tsc`; `test:i18n`
+  (905 kalit × 4 til, generator dolzarb).
+
 ### v2 dan keyin — LAN'dan kirish (2026-11-16)
 - Foydalanuvchi talabi: platforma LAN'da `http://<LAN-IP>:3000` da ochilsin, localhost ham ishlasin.
 - Frontend: `npm run dev` → `next dev -H 0.0.0.0` (`start` ham `-H 0.0.0.0`). API manzili bitta joyda —
@@ -117,7 +146,8 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   kirill bo'lsa tarjima lotinda olinib kirillga o'giriladi; manba kirill — avval lotinga (endi `translit_uz` o'rniga
   jaybi dvigateli); o'zbek ↔ o'zbek (`uz` ↔ `uz-Cyrl`) — servissiz, faqat yozuv; boshqa bir xil til juftlari — o'zgarishsiz.
 - Platformaning saqlanadigan tillari o'zgarmadi (en/ru/uz-lotin); `plan_rows` va worker'dagi `_fix_uz` hali `translit_uz`
-  ishlatadi (alohida qaror: ularni ham jaybi dvigateliga o'tkazish / UI'da o'zbek kirill ko'rinishi).
+  ishlatadi (alohida qaror: ularni ham jaybi dvigateliga o'tkazish / UI'da o'zbek kirill ko'rinishi). → Bajarildi:
+  yuqoridagi "Ўзбекча" interfeysi yozuvi.
 - Testlar: `tests/test_uztranslit_vendor.py` — yuqori oqim conformance to'plami (224 case, 10 roundtrip, 9 detect,
   3 optional; `tests/fixtures/uztranslit_fixtures.json`, guruhlab — to'plamni sekinlatmaslik uchun) + o'ramlar;
   `test_translator_nllb.py` — `uzn_Cyrl` maqsad/manba, servissiz yozuv almashtirish, kod jadvali.

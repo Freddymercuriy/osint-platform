@@ -64,51 +64,84 @@ def is_cyrillic(text: str) -> bool:
     return cyr > sum(1 for ch in sample if ch.isascii() and ch.isalpha())
 
 
-# ---------------------------------------------------------------- o'zbek kirill → lotin (rasmiy jadval)
-_MAP = {
-    "а": "a", "б": "b", "в": "v", "г": "g", "д": "d", "ж": "j", "з": "z", "и": "i", "й": "y", "к": "k", "л": "l",
-    "м": "m", "н": "n", "о": "o", "п": "p", "р": "r", "с": "s", "т": "t", "у": "u", "ф": "f", "х": "x", "ч": "ch",
-    "ш": "sh", "щ": "sh", "ъ": "'", "ь": "", "ы": "i", "э": "e", "ю": "yu", "я": "ya", "ё": "yo", "ў": "o'",
-    "қ": "q", "ғ": "g'", "ҳ": "h", "ц": "s",
-}
-_VOWELS = set("аеёиоуэюяўАЕЁИОУЭЮЯЎ")
-
-
-def translit_uz(text: str) -> str:
-    """O'zbek kirill → lotin. "е" so'z boshida va unlidan keyin "ye"; "ц" unlidan keyin "ts"."""
-    out: list[str] = []
-    prev = ""
-    for ch in text or "":
-        low = ch.lower()
-        if low == "е":
-            lat = "ye" if (not prev or not prev.isalpha() or prev in _VOWELS) else "e"
-        elif low == "ц":
-            lat = "ts" if prev in _VOWELS else "s"
-        elif low in _MAP:
-            lat = _MAP[low]
-        else:
-            out.append(ch)
-            prev = ch
-            continue
-        if ch.isupper() and lat:
-            lat = lat[0].upper() + lat[1:]
-        out.append(lat)
-        prev = ch
-    return normalize_apostrophes("".join(out))
-
-
 # ---------------------------------------------------------------- latin.jaybi.uz dvigateli (vendor/uztranslit.py)
 _ASCII_APOS = {"okina": "'", "tutuq": "'"}  # platforma qoidasi: lotinda oddiy ' (normalize_apostrophes bilan bir xil)
 
 
+# Kirillga o'girilmaydigan qismlar (lotinda qoladi): URL / e-mail / @username (dvigatelning o'z qoidasi), {placeholder},
+# <code>…</code> va `kod`, teglar, hamda texnik so'zlar — `_keep_latin`.
+_PROTECT_RE = re.compile(
+    "(?P<skip>" + _uzt._SKIP_RE.pattern + ")"
+    r"|(?P<ph>\{[^{}]*\})"
+    r"|(?P<code><code>.*?</code>|`[^`]*`)"
+    r"|(?P<tag></?[A-Za-z][\w-]*\s*/?>)"
+    r"|(?P<tok>[._/@#]?[A-Za-z0-9]+(?:[._/@:#+]+[A-Za-z0-9]+)*)",
+    re.S,
+)
+_CONNECTORS = set("._/@:#+")
+_APOS_CHARS = set(_uzt.APOS)
+# Lotinda qoladigan nomlar va inglizcha texnik so'zlar (katta-kichik harf farqsiz). Qisqartmalar (API, OSINT) va
+# CamelCase (GitHub, RansomLook) avtomatik qoladi — ro'yxatga kerak emas.
+KEEP_LATIN = frozenset(w.lower() for w in (
+    "Google", "News", "Chrome", "Firefox", "Safari", "Linux", "Windows", "Android", "Docker", "Gravatar", "Cloudflare",
+    "Reddit", "Excel", "Word", "BotFather", "uzcard", "humo", "captcha", "certificate", "transparency",
+    # inglizcha texnik atamalar (o'zbek kirill matnlarida ham odatda lotinda yoziladi)
+    "username", "email", "backend", "frontend", "config", "slug", "bookmark", "ransomware", "leak", "data", "scam",
+    "threat", "intel", "public", "sources", "English",
+))
+# O'zbekcha qisqartmalar — bosh harfli bo'lsa ham kirillga o'giriladi (IIV → ИИВ, AQSh → АҚШ)
+UZ_ABBREVIATIONS = frozenset(w.lower() for w in (
+    "IIV", "IIB", "IIO", "BMT", "MDH", "AQSh", "DXX", "FVV", "OAV", "YHXB", "MChJ", "OTM", "DTM", "TATU", "SSV",
+    "QR", "XK", "AJ", "DUK", "QK", "JK", "MJtK",
+))
+# O'zbek lotin yozuvida yo'q harflar: c (faqat "ch" tarkibida bor) va w — bunday so'z chet el nomi (Cybercab, Twitter)
+_FOREIGN_RE = re.compile(r"c(?!h)|w", re.IGNORECASE)
+
+
+def _keep_latin(tok: str, text: str, start: int, end: int) -> bool:
+    parts = tok.split("/")
+    if len(parts) > 1 and all(p.isalpha() for p in parts):  # "ko'rsatish/yashirish" — yo'l emas, so'zlar: har biri alohida
+        keep, pos = False, start
+        for p in parts:
+            keep = _keep_latin(p, text, pos, pos + len(p)) or keep
+            pos += len(p) + 1
+        return keep
+    if any(c in _CONNECTORS for c in tok):  # domen, fayl yo'li, ENV_NOMI, gov.uz (lekin "h.k." — qisqartma)
+        return not all(len(part) == 1 and part.islower() for part in re.split(r"[._/@:#+]+", tok.strip("._/@#")))
+    if any(c.isdigit() for c in tok) and any(c.isalpha() for c in tok):  # 5G, x86, CVE2026
+        return True
+    after = text[end + 1:end + 2] if end < len(text) and text[end] in _APOS_CHARS else ""
+    if (start and text[start - 1] in _APOS_CHARS) or after.isupper():
+        return False  # O'ZBEKISTON, MA'LUMOT — o'zbekcha so'zning bo'lagi (ID'si, backend'ni — yo'q)
+    if tok.lower() in UZ_ABBREVIATIONS:
+        return False
+    if _FOREIGN_RE.search(tok):
+        return True
+    uppers = sum(c.isupper() for c in tok)
+    if uppers >= 2 and (not tok.isupper() or len(tok) <= 6):  # API, OSINT, UZCERT, RansomLook (RESPUBLIKASI — yo'q)
+        return True
+    return tok.lower() in KEEP_LATIN
+
+
 def uz_to_cyrillic(text: str) -> str:
     """O'zbek lotin (1995 yoki 2026 alifbosi) → kirill, latin.jaybi.uz qoidalari bilan: ye/e, ts → ц, yo'l → йўл,
-    o'zlashma so'zlar lug'ati (obyekt → объект, iyul → июль), bosh harflar; URL, e-mail va @username o'zgarmaydi.
+    o'zlashma so'zlar lug'ati (obyekt → объект, iyul → июль), bosh harflar. Lotinda qoladi: URL, e-mail, @username,
+    {placeholder}, `kod`, teglar, qisqartmalar va texnik so'zlar (API, OSINT, gov.uz, ENV_NOMI, 5G, Google).
     Matn allaqachon kirillda bo'lsa — o'zgarishsiz."""
-    return _uzt.convert(text or "", "auto", "cyr")
+    text = text or ""
+    out: list[str] = []
+    last = 0
+    for m in _PROTECT_RE.finditer(text):
+        if m.lastgroup == "tok" and not _keep_latin(m.group(), text, m.start(), m.end()):
+            continue  # oddiy so'z — atrofidagi matn bilan birga o'giriladi
+        out.append(_uzt.convert(text[last:m.start()], "auto", "cyr"))
+        out.append(m.group())
+        last = m.end()
+    out.append(_uzt.convert(text[last:], "auto", "cyr"))
+    return "".join(out)
 
 
 def uz_to_latin(text: str) -> str:
-    """O'zbek kirill → lotin (1995), latin.jaybi.uz qoidalari bilan (е/э, ц, ъ/ь, сентябрь → sentabr ...);
-    apostroflar oddiy '. Lotin harflari o'zgarmaydi."""
-    return _uzt.convert(text or "", "cyr", "lat", _ASCII_APOS)
+    """O'zbek kirill → lotin (1995), latin.jaybi.uz qoidalari bilan (е/э, ц, ъ/ь, сентябрь → sentabr, Исҳоқ → Is'hoq,
+    ШАҲАР → SHAHAR ...); barcha apostroflar oddiy ' (platforma qoidasi). Lotin harflari o'zgarmaydi."""
+    return normalize_apostrophes(_uzt.convert(text or "", "cyr", "lat", _ASCII_APOS))

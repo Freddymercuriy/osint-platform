@@ -23,7 +23,7 @@ class UserOut(BaseModel):
 
 
 class UserUpdate(BaseModel):
-    locale: Literal["uz", "ru", "en"] | None = None
+    locale: Literal["uz", "uz-Cyrl", "ru", "en"] | None = None
 
 
 class Token(BaseModel):

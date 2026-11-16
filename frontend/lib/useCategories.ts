@@ -9,11 +9,25 @@ import type { LucideIcon } from "lucide-react";
 
 export type CategoryView = Category & { name: string; description: string; tone: Tone; Icon: LucideIcon };
 
+type CategoryTexts = Pick<Category, "name_en" | "name_ru" | "name_uz" | "description_en" | "description_ru" | "description_uz">
+  & Partial<Pick<Category, "name_uz_cyrl" | "description_uz_cyrl">>;
+
+/** Kategoriya nomi / tavsifi interfeys tilida (uz-Cyrl — backend kirillga o'girgan maydon), bo'lmasa inglizcha. */
+export function categoryText(c: CategoryTexts, field: "name" | "description", locale: string): string {
+  const value =
+    locale === "uz-Cyrl"
+      ? c[`${field}_uz_cyrl`] || c[`${field}_uz`]
+      : locale === "uz" || locale === "ru" || locale === "en"
+        ? c[`${field}_${locale}`]
+        : undefined;
+  return value || c[`${field}_en`];
+}
+
 let cache: Promise<Category[]> | null = null;
 
 /** Kategoriyalar bazadan (bir sahifada bir marta so'raladi); nomi interfeys tilida. */
 export function useCategories(): { list: CategoryView[]; bySlug: (slug: string) => CategoryView; loading: boolean } {
-  const locale = useLocale() as "uz" | "ru" | "en";
+  const locale = useLocale();
   const [rows, setRows] = useState<Category[] | null>(null);
   useEffect(() => {
     cache ??= getCategories().catch((e) => {
@@ -29,8 +43,8 @@ export function useCategories(): { list: CategoryView[]; bySlug: (slug: string) 
   return useMemo(() => {
     const list: CategoryView[] = (rows ?? []).map((c) => ({
       ...c,
-      name: c[`name_${locale}`] || c.name_en,
-      description: c[`description_${locale}`] || c.description_en,
+      name: categoryText(c, "name", locale),
+      description: categoryText(c, "description", locale),
       tone: asTone(c.color),
       Icon: categoryIcon(c.icon),
     }));
