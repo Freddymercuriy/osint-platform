@@ -1,7 +1,7 @@
 /** Statistika API (`/api/stats/*`) — dashboard vidjetlari. Filtrlar `/api/events` bilan bir xil nomlarda + davr. */
 import { apiFetch, eventFiltersToParams, getToken, handle, type EventFilters, type EventItem } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_URL } from "@/lib/config";
 
 export type RangeKey = "24h" | "7d" | "30d" | "90d" | "custom";
 export type StatsFilters = Omit<EventFilters, "q" | "source_lang" | "range"> & { range?: RangeKey };

@@ -4,7 +4,7 @@
  */
 import { apiFetch, getToken, handle, invalidateMe, type EventItem } from "@/lib/api";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_URL } from "@/lib/config";
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const headers: Record<string, string> = { Authorization: `Bearer ${getToken()}` };

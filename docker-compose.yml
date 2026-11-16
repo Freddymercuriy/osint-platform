@@ -31,8 +31,9 @@ services:
       db:
         condition: service_healthy
     ports:
-      # Faqat shu kompyuterdan. Tashqariga ochish kerak bo'lsa — reverse proxy + HTTPS orqali
-      - "127.0.0.1:8000:8000"
+      # Barcha interfeyslarda: localhost va LAN (http://192.168.1.50:8000). Internetga ochish kerak bo'lsa —
+      # reverse proxy + HTTPS orqali (TRUSTED_PROXIES). DB porti esa faqat shu kompyuterda qoladi.
+      - "0.0.0.0:8000:8000"
     volumes:
       - ./backend:/app
 

@@ -20,7 +20,7 @@
 ### Ishga tushirish (shu kompyuterda)
 ```bash
 docker-compose start                      # db + backend (konteynerlar mavjud bo'lsa); bo'lmasa: docker-compose up -d
-cd frontend && npm run dev                # http://localhost:3000
+cd frontend && npm run dev                # http://localhost:3000 va LAN: http://<LAN-IP>:3000 (0.0.0.0 da)
 # backend kodi o'zgarsa: docker-compose restart backend  (uvicorn --reload yo'q)
 ```
 
@@ -76,6 +76,22 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 dan keyin — LAN'dan kirish (2026-11-16)
+- Foydalanuvchi talabi: platforma LAN'da `http://<LAN-IP>:3000` da ochilsin, localhost ham ishlasin.
+- Frontend: `npm run dev` → `next dev -H 0.0.0.0` (`start` ham `-H 0.0.0.0`). API manzili bitta joyda —
+  `frontend/lib/config.ts` (`api.ts`, `adminApi.ts`, `statsApi.ts` dagi qattiq `localhost:8000` olib tashlandi):
+  `NEXT_PUBLIC_API_URL`, bo'sh bo'lsa — sahifa ochilgan host'ning 8000-porti. `frontend/.env.local` da LAN IP
+  (git'da yo'q), `.env.example` da bo'sh qiymat va misol.
+- Backend: konteyner ichida uvicorn allaqachon `0.0.0.0`; compose porti `127.0.0.1:8000` → `0.0.0.0:8000`.
+  PostgreSQL porti `127.0.0.1:5432` da qoldi. `backend/.env` → `CORS_ORIGINS` ga LAN origin qo'shildi (nusxa
+  `.env.bak-*`); kod standarti (`http://localhost:3000`) o'zgarmadi.
+- ⚠️ `0.0.0.0` — kompyuterning barcha tarmoqlari: LAN, Tailscale va VMware tarmoqlari ham. API'ni internetga
+  ochish kerak bo'lsa — reverse proxy + HTTPS (`TRUSTED_PROXIES`). Token `localStorage` da — har origin uchun alohida
+  login kerak (localhost va LAN IP).
+- Tekshirildi: ✅ `0.0.0.0:3000` va `0.0.0.0:8000` tinglaydi, 5432 — faqat 127.0.0.1; `/health` localhost va LAN IP'da;
+  CORS preflight: localhost:3000 va LAN:3000 — ruxsat, begona origin — yo'q; bundle'da API = LAN IP; smoke LAN orqali
+  (analyst, 13 sahifa × desktop/360px) — toza; `tsc`.
 
 ### v2 dan keyin — o'zbek kirill (`uzn_Cyrl`) latin.jaybi.uz dvigateli bilan (2026-11-16)
 - Foydalanuvchi talabi: *"uzn_Cyrl ni latin.jaybi.uz dan foydalangan holda lotindan kirillga o'tsin"*.
