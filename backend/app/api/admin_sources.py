@@ -360,7 +360,7 @@ async def update_source(source_id: int, data: SourceUpdate, _: AdminUser, db: Db
         s.baseline_done = False  # yangi manzil — qayta baseline (eski elementlar ogohlantirish bermaydi)
     if "category" in changes:
         s.category_id = await _category_id(db, changes.pop("category"))
-    enabled_before = s.enabled
+    enabled_before, interval_before = s.enabled, s.interval_seconds
     for k, v in changes.items():
         if k != "category":
             setattr(s, k, v)
@@ -369,6 +369,13 @@ async def update_source(source_id: int, data: SourceUpdate, _: AdminUser, db: Db
     elif not enabled_before and s.enabled:
         s.status = await _status_from_last_run(db, s)
         s.next_run_at = datetime.now(UTC) + timedelta(seconds=random.uniform(5, 60))
+    elif s.enabled and s.next_run_at and s.interval_seconds < interval_before:
+        # Oraliq qisqardi — eski (uzun) reja kutilmaydi; sayt so'ragan kutish (Retry-After) baribir hurmat qilinadi
+        now = datetime.now(UTC)
+        sooner = now + timedelta(seconds=scheduler.jittered(s.interval_seconds, s.jitter_pct))
+        if s.retry_after_seconds and s.last_check_at:
+            sooner = max(sooner, s.last_check_at + timedelta(seconds=s.retry_after_seconds))
+        s.next_run_at = min(s.next_run_at, sooner)
     await db.commit()
     await db.refresh(s)
     return (await _out(db, [s]))[0]

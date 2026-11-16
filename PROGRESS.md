@@ -99,6 +99,14 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   "Sayt so'ragan kutish" / "Keyingi urinishgacha". i18n: `adminSources.wait.*`, `runs.retryAfter|wait` (911 kalit × 4).
 - Testlar: `test_scheduler.py` — bloklash parametrlari `last_outcome`/`wait_seconds`/`retry_after_seconds` bilan,
   yangi `test_rate_limit_wait_visible_then_cleared` (429 + Retry-After 300 → API → muvaffaqiyatda tozalanadi).
+- Admin PATCH: oraliq **qisqarsa** keyingi urinish yangi oraliqqa tortiladi (avval eski uzun reja kutilardi), lekin
+  `last_check_at + retry_after_seconds` dan oldin emas; uzaysa — reja o'zgarmaydi. Test: `test_admin_sources.py`.
+- NewsNow (id 123) — admin API orqali **yoqildi**, foydalanuvchi talabi bilan oraliq **60 s** (jitter 20%;
+  bloklansa backoff + Retry-After, endi panelda ko'rinadi). Birinchi urinish (14:28 UTC): HTTP 200, kartochka yo'q →
+  xato. Ulagichga zaxira tahlil (kartochka belgilari bo'lmasa — `/A/<id>` havolalari, ota elementdan nashr/vaqt) va
+  xatoga tashxis (`fingerprint`: hajm, `<title>`, `<article>`/`article-card`/`/A/` soni, `<script>`) qo'shildi.
+  Keyingi urinish (14:46): 100 element o'qildi, 58 hodisa (baseline) — hammasida nashr va vaqt; kategoriyalar:
+  other 26, leak 10, advisory 6 ... Events'da **Global** filtrida ko'rinadi.
 
 ### v2 dan keyin — NewsNow ulagichi (2026-11-16)
 - Foydalanuvchi talabi: NewsNow'dan yangiliklar olish. Berilgan `newsnow/` papkasida dastur kodi yo'q — faqat boshqa

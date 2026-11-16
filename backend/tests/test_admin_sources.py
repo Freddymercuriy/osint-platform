@@ -170,3 +170,31 @@ async def test_telegram_flood_wait_maps_to_rate_limited(monkeypatch):
     with pytest.raises(RateLimited) as exc:
         await TelegramUserConnector().fetch(FetchContext(source=view, http=None))
     assert exc.value.retry_after == 42
+
+
+async def test_shorter_interval_pulls_next_run_earlier_but_respects_retry_after(client, admin_headers, db):
+    """30 daq → 60 s: eski reja kutilmaydi; sayt so'ragan kutish (Retry-After) esa qisqartirilmaydi."""
+    from datetime import UTC, datetime, timedelta
+
+    now = datetime.now(UTC)
+    s = Source(name="Slow", kind="rss", config={"url": "https://feed.example/rss"}, interval_seconds=1800,
+               jitter_pct=0, enabled=True, status="ok", next_run_at=now + timedelta(minutes=29))
+    blocked = Source(name="Limited", kind="rss", config={"url": "https://feed.example/l"}, interval_seconds=1800,
+                     jitter_pct=0, enabled=True, status="blocked", last_outcome="rate_limited",
+                     retry_after_seconds=600, last_check_at=now, next_run_at=now + timedelta(minutes=29))
+    db.add_all([s, blocked])
+    await db.commit()
+
+    r = await client.patch(f"/api/admin/sources/{s.id}", json={"interval_seconds": 60}, headers=admin_headers)
+    assert r.status_code == 200
+    nxt = datetime.fromisoformat(r.json()["next_run_at"])
+    assert now + timedelta(seconds=55) <= nxt <= datetime.now(UTC) + timedelta(seconds=61)
+
+    r = await client.patch(f"/api/admin/sources/{blocked.id}", json={"interval_seconds": 60}, headers=admin_headers)
+    nxt = datetime.fromisoformat(r.json()["next_run_at"])
+    assert now + timedelta(seconds=599) <= nxt <= now + timedelta(seconds=601)  # Retry-After 600 s hurmat qilindi
+
+    # Oraliq uzaysa — mavjud reja o'zgarmaydi
+    before = datetime.fromisoformat((await client.get(f"/api/admin/sources/{s.id}", headers=admin_headers)).json()["next_run_at"])
+    r = await client.patch(f"/api/admin/sources/{s.id}", json={"interval_seconds": 3600}, headers=admin_headers)
+    assert datetime.fromisoformat(r.json()["next_run_at"]) == before

@@ -104,10 +104,28 @@ async def test_fetch_reads_only_the_topic_page():
     await ctx.http.aclose()
 
 
-async def test_empty_page_is_an_error_not_silent_ok():
-    ctx = _ctx(lambda r: httpx.Response(200, text="<html><body>Nothing</body></html>", headers=HTML_HEADERS))
-    with pytest.raises(ConnectorError, match="yangilik topilmadi"):
+def test_fallback_by_article_links_when_cards_missing():
+    html = (
+        '<div class="hl"><a class="hll" href="https://c.newsnow.com/A/11?-1:2">First headline</a>'
+        '<span class="src">BBC</span><span class="time" data-time="1794836512">14:22</span></div>'
+        '<ul><li><a href="https://c.newsnow.com/A/12">Second headline</a></li>'
+        '<li><a href="https://c.newsnow.com/A/11?-3:4">First headline</a></li></ul>'  # takror
+    )
+    items = parse_page(html, URL)
+    assert [(i.title, i.source_name, i.dedup_key) for i in items] == [
+        ("First headline", "BBC (NewsNow)", "newsnow:11"), ("Second headline", None, "newsnow:12")]
+    assert items[0].published == datetime.fromtimestamp(1794836512, UTC) and items[1].published is None
+
+
+async def test_empty_page_is_an_error_with_fingerprint():
+    page = "<html><head><title>NewsNow</title></head><body><noscript>Please enable JavaScript</noscript>" \
+           "<script></script><script></script></body></html>"
+    ctx = _ctx(lambda r: httpx.Response(200, text=page, headers=HTML_HEADERS))
+    with pytest.raises(ConnectorError, match="yangilik topilmadi") as exc:
         await NewsNowConnector().fetch(ctx)
+    msg = str(exc.value)
+    assert "<title>: 'NewsNow'" in msg and "<article>: 0" in msg and "<script>: 2" in msg and "JavaScript kerak" in msg
+    assert exc.value.http_status == 200
     await ctx.http.aclose()
 
 

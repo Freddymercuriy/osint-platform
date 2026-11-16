@@ -41,6 +41,7 @@ HOSTS = frozenset({"www.newsnow.com", "newsnow.com", "www.newsnow.co.uk", "newsn
 _DISALLOWED = ("/subscribe", "/cgi-bin", "/livefeed", "/a/", "/share", "/cgi/", "/brand-new-look.html", "/reg/",
                "/housead", "/http:", "/https:", "/ico/", "/pharos.js", "/test-please-ignore/")
 _ARTICLE = re.compile(r"^https://c\.newsnow\.(?:com|co\.uk)/A/(\d+)(?:[?#]|$)")
+_ANY_ARTICLE = re.compile(r"newsnow\.(?:com|co\.uk)/a/\d")  # tashxis uchun (kichik harfdagi matnda)
 MAX_ITEMS = 100
 
 
@@ -58,34 +59,72 @@ def _timestamp(node) -> datetime | None:
         return None
 
 
+def _item(link, box, page_url: str, seen: set[str]) -> RawItem | None:
+    """`link` — maqola havolasi, `box` — nashr / vaqt qidiriladigan konteyner (kartochka yoki ota element)."""
+    url = urljoin(page_url, (link.get("href") or "").strip())
+    m = _ARTICLE.match(url)
+    title = _text(link.select_one(".article-title") or link)
+    if not m or not title or m.group(1) in seen:
+        return None
+    seen.add(m.group(1))
+    outlet = _text(box.select_one(".article-publisher__name, .src")) if box is not None else ""
+    ts = box.select_one("[data-timestamp], [data-time]") if box is not None else None
+    if ts is not None and not ts.get("data-timestamp"):
+        ts = {"data-timestamp": ts.get("data-time")}
+    flag = box.select_one(".article-card__flag [data-tooltip]") if box is not None else None
+    extra = {"newsnow_id": m.group(1)}
+    if flag is not None and flag.get("data-tooltip"):
+        extra["publisher_country"] = flag["data-tooltip"][:64]  # nashr davlati (voqea davlati emas)
+    return RawItem(
+        title=title[:300], url=url, published=_timestamp(ts),
+        source_name=f"{outlet} {NEWSNOW_TAG}"[:128] if outlet else None,
+        dedup_key=f"newsnow:{m.group(1)}", extra=extra,
+    )
+
+
+def _box(link, levels: int = 4):
+    """Zaxira: havoladan yuqoriga — nashr nomi yoki vaqti bor eng yaqin ota element (boshqa maqolasiz)."""
+    node = link.parent
+    for _ in range(levels):
+        if node is None or node.name in ("body", "html"):
+            return None
+        if node.select_one(".article-publisher__name, .src, [data-timestamp], [data-time]") is not None:
+            return node if len(node.select("a[href*='/A/']")) <= 2 else None
+        node = node.parent
+    return None
+
+
 def parse_page(html: bytes | str, page_url: str) -> list[RawItem]:
     soup = BeautifulSoup(html, "html.parser")
     items: list[RawItem] = []
     seen: set[str] = set()
     for card in soup.select("article.article-card"):
         link = card.select_one("a.article-card__headline[href]")
-        if link is None:
-            continue
-        url = urljoin(page_url, link["href"].strip())
-        m = _ARTICLE.match(url)
-        title = _text(link.select_one(".article-title") or link)
-        if not m or not title or m.group(1) in seen:
-            continue
-        seen.add(m.group(1))
-        outlet = _text(card.select_one(".article-publisher__name"))
-        flag = card.select_one(".article-card__flag [data-tooltip]")
-        extra = {"newsnow_id": m.group(1)}
-        if flag is not None and flag.get("data-tooltip"):
-            extra["publisher_country"] = flag["data-tooltip"][:64]  # nashr davlati (voqea davlati emas)
-        items.append(RawItem(
-            title=title[:300], url=url,
-            published=_timestamp(card.select_one(".article-publisher__timestamp[data-timestamp]")),
-            source_name=f"{outlet} {NEWSNOW_TAG}"[:128] if outlet else None,
-            dedup_key=f"newsnow:{m.group(1)}", extra=extra,
-        ))
+        if link is not None and (it := _item(link, card, page_url, seen)) is not None:
+            items.append(it)
         if len(items) >= MAX_ITEMS:
-            break
+            return items
+    if not items:
+        # Kartochka belgilari boshqacha (masalan server boshqa shablon bergan) — maqola havolalari bo'yicha
+        for link in soup.select("a[href*='/A/']"):
+            if (it := _item(link, _box(link), page_url, seen)) is not None:
+                items.append(it)
+            if len(items) >= MAX_ITEMS:
+                break
     return items
+
+
+def fingerprint(html: bytes | str) -> str:
+    """Yangilik topilmaganda admin uchun qisqa tashxis (sahifa matni emas, faqat belgilar soni)."""
+    text = html.decode("utf-8", "replace") if isinstance(html, bytes) else html
+    low = text.lower()
+    m = re.search(r"<title[^>]*>(.*?)</title>", text, re.S | re.I)
+    title = " ".join(m.group(1).split())[:80] if m else "—"
+    js = any(k in low for k in ("enable javascript", "javascript is required", "javascript required"))
+    links = len(_ANY_ARTICLE.findall(low))
+    return (f"{len(text) // 1024} KB, <title>: {title!r}, <article>: {low.count('<article')}, "
+            f"article-card: {low.count('article-card')}, /A/ havola: {links}, <script>: {low.count('<script')}"
+            + (", 'JavaScript kerak' matni bor" if js else ""))
 
 
 def check_url(url: str) -> None:
@@ -124,6 +163,7 @@ class NewsNowConnector(Connector):
             if looks_like_challenge(resp):
                 raise SourceBlocked("Manba blokladi: challenge/CAPTCHA sahifasi", http_status=resp.status_code)
             # Yangiliksiz mavzu sahifasi bo'lmaydi — tuzilma o'zgargan (jim "ok" bo'lib qolmasin)
-            raise ConnectorError("NewsNow: sahifada yangilik topilmadi (sahifa tuzilishi o'zgargan bo'lishi mumkin)",
-                                 http_status=resp.status_code)
+            raise ConnectorError(
+                "NewsNow: sahifada yangilik topilmadi (sahifa tuzilishi o'zgargan yoki sayt botlarga boshqa sahifa "
+                f"bergan) — {fingerprint(resp.content)}", http_status=resp.status_code)
         return FetchResult(items, resp.status_code)
