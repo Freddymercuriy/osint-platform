@@ -83,6 +83,23 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
+- Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa
+  shunda ko'rinadigan qilib ber"*.
+- Avval: 429 / 403 / challenge → `blocked`, kutish = max(backoff, Retry-After) hisoblanardi, lekin saqlanmasdi —
+  rate limit va blok farqi va sayt so'ragan vaqt ko'rinmasdi.
+- Migratsiya `0013_source_wait_info`: `sources.last_outcome`, `sources.retry_after_seconds`;
+  `source_runs.retry_after_seconds`, `source_runs.wait_seconds` (mavjud manbalarga `last_outcome` tarixdan).
+  `scheduler.run_source`: har urinishda yoziladi, muvaffaqiyatda `retry_after_seconds` tozalanadi; log'da ham.
+  `RunSummary` / `TestResult` / API (`SourceOut`, `RunOut`, `RunNowOut`, `TestOut`) — yangi maydonlar.
+- Frontend: `components/admin/sources/WaitInfo.tsx` — "Holat" ustunida (yoqilgan, oxirgi urinish xato bo'lsa):
+  sabab + HTTP kodi (masalan "So'rovlar cheklangan · HTTP 429"), "Sayt 5 daq kutishni so'radi (Retry-After)"
+  (Telegram — FloodWait), "Qayta urinish 31 daq dan keyin" — har soniya yangilanadi, ustiga olib borilsa aniq vaqt;
+  muddat 45 s dan oshsa satr API'dan qayta o'qiladi. Tarix paneli va "Hozir ishga tushirish"/"Sinash" natijasida ham
+  "Sayt so'ragan kutish" / "Keyingi urinishgacha". i18n: `adminSources.wait.*`, `runs.retryAfter|wait` (911 kalit × 4).
+- Testlar: `test_scheduler.py` — bloklash parametrlari `last_outcome`/`wait_seconds`/`retry_after_seconds` bilan,
+  yangi `test_rate_limit_wait_visible_then_cleared` (429 + Retry-After 300 → API → muvaffaqiyatda tozalanadi).
+
 ### v2 dan keyin — NewsNow ulagichi (2026-11-16)
 - Foydalanuvchi talabi: NewsNow'dan yangiliklar olish. Berilgan `newsnow/` papkasida dastur kodi yo'q — faqat boshqa
   loyihaning `pg_dump` nusxasi (2448 sarlavha, 2026-08-07…09-07, asl havola/matn yo'q). Papka `.gitignore` da; dump

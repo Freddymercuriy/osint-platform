@@ -150,8 +150,37 @@ async def test_blocked_and_rate_limited(db, monkeypatch, response, expected_stat
     r = await scheduler.run_source(s.id)
     s = await _reload(db, s)
     assert not r.ok and r.outcome == expected_outcome and s.status == expected_status
+    assert s.last_outcome == expected_outcome
+    run = await db.scalar(select(SourceRun).where(SourceRun.source_id == s.id))
+    assert run.wait_seconds == r.wait_seconds and r.wait_seconds > 0
     if expected_outcome == "rate_limited":
         assert s.next_run_at >= t0 + timedelta(seconds=7200)
+        assert s.retry_after_seconds == r.retry_after_seconds == run.retry_after_seconds == 7200
+        assert r.wait_seconds >= 7200
+    else:
+        assert s.retry_after_seconds is None and run.retry_after_seconds is None
+
+
+async def test_rate_limit_wait_visible_then_cleared(db, monkeypatch, client, admin_headers):
+    """429 + Retry-After: admin API'da sabab, sayt so'ragan kutish va rejalashtirilgan kutish; muvaffaqiyatdan keyin tozalanadi."""
+    s = await _source(db, interval_seconds=60, jitter_pct=0)
+    resp = {"r": httpx.Response(429, headers={"Retry-After": "300"})}
+    use_transport(monkeypatch, lambda req: resp["r"])
+    r = await scheduler.run_source(s.id)
+    assert r.outcome == "rate_limited" and r.retry_after_seconds == 300 and 300 <= r.wait_seconds <= 301
+
+    body = (await client.get(f"/api/admin/sources/{s.id}", headers=admin_headers)).json()
+    assert body["status"] == "blocked" and body["last_outcome"] == "rate_limited"
+    assert body["retry_after_seconds"] == 300 and body["last_http_status"] == 429
+    runs = (await client.get(f"/api/admin/sources/{s.id}/runs", headers=admin_headers)).json()
+    assert runs[0]["retry_after_seconds"] == 300 and runs[0]["wait_seconds"] == r.wait_seconds
+
+    resp["r"] = httpx.Response(200, content=rss([("Fresh", "https://feed.example/x", ago(hours=1))]),
+                               headers={"content-type": "application/rss+xml"})
+    r = await scheduler.run_source(s.id)
+    assert r.ok and r.retry_after_seconds is None and r.wait_seconds == 60
+    body = (await client.get(f"/api/admin/sources/{s.id}", headers=admin_headers)).json()
+    assert body["last_outcome"] == "ok" and body["retry_after_seconds"] is None
 
 
 async def test_auth_missing_without_request(db, monkeypatch):

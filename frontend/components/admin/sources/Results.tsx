@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { Badge, useFormat } from "@/components/ui";
 import SourceStatusBadge from "@/components/admin/SourceStatusBadge";
 import type { SourceRunNow, SourceTest } from "@/lib/adminApi";
-import { KNOWN_OUTCOMES, msText, outcomeTone } from "./lib";
+import { KNOWN_OUTCOMES, humanInterval, msText, outcomeTone } from "./lib";
 
 export function OutcomeBadge({ outcome, ok }: { outcome: string; ok?: boolean }) {
   const t = useTranslations("adminSources");
@@ -41,6 +41,9 @@ export function TestResultView({ r }: { r: SourceTest }) {
         <Stat label={t("test.latency")}>{msText(r.latency_ms, f, t)}</Stat>
         <Stat label={t("test.parsed")}>{f.number(r.items)}</Stat>
         <Stat label={t("test.passed")}>{f.number(r.passed)}</Stat>
+        {r.retry_after_seconds != null && (
+          <Stat label={t("runs.retryAfter")}>{humanInterval(r.retry_after_seconds, t)}</Stat>
+        )}
       </dl>
       {r.error && (
         <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">
@@ -93,6 +96,10 @@ export function RunResultView({ r }: { r: SourceRunNow }) {
         <Stat label={t("run.newItems")}>{f.number(r.new)}</Stat>
         <Stat label={t("run.merged")}>{f.number(r.merged)}</Stat>
         <Stat label={t("run.nextRun")}>{r.next_run_at ? f.ago(r.next_run_at) : "—"}</Stat>
+        {r.retry_after_seconds != null && (
+          <Stat label={t("runs.retryAfter")}>{humanInterval(r.retry_after_seconds, t)}</Stat>
+        )}
+        {!r.ok && r.wait_seconds != null && <Stat label={t("runs.wait")}>{humanInterval(r.wait_seconds, t)}</Stat>}
       </dl>
       {r.error && (
         <div className="rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm">

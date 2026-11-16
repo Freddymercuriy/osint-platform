@@ -11,6 +11,7 @@ import Overlay from "@/components/admin/sources/Overlay";
 import { RunResultView, TestResultView } from "@/components/admin/sources/Results";
 import RunsPanel from "@/components/admin/sources/RunsPanel";
 import SourceForm from "@/components/admin/sources/SourceForm";
+import WaitInfo from "@/components/admin/sources/WaitInfo";
 import { humanInterval, msText } from "@/components/admin/sources/lib";
 import { Button, CategoryBadge, Card, EmptyState, ErrorBanner, Input, Select, Skeleton, Label, useFormat } from "@/components/ui";
 import {
@@ -405,7 +406,10 @@ function SourcesView() {
                           </td>
                           <td className="px-3 py-2.5 uppercase text-fg-muted">{s.lang}</td>
                           <td className="whitespace-nowrap px-3 py-2.5 tabular-nums">{humanInterval(s.interval_seconds, t)}</td>
-                          <td className="px-3 py-2.5"><SourceStatusBadge status={s.status} /></td>
+                          <td className="min-w-[11rem] px-3 py-2.5">
+                            <SourceStatusBadge status={s.status} />
+                            <WaitInfo s={s} onDue={() => refreshRow(s.id)} />
+                          </td>
                           <td className="whitespace-nowrap px-3 py-2.5 text-fg-muted" title={s.last_success_at ? f.dateTime(s.last_success_at) : undefined}>
                             {s.last_success_at ? f.ago(s.last_success_at) : t("never")}
                           </td>

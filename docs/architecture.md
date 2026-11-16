@@ -62,6 +62,10 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   `translate`, interval/jitter/backfill, kalit o'zgaruvchisining NOMI, ETag/Last-Modified, `next_run_at`, kursor `state`,
   sog'liq: status, oxirgi tekshiruv/muvaffaqiyat/xato/HTTP/kechikish, ketma-ket xatolar, elementlar soni).
   Holatlar: `ok` · `degraded` · `down` · `blocked` · `auth_missing` · `disabled` · `never_run`.
+  Kutish ko'rinishi: `last_outcome` (oxirgi urinish: `blocked` / `rate_limited` / `error` ...), `retry_after_seconds`
+  (sayt so'ragan kutish — Retry-After / FloodWait); `source_runs` da ham `retry_after_seconds` va `wait_seconds`
+  (keyingi urinishgacha rejalashtirilgan). Admin → Manbalar "Holat" ustuni: sabab + HTTP, sayt so'ragan kutish,
+  qayta urinishgacha jonli hisob (`WaitInfo`); muddat o'tsa satr qayta o'qiladi.
 - **`services/events/scheduler.py`** — rejalashtiruvchi: `next_run_at = now + interval × random(1 ± jitter)`, xatoda
   eksponensial backoff (≤ 6 soat, Retry-After / FloodWait), PostgreSQL advisory lock bilan yagona nusxa.
 - **`services/connectors/`** — ulagichlar, tur bo'yicha ro'yxatga olinadi (`@register`); yozish qoidalari:

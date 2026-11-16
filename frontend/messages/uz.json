@@ -288,7 +288,9 @@
       "trigger": "Sabab",
       "manual": "Qo'lda",
       "scheduled": "Rejada",
-      "error": "Xato"
+      "error": "Xato",
+      "retryAfter": "Sayt so'ragan kutish",
+      "wait": "Keyingi urinishgacha"
     },
     "form": {
       "titleCreate": "Manba qo'shish",
@@ -379,6 +381,12 @@
       "title": "\"{name}\" o'chirilsinmi?",
       "body": "Manba boshqa olinmaydi. Allaqachon yig'ilgan hodisalar qoladi. Uni istalgan vaqtda qayta yoqish mumkin.",
       "confirm": "Manbani o'chirib qo'yish"
+    },
+    "wait": {
+      "siteAsked": "Sayt {d} kutishni so'radi ({header})",
+      "retryIn": "Qayta urinish {d} dan keyin",
+      "retryAt": "Qayta urinish vaqti: {time}",
+      "retryNow": "Hozir qayta urinilmoqda…"
     }
   },
   "adminSystem": {

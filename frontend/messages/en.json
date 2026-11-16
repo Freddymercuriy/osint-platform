@@ -288,7 +288,9 @@
       "trigger": "Trigger",
       "manual": "Manual",
       "scheduled": "Scheduled",
-      "error": "Error"
+      "error": "Error",
+      "retryAfter": "Site asked to wait",
+      "wait": "Until next attempt"
     },
     "form": {
       "titleCreate": "Add source",
@@ -379,6 +381,12 @@
       "title": "Disable \"{name}\"?",
       "body": "The source will no longer be fetched. Events already collected stay. You can enable it again at any time.",
       "confirm": "Disable source"
+    },
+    "wait": {
+      "siteAsked": "Site asked to wait {d} ({header})",
+      "retryIn": "Retry in {d}",
+      "retryAt": "Retry at {time}",
+      "retryNow": "Retrying now…"
     }
   },
   "adminSystem": {

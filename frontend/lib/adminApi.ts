@@ -61,6 +61,10 @@ export type Source = SourceInput & {
   last_new_items: number | null;
   newest_item_at: string | null;
   down_since: string | null;
+  /** Oxirgi urinish natijasi (ok / blocked / rate_limited / error ...) */
+  last_outcome: string | null;
+  /** Oxirgi xatoda sayt so'ragan kutish, soniya (Retry-After / FloodWait) */
+  retry_after_seconds: number | null;
   baseline_done: boolean;
   items_24h: number;
   uptime_7d: number | null;
@@ -79,6 +83,9 @@ export type SourceRun = {
   new_items: number;
   error: string | null;
   manual: boolean;
+  retry_after_seconds: number | null;
+  /** Shu urinishdan keyin keyingisigacha rejalashtirilgan kutish, soniya */
+  wait_seconds: number | null;
 };
 
 export type SourceTest = {
@@ -91,6 +98,7 @@ export type SourceTest = {
   samples: { title: string; url: string; published: string | null; matched_keywords: string[] }[];
   error: string | null;
   note: string | null;
+  retry_after_seconds: number | null;
 };
 
 export type SourceRunNow = {
@@ -105,6 +113,8 @@ export type SourceRunNow = {
   merged: number;
   error: string | null;
   next_run_at: string | null;
+  retry_after_seconds: number | null;
+  wait_seconds: number | null;
 };
 
 export type ConnectorInfo = {

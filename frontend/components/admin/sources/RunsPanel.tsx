@@ -7,7 +7,7 @@ import { History } from "lucide-react";
 import { sourceRuns, type Source, type SourceRun } from "@/lib/adminApi";
 import Overlay from "./Overlay";
 import { OutcomeBadge } from "./Results";
-import { msText } from "./lib";
+import { humanInterval, msText } from "./lib";
 
 export default function RunsPanel({ source, onClose }: { source: Source; onClose: () => void }) {
   const t = useTranslations("adminSources");
@@ -43,6 +43,8 @@ export default function RunsPanel({ source, onClose }: { source: Source; onClose
                   [t("runs.duration"), r.duration_ms == null ? "—" : msText(r.duration_ms, f, t)],
                   [t("runs.items"), f.number(r.items)],
                   [t("runs.newItems"), f.number(r.new_items)],
+                  ...(r.retry_after_seconds != null ? [[t("runs.retryAfter"), humanInterval(r.retry_after_seconds, t)]] : []),
+                  ...(!r.ok && r.wait_seconds != null ? [[t("runs.wait"), humanInterval(r.wait_seconds, t)]] : []),
                 ].map(([k, v]) => (
                   <div key={String(k)}>
                     <dt className="text-fg-muted">{k}</dt>

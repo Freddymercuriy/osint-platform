@@ -102,6 +102,8 @@ class SourceOut(SourceIn):
     last_new_items: int | None
     newest_item_at: datetime | None
     down_since: datetime | None
+    last_outcome: str | None = None  # oxirgi urinish: ok / blocked / rate_limited / error ...
+    retry_after_seconds: int | None = None  # oxirgi xatoda sayt so'ragan kutish (Retry-After / FloodWait)
     baseline_done: bool
     items_24h: int = 0
     uptime_7d: float | None = None  # 0..1, urinish bo'lmasa None
@@ -122,6 +124,8 @@ class RunOut(BaseModel):
     new_items: int
     error: str | None
     manual: bool
+    retry_after_seconds: int | None = None
+    wait_seconds: int | None = None
 
 
 class TestOut(BaseModel):
@@ -134,6 +138,7 @@ class TestOut(BaseModel):
     samples: list[dict]
     error: str | None = None
     note: str | None = None
+    retry_after_seconds: int | None = None
 
 
 class RunNowOut(BaseModel):
@@ -148,6 +153,8 @@ class RunNowOut(BaseModel):
     merged: int
     error: str | None
     next_run_at: datetime | None
+    retry_after_seconds: int | None = None
+    wait_seconds: int | None = None
 
 
 class ConnectorOut(BaseModel):
@@ -417,7 +424,8 @@ async def run_source_now(source_id: int, admin: AdminUser, db: DbSession) -> Run
         raise api_error(status.HTTP_409_CONFLICT, "source_busy")
     return RunNowOut(ok=r.ok, outcome=r.outcome, status=r.status, http_status=r.http_status,
                      duration_ms=r.duration_ms, items=r.items, passed=r.passed, new=r.new, merged=r.merged,
-                     error=r.error, next_run_at=r.next_run_at)
+                     error=r.error, next_run_at=r.next_run_at, retry_after_seconds=r.retry_after_seconds,
+                     wait_seconds=r.wait_seconds)
 
 
 @router.get("/sources/{source_id}/runs", response_model=list[RunOut])

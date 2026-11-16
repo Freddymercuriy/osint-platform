@@ -144,6 +144,14 @@ class RunSummary:
     merged: int = 0
     error: str | None = None
     next_run_at: datetime | None = None
+    retry_after_seconds: int | None = None  # sayt so'ragan kutish (Retry-After / FloodWait)
+    wait_seconds: int | None = None  # keyingi urinishgacha rejalashtirilgan kutish
+
+
+def retry_after_of(error: ConnectorError) -> int | None:
+    """Sayt so'ragan kutish, butun soniya (yo'q bo'lsa None)."""
+    ra = error.retry_after
+    return min(int(ra + 0.999), 10**9) if ra and ra > 0 else None
 
 
 async def _fetch(source_view: SourceView, connector, dry_run: bool) -> FetchResult:
@@ -221,13 +229,16 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
                 source.etag, source.last_modified = result.etag, result.last_modified
             if result.state is not None:
                 source.state = result.state
-            source.next_run_at = now + timedelta(seconds=jittered(source.interval_seconds, source.jitter_pct))
+            delay = jittered(source.interval_seconds, source.jitter_pct)
+            source.next_run_at = now + timedelta(seconds=delay)
             outcome = "not_modified" if result.not_modified else "ok"
+            source.last_outcome, source.retry_after_seconds = outcome, None
+            summary.wait_seconds = int(delay)
             summary.ok, summary.outcome, summary.http_status = True, outcome, result.http_status
             summary.items, summary.passed, summary.new, summary.merged = len(raw), len(items), stats.new, stats.merged
             db.add(SourceRun(source_id=source_id, started_at=started, duration_ms=duration,
                              http_status=result.http_status, ok=True, outcome=outcome, items=len(raw),
-                             new_items=stats.new, manual=manual,
+                             new_items=stats.new, manual=manual, wait_seconds=int(delay),
                              error=(f"baseline: {stats.new} ta yozildi" if baseline else result.note)))
             await db.commit()
             await pipeline.notify_new(db, stats.records)
@@ -250,13 +261,17 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
             if source.status in ("down", "blocked") and source.down_since is None:
                 source.down_since = now
             source.next_run_at = now + timedelta(seconds=delay)
+            retry_after = retry_after_of(error)
+            source.last_outcome, source.retry_after_seconds = error.outcome, retry_after
             summary.outcome, summary.error, summary.http_status = error.outcome, str(error), error.http_status
+            summary.retry_after_seconds, summary.wait_seconds = retry_after, int(delay)
             db.add(SourceRun(source_id=source_id, started_at=started, duration_ms=duration,
                              http_status=error.http_status, ok=False, outcome=error.outcome,
-                             error=str(error)[:2000], manual=manual))
+                             error=str(error)[:2000], manual=manual,
+                             retry_after_seconds=retry_after, wait_seconds=int(delay)))
             await db.commit()
-            log.info("Manba %s: %s (%s), keyingi urinish %d daq.dan keyin",
-                     source.name, error.outcome, error, int(delay // 60))
+            log.info("Manba %s: %s (%s)%s, keyingi urinish %d daq.dan keyin", source.name, error.outcome, error,
+                     f", sayt {retry_after} s kutishni so'radi" if retry_after else "", int(delay // 60))
         summary.status = source.status
         summary.next_run_at = source.next_run_at
     state.runs += 1
@@ -277,6 +292,7 @@ class TestResult:
     samples: list[dict]
     error: str | None = None
     note: str | None = None
+    retry_after_seconds: int | None = None
 
 
 async def test_source(view: SourceView) -> TestResult:
@@ -289,7 +305,7 @@ async def test_source(view: SourceView) -> TestResult:
         result = await _fetch(view, connector, dry_run=True)
     except ConnectorError as exc:
         return TestResult(False, exc.outcome, exc.http_status, int((time.monotonic() - t0) * 1000), 0, 0, [],
-                          error=str(exc))
+                          error=str(exc), retry_after_seconds=retry_after_of(exc))
     except Exception as exc:
         return TestResult(False, "error", None, int((time.monotonic() - t0) * 1000), 0, 0, [],
                           error=f"{type(exc).__name__}: {exc}")
