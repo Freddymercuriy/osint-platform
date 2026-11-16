@@ -99,7 +99,7 @@ async def test_history_counts(client, make_user, db):
 # ---------------------------------------------------------------- CORS_ALLOW_LAN
 @pytest.mark.parametrize("origin,allowed", [
     ("http://localhost:3000", True), ("http://192.168.1.117:3000", True), ("http://10.0.0.5:3000", True),
-    ("http://172.20.1.2:3000", True), ("http://100.67.104.58:3000", True), ("http://pc.local:3000", True),
+    ("http://172.20.1.2:3000", True), ("http://100.67.104.58:3000", False), ("http://pc.local:3000", True),
     ("http://osint-pc:3000", True),
     ("http://evil.example:3000", False), ("http://192.168.1.117:4000", False), ("http://8.8.8.8:3000", False),
     ("http://172.32.0.1:3000", False), ("http://100.128.0.1:3000", False), ("http://192.168.1.117.evil.com:3000", False),

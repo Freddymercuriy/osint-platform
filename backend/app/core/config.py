@@ -7,10 +7,10 @@ from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-# CORS_ALLOW_LAN=true: ichki (RFC 1918, Tailscale CGNAT, localhost, bir so'zli / .local nomli) host'dagi frontend :3000
+# CORS_ALLOW_LAN=true: ichki (RFC 1918, localhost, bir so'zli / .local nomli) host'dagi frontend :3000
 LAN_ORIGIN_RE = (
     r"^https?://(?:localhost|127\.0\.0\.1|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}"
-    r"|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}|100\.(?:6[4-9]|[7-9]\d|1[01]\d|12[0-7])(?:\.\d{1,3}){2}"
+    r"|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}"
     r"|[A-Za-z0-9-]+(?:\.local)?):3000$"
 )
 
@@ -45,7 +45,7 @@ class Settings(BaseSettings):
 
     cors_origins: str = "http://localhost:3000"
     # true — ichki tarmoq manzillaridagi frontend (:3000) ham ruxsat oladi: localhost, 192.168.x.x, 10.x.x.x,
-    # 172.16–31.x.x, Tailscale 100.64–127.x.x, kompyuter-nomi(.local). LAN'dan istalgan manzil bilan ochish uchun.
+    # 172.16–31.x.x, kompyuter-nomi(.local). LAN'dan istalgan manzil bilan ochish uchun.
     cors_allow_lan: bool = False
 
     # Telegram user API (my.telegram.org → API development tools)

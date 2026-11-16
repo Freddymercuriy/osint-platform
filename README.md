@@ -53,7 +53,7 @@ npm run dev
 - LAN'dan (boshqa kompyuter/telefon): ikkala xizmat `0.0.0.0` da tinglaydi (`next dev -H 0.0.0.0`, compose'da
   `0.0.0.0:8000`; PostgreSQL — faqat `127.0.0.1`). Eng oddiy sozlama: `frontend/.env.local` da
   `NEXT_PUBLIC_API_URL=` bo'sh (API sahifa ochilgan host'ning 8000-portiga ergashadi) va `backend/.env` da
-  `CORS_ALLOW_LAN=true` (ichki tarmoqdagi istalgan manzil :3000 — LAN IP, Tailscale, `kompyuter.local`); so'ng backend
+  `CORS_ALLOW_LAN=true` (ichki tarmoqdagi istalgan manzil :3000 — LAN IP, `kompyuter.local`); so'ng backend
   konteynerini qayta yarating va `npm run dev` ni qayta ishga tushiring. Aniq ro'yxat kerak bo'lsa — `CORS_ORIGINS`.
 - Birinchi ro'yxatdan o'tgan foydalanuvchi (yoki `ADMIN_EMAILS` dagilar) — admin. Ro'yxatdan o'tish
   `ENVIRONMENT=development` da ochiq, boshqa muhitda `REGISTRATION_OPEN=true` kerak.

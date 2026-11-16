@@ -86,7 +86,7 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Backend: konteyner ichida uvicorn allaqachon `0.0.0.0`; compose porti `127.0.0.1:8000` → `0.0.0.0:8000`.
   PostgreSQL porti `127.0.0.1:5432` da qoldi. `backend/.env` → `CORS_ORIGINS` ga LAN origin qo'shildi (nusxa
   `.env.bak-*`); kod standarti (`http://localhost:3000`) o'zgarmadi.
-- ⚠️ `0.0.0.0` — kompyuterning barcha tarmoqlari: LAN, Tailscale va VMware tarmoqlari ham. API'ni internetga
+- ⚠️ `0.0.0.0` — kompyuterning barcha tarmoqlari: LAN va VMware tarmoqlari ham. API'ni internetga
   ochish kerak bo'lsa — reverse proxy + HTTPS (`TRUSTED_PROXIES`). Token `localStorage` da — har origin uchun alohida
   login kerak (localhost va LAN IP).
 - Tekshirildi: ✅ `0.0.0.0:3000` va `0.0.0.0:8000` tinglaydi, 5432 — faqat 127.0.0.1; `/health` localhost va LAN IP'da;
@@ -100,6 +100,10 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   `pkill -f "next dev"`). ⚠️ Kompyuter qayta yoqilsa frontend o'zi ko'tarilmaydi (backend/db — `docker-compose start`).
   Tekshirildi: CORS — localhost / LAN / Tailscale / `pc.local` :3000 ruxsat, begona va boshqa port — rad; smoke
   LAN IP va Tailscale IP orqali — toza; `test_lan_origin_regex` (15 holat).
+- Keyin (foydalanuvchi: *"tailscale ni o'chir, VPN'ni tag-tugi bilan"*): Tailscale kompyuterdan olib tashlanadi —
+  `LAN_ORIGIN_RE` dan Tailscale/CGNAT `100.64/10` oralig'i chiqarildi (test: `100.67.104.58` endi rad). Tizimdan
+  o'chirish `sudo` talab qiladi — foydalanuvchi o'zi bajaradi (`tailscale logout`, `apt purge tailscale
+  tailscale-archive-keyring`, `/var/lib/tailscale`, apt manbasi va kalit).
 
 ### v2 dan keyin — o'zbek kirill (`uzn_Cyrl`) latin.jaybi.uz dvigateli bilan (2026-11-16)
 - Foydalanuvchi talabi: *"uzn_Cyrl ni latin.jaybi.uz dan foydalangan holda lotindan kirillga o'tsin"*.
