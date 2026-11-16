@@ -94,3 +94,22 @@ async def test_history_counts(client, make_user, db):
     assert r.status_code == 200
     assert r.json() == {"total": 3, "by_kind": {"domain": 2, "phone": 1}}
     assert (await client.get("/api/search/history/counts")).status_code == 401
+
+
+# ---------------------------------------------------------------- CORS_ALLOW_LAN
+@pytest.mark.parametrize("origin,allowed", [
+    ("http://localhost:3000", True), ("http://192.168.1.117:3000", True), ("http://10.0.0.5:3000", True),
+    ("http://172.20.1.2:3000", True), ("http://100.67.104.58:3000", True), ("http://pc.local:3000", True),
+    ("http://osint-pc:3000", True),
+    ("http://evil.example:3000", False), ("http://192.168.1.117:4000", False), ("http://8.8.8.8:3000", False),
+    ("http://172.32.0.1:3000", False), ("http://100.128.0.1:3000", False), ("http://192.168.1.117.evil.com:3000", False),
+    ("http://a.b.local:3000", False), ("http://192.168.1.117:3000.evil.com", False),
+])
+def test_lan_origin_regex(origin, allowed):
+    import re
+
+    from app.core.config import LAN_ORIGIN_RE
+
+    assert bool(re.fullmatch(LAN_ORIGIN_RE, origin)) is allowed
+    assert Settings(cors_allow_lan=True).cors_origin_regex == LAN_ORIGIN_RE
+    assert Settings(cors_allow_lan=False).cors_origin_regex is None

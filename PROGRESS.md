@@ -92,6 +92,14 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Tekshirildi: ✅ `0.0.0.0:3000` va `0.0.0.0:8000` tinglaydi, 5432 — faqat 127.0.0.1; `/health` localhost va LAN IP'da;
   CORS preflight: localhost:3000 va LAN:3000 — ruxsat, begona origin — yo'q; bundle'da API = LAN IP; smoke LAN orqali
   (analyst, 13 sahifa × desktop/360px) — toza; `tsc`.
+- Keyin (foydalanuvchi: *"lokalda boshqa komplar ko'radigan qilib ber"*): manzil IP'ga bog'liq bo'lmasin —
+  `CORS_ALLOW_LAN=true` (`config.LAN_ORIGIN_RE`: localhost, 127.0.0.1, 10/8, 172.16/12, 192.168/16, Tailscale 100.64/10,
+  bir so'zli / `.local` nom — faqat `:3000`; `allow_origin_regex`), `frontend/.env.local` da `NEXT_PUBLIC_API_URL=` bo'sh
+  (API = sahifa host'i:8000). ufw o'rnatilgan, lekin yoqilmagan (`ENABLED=no`) — port bloklanmagan.
+  Frontend sessiyadan mustaqil ishga tushirildi: `setsid nohup npm run dev > frontend/dev.log` (to'xtatish:
+  `pkill -f "next dev"`). ⚠️ Kompyuter qayta yoqilsa frontend o'zi ko'tarilmaydi (backend/db — `docker-compose start`).
+  Tekshirildi: CORS — localhost / LAN / Tailscale / `pc.local` :3000 ruxsat, begona va boshqa port — rad; smoke
+  LAN IP va Tailscale IP orqali — toza; `test_lan_origin_regex` (15 holat).
 
 ### v2 dan keyin — o'zbek kirill (`uzn_Cyrl`) latin.jaybi.uz dvigateli bilan (2026-11-16)
 - Foydalanuvchi talabi: *"uzn_Cyrl ni latin.jaybi.uz dan foydalangan holda lotindan kirillga o'tsin"*.

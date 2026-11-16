@@ -51,9 +51,10 @@ npm run dev
 
 - Frontend: http://localhost:3000 · Backend API: http://localhost:8000 (Swagger: `/docs`)
 - LAN'dan (boshqa kompyuter/telefon): ikkala xizmat `0.0.0.0` da tinglaydi (`next dev -H 0.0.0.0`, compose'da
-  `0.0.0.0:8000`; PostgreSQL — faqat `127.0.0.1`). `frontend/.env.local` da `NEXT_PUBLIC_API_URL=http://<LAN-IP>:8000`
-  (bo'sh bo'lsa — sahifa ochilgan host'ning 8000-porti), `backend/.env` da `CORS_ORIGINS` ga `http://<LAN-IP>:3000`
-  qo'shiladi; so'ng backend konteynerini qayta yarating va `npm run dev` ni qayta ishga tushiring.
+  `0.0.0.0:8000`; PostgreSQL — faqat `127.0.0.1`). Eng oddiy sozlama: `frontend/.env.local` da
+  `NEXT_PUBLIC_API_URL=` bo'sh (API sahifa ochilgan host'ning 8000-portiga ergashadi) va `backend/.env` da
+  `CORS_ALLOW_LAN=true` (ichki tarmoqdagi istalgan manzil :3000 — LAN IP, Tailscale, `kompyuter.local`); so'ng backend
+  konteynerini qayta yarating va `npm run dev` ni qayta ishga tushiring. Aniq ro'yxat kerak bo'lsa — `CORS_ORIGINS`.
 - Birinchi ro'yxatdan o'tgan foydalanuvchi (yoki `ADMIN_EMAILS` dagilar) — admin. Ro'yxatdan o'tish
   `ENVIRONMENT=development` da ochiq, boshqa muhitda `REGISTRATION_OPEN=true` kerak.
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
