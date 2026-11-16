@@ -7,6 +7,7 @@ from app.services.connectors import (  # noqa: F401
     google_news,
     hibp,
     html_list,
+    newsnow,
     nvd,
     openphish,
     otx,

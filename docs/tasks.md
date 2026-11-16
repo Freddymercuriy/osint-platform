@@ -94,6 +94,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ O'zbek kirill (`uzn_Cyrl`): NLLB `uzn_Latn` + latin.jaybi.uz dvigateli (lotin ↔ kirill)
 - ✅ `translit_uz` → jaybi dvigateli; interfeysda "Ўзбекча" (`uz-Cyrl`) tili — xabarlar `uz.json` dan generatsiya
 - ✅ Telegram "Arxiv" papkasidagi barcha kanal/guruhlar kuzatiladi (`TG_MONITOR_ARCHIVED`, avtomatik manbalar)
+- ✅ NewsNow ulagichi (`newsnow`) + "NewsNow: Cyber Attacks" manbasi (o'chiq, admin yoqadi; scope `global`)
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish

@@ -72,6 +72,10 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   asosiy ro'yxat (`TG_DIALOG_LIMIT`) va "Arxiv" papkasidan (folder 1, `TG_ARCHIVE_LIMIT`) o'qiladi.
   `TG_MONITOR_ARCHIVED=true` — `services/events/telegram_archive.py` arxivdagi har kanal/guruh uchun manba yaratadi
   (housekeeping'da, soatiga bir; mavjud yoki o'chirib qo'yilgan manbaga tegmaydi; `state.origin = "archive"`).
+- NewsNow: `connectors/newsnow.py` — mavzu sahifasi (`config.url`, faqat newsnow.com / newsnow.co.uk, so'rov
+  qatorisiz, robots.txt'dagi yopiq yo'llar taqiqlangan) → `article.article-card`: sarlavha, nashr ("<nashr> (NewsNow)"),
+  `data-timestamp`, havola `c.newsnow.com/A/<id>` (platforma unga kirmaydi). Takror kaliti — `newsnow:<id>`
+  (havoladagi `?...` qo'shimchasi o'zgaradi). Kartochka topilmasa — xato (jim `ok` emas). Manba (0012) o'chiq qo'shiladi.
 - Kalit so'zlar va regexlar kodda: `services/events/feeds.py` (hudud, mavzu, chet el belgilari), `dedup.py`, `geo.py`.
 - Kategoriyalar: `categories` (15 ta, en/ru/uz, jiddiylik, rang, ikon, notify, saqlash muddati, `rules`) —
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).

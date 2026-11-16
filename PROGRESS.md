@@ -83,6 +83,26 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
+### v2 dan keyin — NewsNow ulagichi (2026-11-16)
+- Foydalanuvchi talabi: NewsNow'dan yangiliklar olish. Berilgan `newsnow/` papkasida dastur kodi yo'q — faqat boshqa
+  loyihaning `pg_dump` nusxasi (2448 sarlavha, 2026-08-07…09-07, asl havola/matn yo'q). Papka `.gitignore` da; dump
+  lokal alohida konteynerda: `cd newsnow && docker-compose up -d` (PostgreSQL 17, `127.0.0.1:5433`, parol
+  `newsnow/.env`). Platformaga import qilinmadi (`EVENTS_SINCE` dan eski).
+- NewsNow robots.txt: `anthropic-ai` (AI botlari) — butun sayt yopiq; `User-agent: *` uchun mavzu sahifalari ochiq,
+  `?p=` sahifalash, `/A` (maqolaga o'tish), `/cgi`, `/share` ... yopiq. Sahifa tuzilishi foydalanuvchi brauzerda
+  saqlagan sahifadan o'rganildi (Claude saytga kirmadi).
+- `connectors/newsnow.py` (`kind=newsnow`, `config.url`): faqat newsnow.com / newsnow.co.uk, https, so'rov qatorisiz,
+  yopiq yo'llar taqiqlangan, boshqa xostga redirect — xato. `article.article-card` → sarlavha, nashr
+  (`<nashr> (NewsNow)`), `data-timestamp`, havola `c.newsnow.com/A/<id>?...` (saqlanadi, platforma unga kirmaydi),
+  `extra.publisher_country`. Takror kaliti `newsnow:<id>` — havola qo'shimchasi ochilishlar orasida o'zgarsa ham
+  bitta hodisa. Kartochka topilmasa — `ConnectorError` (challenge — `SourceBlocked`), jim `ok` emas.
+- Migratsiya `0012_newsnow_source`: "NewsNow: Cyber Attacks" (`/us/Tech/Cyber+Security/Cyber+Attacks`) — **o'chiq**
+  (`disabled`; yoqish — admin qarori), `scope=global` (Events standart ko'rinishi regional — toza qoladi), faqat
+  kiber filtri, 30 daq, en, tarjima yoqiq. Saqlangan sahifada: 66 maqola → kiber filtrdan 43; ~9 tasi leak/ransomware
+  (🔔 ham beradi). Faqat Markaziy Osiyo kerak bo'lsa — hudud filtri (o'sha sahifada 0).
+- Testlar: `test_connector_newsnow.py` (21; fixture — saqlangan sahifadan 4 kartochka) + seed soni 78 → 79
+  (`test_admin_sources`, `test_data_model`); migratsiya/scheduler/admin/html_list/followups to'plami ✅.
+
 ### v2 dan keyin — Telegram "Arxiv" papkasidagi kanal/guruhlar (2026-11-16)
 - Foydalanuvchi talabi: *"telegramdagi archive chats dagi barcha kanal va guruhlarni ham monitoring qilsin"*.
 - Avval: yig'uvchi faqat `TG_CHATS` dagi 22 chatni (har biri alohida manba, 0006 migratsiyasi) o'qirdi; dialoglar
