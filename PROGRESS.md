@@ -20,10 +20,16 @@ GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi ta
 
 ### Ishga tushirish (shu kompyuterda)
 ```bash
-docker-compose start                      # db + backend (konteynerlar mavjud bo'lsa); bo'lmasa: docker-compose up -d
-cd frontend && npm run dev                # http://localhost:3000 va LAN: http://<LAN-IP>:3000 (0.0.0.0 da)
+docker-compose up -d                      # db + backend + frontend (production build); restart: unless-stopped —
+                                          # kompyuter qayta yoqilganda o'zi ko'tariladi. http://localhost:3000
 # backend kodi o'zgarsa: docker-compose restart backend  (uvicorn --reload yo'q)
+# frontend ishlab chiqish (hot reload): docker-compose stop frontend && (cd frontend && npm run dev)
+#   tugagach: docker-compose start frontend   (to'xtatilgan konteyner qayta yoqilganda o'zi ko'tarilmaydi)
+# frontend kodi o'zgarsa (production): docker-compose build frontend && docker-compose stop frontend &&
+#   docker-compose rm -f frontend && docker-compose up -d frontend
 ```
+Hamma port faqat `127.0.0.1` da (3000, 8000, 5432) — LAN va internetdan ko'rinmaydi; boshqa qurilmalardan —
+Tailscale Serve orqali (sozlanmoqda, pastdagi yozuv).
 
 ### Boshqa kompyuterda ishga tushirish
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
@@ -37,8 +43,8 @@ Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
 ```bash
 git clone https://github.com/Freddymercuriy/osint-platform && cd osint-platform   # yoki: git pull
 # backend/.env ni joylashtiring, keyin:
-docker-compose build backend && docker-compose up -d        # yoki: docker compose ...
-cd frontend && npm install && cp .env.example .env.local && npm run dev   # http://localhost:3000
+docker-compose build && docker-compose up -d                # db + backend + frontend → http://localhost:3000
+# frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
@@ -77,6 +83,24 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 dan keyin — faqat Tailscale (tailnet) orqali kirish (2026-11-16, jarayonda)
+- Foydalanuvchi talabi: platforma faqat tailnet'dan `https://<mashina>.<tailnet>.ts.net` da ochilsin (Serve, Funnel
+  emas); LAN va internetdan 3000/8000 yopiq; localhost ishlab chiqish uchun qoladi. Reja: 1) Tailscale o'rnatish va
+  `tailscale up --operator=$USER --hostname=<nom>` (foydalanuvchi o'zi, sudo; login URL'ni o'zi ochadi; sertifikatdan
+  oldin nom tasdiqlanadi — CT loglariga tushadi); 2) 127.0.0.1 ga bog'lash; 3) `tailscale serve --bg`: `/` → :3000,
+  `/api` → :8000/api (prefiks kesilishi curl bilan tekshiriladi); 4) `NEXT_PUBLIC_API_URL`, `CORS_ORIGINS`,
+  `CORS_ALLOW_LAN=false`, `TRUSTED_PROXIES=172.18.0.1` (Docker gateway — X-Forwarded-For); 5) ufw (o'chiq; 22-port
+  tegilmaydi); 6) yoqilganda avtomatik ishga tushish.
+- ✅ 2-qadam: `docker-compose.yml` backend `127.0.0.1:8000:8000`; `package.json` `next dev|start -H 127.0.0.1`;
+  `.env.example` va README LAN o'rniga reverse proxy / Tailscale.
+- ✅ 6-qadam (foydalanuvchi OK berdi): compose'da `restart: unless-stopped` (db, backend; mavjud konteynerlarga
+  `docker update` bilan ham), yangi `frontend` xizmati — `frontend/Dockerfile` (standalone; `NEXT_PUBLIC_API_URL`
+  build arg — loyiha ildizidagi `.env` dan, `.env.local` image'ga kirmaydi; `HOSTNAME=0.0.0.0`, `USER node`,
+  `public/` yo'q bo'lsa yaratiladi), port `127.0.0.1:3000:3000`. `docker.service` yoqilgan → qayta yoqilganda ko'tariladi.
+- ⏳ 1, 3, 4, 5-qadamlar: Tailscale o'rnatilishini kutmoqda (`curl -fsSL https://tailscale.com/install.sh | sh`,
+  `sudo tailscale up --operator=$USER --hostname=<nom>`; admin'da eski `pc-dell-pro-max-…` yozuvini o'chirish, DNS
+  sahifasida MagicDNS + HTTPS Certificates).
 
 ### v2 dan keyin — API kalitlari tekshiruvi (2026-11-16)
 - Foydalanuvchi `backend/.env` ga kalitlarni kiritdi; konteyner qayta yaratildi, kalitli manbalar dry-run qilindi:

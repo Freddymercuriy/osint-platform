@@ -1,8 +1,11 @@
 version: "2.4"
 
+# restart: unless-stopped — Docker (docker.service) ishga tushganda konteynerlar ham ko'tariladi, kompyuter qayta
+# yoqilganda ham. Qo'lda to'xtatilgani (docker-compose stop X) esa to'xtaganicha qoladi.
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: osint
       POSTGRES_PASSWORD: osint
@@ -23,6 +26,7 @@ services:
       context: ./backend
       args:
         DEV: "1"  # pytest ham o'rnatiladi (lokal ishlab chiqish)
+    restart: unless-stopped
     env_file:
       - ./backend/.env
     environment:
@@ -31,11 +35,25 @@ services:
       db:
         condition: service_healthy
     ports:
-      # Barcha interfeyslarda: localhost va LAN (http://192.168.1.50:8000). Internetga ochish kerak bo'lsa —
-      # reverse proxy + HTTPS orqali (TRUSTED_PROXIES). DB porti esa faqat shu kompyuterda qoladi.
-      - "0.0.0.0:8000:8000"
+      # Faqat shu kompyuterdan (127.0.0.1) — LAN/internetdan ko'rinmaydi. Docker chiqargan portlar ufw'ni chetlab
+      # o'tadi, shuning uchun himoya — aynan shu bog'lash. Tashqi kirish faqat reverse proxy orqali (Tailscale Serve,
+      # TRUSTED_PROXIES). DB porti ham faqat shu kompyuterda.
+      - "127.0.0.1:8000:8000"
     volumes:
       - ./backend:/app
+
+  # Frontend — production build (next build, standalone). Ishlab chiqishda: docker-compose stop frontend &&
+  # (cd frontend && npm run dev); tugagach: docker-compose start frontend.
+  # NEXT_PUBLIC_API_URL build vaqtida kodga yoziladi — loyiha ildizidagi .env dan (git'da yo'q); o'zgarsa:
+  # docker-compose build frontend && docker-compose stop frontend && docker-compose rm -f frontend && docker-compose up -d frontend
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"  # faqat shu kompyuterdan — tashqariga reverse proxy (Tailscale Serve) orqali
 
 volumes:
   postgres-data:

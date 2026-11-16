@@ -1,4 +1,9 @@
 node_modules
 .next
+.next-build
+.qa-shots
 .env.local
+.env*.local
+dev.log
 npm-debug.log
+tsconfig.tsbuildinfo

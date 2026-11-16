@@ -33,28 +33,30 @@ hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / tel
 
 ## Ishga tushirish (dev)
 
-**1) Backend + DB (Docker):**
+**1) Hammasi Docker'da (DB + backend + frontend production build):**
 ```bash
 cp backend/.env.example backend/.env
 # backend/.env: SECRET_KEY (python -c 'import secrets; print(secrets.token_hex(32))'), ADMIN_EMAILS, kalitlar (pastda)
+# ixtiyoriy: loyiha ildizidagi .env da NEXT_PUBLIC_API_URL=... (frontend build'iga yoziladi; bo'sh = host:8000)
 docker-compose up -d --build           # yoki: docker compose up -d --build
 ```
 Backend konteyneri ishga tushganda migratsiyalarni o'zi qo'llaydi (`scripts/start.sh` → `alembic upgrade head`).
+Konteynerlarda `restart: unless-stopped` — kompyuter qayta yoqilganda o'zi ko'tariladi.
 
-**2) Frontend (lokal, Node 20):**
+**2) Frontend'ni ishlab chiqish rejimida (hot reload, Node 20):**
 ```bash
+docker-compose stop frontend           # 3000-port bo'shasin
 cd frontend
 cp .env.example .env.local
 npm install
-npm run dev
+npm run dev                            # tugagach: docker-compose start frontend
 ```
 
 - Frontend: http://localhost:3000 · Backend API: http://localhost:8000 (Swagger: `/docs`)
-- LAN'dan (boshqa kompyuter/telefon): ikkala xizmat `0.0.0.0` da tinglaydi (`next dev -H 0.0.0.0`, compose'da
-  `0.0.0.0:8000`; PostgreSQL — faqat `127.0.0.1`). Eng oddiy sozlama: `frontend/.env.local` da
-  `NEXT_PUBLIC_API_URL=` bo'sh (API sahifa ochilgan host'ning 8000-portiga ergashadi) va `backend/.env` da
-  `CORS_ALLOW_LAN=true` (ichki tarmoqdagi istalgan manzil :3000 — LAN IP, `kompyuter.local`); so'ng backend
-  konteynerini qayta yarating va `npm run dev` ni qayta ishga tushiring. Aniq ro'yxat kerak bo'lsa — `CORS_ORIGINS`.
+- Hamma xizmat faqat `127.0.0.1` da tinglaydi (`next dev -H 127.0.0.1`, compose'da `127.0.0.1:8000` va
+  `127.0.0.1:5432`) — LAN va internetdan ko'rinmaydi. Boshqa qurilmalardan kirish — faqat reverse proxy orqali
+  (Tailscale Serve: frontend `/` da, backend `/api` da; `NEXT_PUBLIC_API_URL`, `CORS_ORIGINS`, `TRUSTED_PROXIES`).
+  `CORS_ALLOW_LAN=true` (ichki tarmoq manzillari :3000) faqat xizmatlar LAN interfeysida tinglaganda kerak.
 - Birinchi ro'yxatdan o'tgan foydalanuvchi (yoki `ADMIN_EMAILS` dagilar) — admin. Ro'yxatdan o'tish
   `ENVIRONMENT=development` da ochiq, boshqa muhitda `REGISTRATION_OPEN=true` kerak.
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
