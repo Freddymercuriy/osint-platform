@@ -28,8 +28,7 @@ docker-compose up -d                      # db + backend + frontend (production 
 # frontend kodi o'zgarsa (production): docker-compose build frontend && docker-compose stop frontend &&
 #   docker-compose rm -f frontend && docker-compose up -d frontend
 ```
-Hamma port faqat `127.0.0.1` da (3000, 8000, 5432) — LAN va internetdan ko'rinmaydi; boshqa qurilmalardan —
-Tailscale Serve orqali (sozlanmoqda, pastdagi yozuv).
+Hamma port faqat `127.0.0.1` da (3000, 8000, 5432) — LAN va internetdan ko'rinmaydi (Tailscale yo'q).
 
 ### Boshqa kompyuterda ishga tushirish
 Git'da **yo'q** narsalar (qo'lda ko'chirish yoki qayta yaratish kerak):
@@ -84,7 +83,7 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
 
-### v2 dan keyin — faqat Tailscale (tailnet) orqali kirish (2026-11-16, jarayonda)
+### v2 dan keyin — 127.0.0.1 ga bog'lash, frontend Docker'da (2026-11-16; Tailscale rejasi bekor qilindi)
 - Foydalanuvchi talabi: platforma faqat tailnet'dan `https://<mashina>.<tailnet>.ts.net` da ochilsin (Serve, Funnel
   emas); LAN va internetdan 3000/8000 yopiq; localhost ishlab chiqish uchun qoladi. Reja: 1) Tailscale o'rnatish va
   `tailscale up --operator=$USER --hostname=<nom>` (foydalanuvchi o'zi, sudo; login URL'ni o'zi ochadi; sertifikatdan
@@ -98,9 +97,10 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   `docker update` bilan ham), yangi `frontend` xizmati — `frontend/Dockerfile` (standalone; `NEXT_PUBLIC_API_URL`
   build arg — loyiha ildizidagi `.env` dan, `.env.local` image'ga kirmaydi; `HOSTNAME=0.0.0.0`, `USER node`,
   `public/` yo'q bo'lsa yaratiladi), port `127.0.0.1:3000:3000`. `docker.service` yoqilgan → qayta yoqilganda ko'tariladi.
-- ⏳ 1, 3, 4, 5-qadamlar: Tailscale o'rnatilishini kutmoqda (`curl -fsSL https://tailscale.com/install.sh | sh`,
-  `sudo tailscale up --operator=$USER --hostname=<nom>`; admin'da eski `pc-dell-pro-max-…` yozuvini o'chirish, DNS
-  sahifasida MagicDNS + HTTPS Certificates).
+- ✖ 1, 3, 4, 5-qadamlar (Tailscale o'rnatish, Serve, ts.net env, ufw) — **bekor**: foydalanuvchi *"menga tailscale ni
+  OS dan o'chirish kerak edi, bo'ldi"*. Tailscale kompyuterda yo'q (paket, xizmat, apt manbasi, `tailscale0` — tekshirildi).
+  Natija: platforma faqat shu kompyuterdan (localhost); LAN'dan ochish kerak bo'lsa — portlarni `0.0.0.0` ga qaytarish
+  (`docker-compose.yml` 3000/8000, `backend/.env` da `CORS_ALLOW_LAN=true` allaqachon bor).
 
 ### v2 dan keyin — API kalitlari tekshiruvi (2026-11-16)
 - Foydalanuvchi `backend/.env` ga kalitlarni kiritdi; konteyner qayta yaratildi, kalitli manbalar dry-run qilindi:
