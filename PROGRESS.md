@@ -59,6 +59,35 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### Rahbariyat kanali — Bosqich 2: nashr ma'lumot modeli (2026-11-17)
+- **Migratsiya `0020_publishing`** (downgrade bor), modellar `models/publisher.py`:
+  - `channel_destinations` — nom, `chat_id` (dry-run uchun bo'sh bo'lishi mumkin), chat nomi / turi / `chat_username`
+    (bor bo'lsa — ochiq kanal), `topic_id`; `lang` (uz | uz-Cyrl | ru | en), `mode` (dry_run | review | auto,
+    standart dry_run), `is_test`; qamrov: `countries` (standart 5 ta), `include_global`, `categories` (bo'sh = hammasi),
+    `instant_min_band` (critical), `brief_min_band` (medium); jadval: kunlik (08:30, Du–Ju), haftalik (Du 08:45);
+    sokin soatlar 22:00–07:00 va `quiet_policy` (`uz_sound` — faqat O'zbekiston kritik ovozli, boshqa kritik ovozsiz,
+    high — brifingga; `all_silent`; `hold`); `max_instant_per_day` (6); `protect_content` (standart **false** —
+    rahbarlar postni xodimlariga forward qilib topshiriq beradi), `show_original`, `explain_terms`; holat: `enabled`,
+    `enabled_at` (yaratilganda — hozir: yoqish eski hodisalar bilan to'ldirmaydi), pauza + sabab, sog'liq (`status`
+    unknown/ok/down, `down_since`, oxirgi muvaffaqiyat / xato, ketma-ket xatolar, `rights` + tekshirilgan vaqt).
+  - `channel_posts` — tur (alert, group, daily, weekly, update, correction, test), `event_ids` (GIN indeks),
+    `(destination_id, dedup_key)` noyob, 11 holat (check), muzlatilgan `text` + `edited_text` (`final_text`), tugmalar,
+    `photo` (haftalik grafik PNG), `silent`, `reply_to_post_id` (SET NULL), yetkazish (`chat_id`, `message_id`,
+    `scheduled_at`, urinishlar, keyingi urinish, `last_error` — token yashirilgan, `skip_reason`), tasdiqlovchi (web
+    foydalanuvchi yoki Telegram id / ism, vaqt), tekshiruv chatidagi qoralama id, yuborish paytidagi band va manbalar
+    soni, `meta`. Tozalanmaydi (≥ 1 yil talabi; hodisalar 90 kunda o'chsa ham post qoladi — `event_ids` FK emas).
+  - `bot_chats` (chat_id PK, tur, nom, username, botning holati va huquqlari, kim qo'shgani), `reviewers`
+    (`tg_user_id` noyob, platforma foydalanuvchisiga bog'lanishi mumkin), `publisher_state` (id = 1: offset, umumiy
+    pauza, tekshiruv chati, bot holati — unknown/missing/ok/invalid/conflict/error).
+- `services/publisher/outbox.py` — `insert_post` (`INSERT ... ON CONFLICT DO NOTHING`: restart va ikki marta ishlagan
+  tsikl takror post yaratmaydi), `get_state`, `find_post`. Test seed'iga `publisher_settings`, `publisher_state`.
+- AdminAlert uchun yangi ustun kerak emas: kanal ogohlantirishlari `data.destination_id` bilan (Bosqich 4).
+- **Tekshirildi:** `test_publisher_model.py` (standart qiymatlar, 5 cheklov, dedup idempotentligi, holat / tur
+  cheklovlari, `final_text`, javob havolasi SET NULL, kaskad, holat qatori, bot_chats, reviewers noyobligi);
+  `test_migrations.py` (up/down/up); jonli baza: 0020 qo'llandi, standart qiymatlar (tranzaksiyada qo'shib, rollback);
+  to'liq pytest.
+  **Tekshirilmadi:** —
+
 ### Rahbariyat kanali — Bosqich 1: ustuvorlik (2026-11-17)
 - **Migratsiya `0018_priority`**: `events.priority` (smallint, indeks), `priority_band` (low/medium/high/critical, check),
   `priority_reasons` (JSONB `[{code, points, arg?}]`); `sources.reliability` (official / tracker / media / community /

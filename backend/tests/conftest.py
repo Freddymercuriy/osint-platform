@@ -75,7 +75,7 @@ def run_migrations(*args: str) -> subprocess.CompletedProcess:
 
 
 # Migratsiyalar seed qilgan ma'lumot (kategoriyalar, manbalar) — har testdan oldin shu holatga qaytariladi
-SEED_TABLES = ("categories", "sources", "publisher_settings")
+SEED_TABLES = ("categories", "sources", "publisher_settings", "publisher_state")
 
 
 async def _snapshot_seed() -> None:

@@ -112,7 +112,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Bosqich 1 — Ustuvorlik: ball / band / sabablar, manba ishonchliligi, kuzatuv ro'yxati (watchlist), energetika va
   transport sohalari, qayta hisoblash, Events'da belgi va filtr (`0018`; jonli tuzatishlar `0019`: "qilin" stem,
   IIV / DXX kuzatuvi o'chiq)
-- ⬜ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state`
+- ✅ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state` (`0020`)
 - ⬜ Bosqich 3 — Post ko'rinishi: tezkor xabar, guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, 4 til
 - ⬜ Bosqich 4 — Rejalashtiruvchi, yuboruvchi, tasdiqlash (review chat), bot yangilanishlari (long polling)
 - ⬜ Bosqich 5 — Admin: "Kanal" bo'limi (umumiy holat, manzillar, navbat / tarix, kuzatuv ro'yxati, ball + simulyatsiya,

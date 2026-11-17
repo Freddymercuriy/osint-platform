@@ -108,6 +108,9 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   manba ishonchliligi `sources.reliability`, manbalar soni, yozuvlar soni, eskirganlik, yolg'iz yashirin manba;
   global + kuzatuvsiz → low). Og'irliklar — `publisher_settings` (admin). Qayta hisoblash — `publisher/scoring.py`
   (yig'ish, birlashish, tarjima, kategoriya, kuzatuv / og'irlik o'zgarishi — 14 kun, housekeeping — bali yo'qlar).
+- Rahbariyat kanali (nashr): `channel_destinations` (chat, til, rejim dry_run → review → auto, qamrov, jadval, sokin
+  soatlar, chegara, sog'liq), `channel_posts` (outbox + audit, `(destination_id, dedup_key)` noyob), `bot_chats`,
+  `reviewers`, `publisher_state` (offset, pauza, tekshiruv chati, bot holati) — `models/publisher.py`.
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
   navbat (`worker.py`: kesh, oylik chegara — 0 = chegarasiz, qayta urinish; 422 / noma'lum til — darhol `failed`).
   Provayder — o'z NLLB servisimiz (`translator.py`, `TRANSLATE_API_URL`, kalitsiz): ISO kod → FLORES-200
