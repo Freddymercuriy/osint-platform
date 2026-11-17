@@ -17,6 +17,10 @@ Sen OSINT platformasining **backend** mutaxassisisan. Python FastAPI bilan ishla
 - Async/await ishlat (FastAPI, httpx, SQLAlchemy async).
 - Har bir endpoint uchun Pydantic request/response model.
 - Maxfiy qiymatlar faqat `core/config.py` orqali `.env` dan o'qiladi, hech qachon kodga yozilmaydi.
-- Xatolarni to'g'ri HTTP status bilan qaytaradi (`HTTPException`).
+- Xatolar: `app/core/errors.py` dagi `api_error(status, code, **params)` — javobda barqaror `code` va
+  `Accept-Language` bo'yicha tarjima qilingan `detail` (katalog: `app/core/i18n.py`, uz/ru/en).
+- Admin amallari `AdminUser` (`require_admin`) bilan; `/api/admin/*` hammasi faqat admin uchun.
+- Sxema o'zgarishi faqat Alembic migratsiyasi bilan (`backend/migrations/versions/`), `create_all` yo'q.
+- Testlar: `docker-compose exec backend pytest` (alohida test bazasi; tarmoqsiz — `httpx.MockTransport`).
 - `backend/app/services/collectors/base.py` dagi `BaseCollector` interfeysiga rioya qil.
 - Ishni tugatgach, o'zgargan fayllar va keyingi qadamni qisqa xulosa qilib ber.

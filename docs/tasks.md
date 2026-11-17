@@ -77,7 +77,38 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Umumiy guruhlar va ulardagi xabarlar soni
 - ⬜ Kuzatuv ro'yxati: qidirilgan ID'larni fon rejimida qayta tekshirish (qaror kutilmoqda)
 
+## v2 yangilanishi (`feat/v2-upgrade`, spetsifikatsiya: `docs/upgrade-v2-spec.md`)
+- ✅ Bosqich 0 — Poydevor: tarmoq + baza nusxasi, Alembic (baseline + stamp, start'da upgrade), rollar va `require_admin`,
+  `REGISTRATION_OPEN`, SECRET_KEY tekshiruvi, PyJWT, pytest
+- ✅ Bosqich 1 — Ma'lumot modeli: `sources`, `source_runs`, `categories`, `events` yangi ustunlari, eski qatorlarni ko'chirish
+- ✅ Bosqich 2 — Yig'uvchi dvigatel: har manba o'z tasodifiy jadvali, backoff, ETag, sog'liq holati, baseline, admin API
+- ✅ Bosqich 3 — Manbalar: bazaga seed, Telegram chatlari alohida, yangi threat-intel manbalari
+- ✅ Bosqich 4 — Kategoriyalar (15 ta) CRUD va klassifikator, filtrlar
+- ✅ Bosqich 5 — Tarjima (en/ru/uz) Google Cloud Translation orqali (kalit kutilmoqda) — 2026-11-16 o'z NLLB servisi bilan almashtirildi
+- ✅ Bosqich 6 — Interfeys: Light/Dark/System, uz/ru/en
+- ✅ Bosqich 7 — Admin bo'limi va Events sahifasi
+- ✅ Bosqich 8 — Interaktiv statistika dashboard'i
+- ✅ Bosqich 9 — Xavfsizlik (rate limiting, QA hisobi o'chirildi), testlar, hujjatlar
+- ✅ Keyin: Events `range` (soat aniqligida), `TRUSTED_PROXIES` / `X-Forwarded-For`, tarix hisoblagichi
+- ✅ Tarjima provayderi: Google Cloud Translation → o'z NLLB servisi (`TRANSLATE_API_URL`, kalitsiz)
+- ✅ O'zbek kirill (`uzn_Cyrl`): NLLB `uzn_Latn` + latin.jaybi.uz dvigateli (lotin ↔ kirill)
+- ✅ `translit_uz` → jaybi dvigateli; interfeysda "Ўзбекча" (`uz-Cyrl`) tili — xabarlar `uz.json` dan generatsiya
+- ✅ Telegram "Arxiv" papkasidagi barcha kanal/guruhlar kuzatiladi (`TG_MONITOR_ARCHIVED`, avtomatik manbalar)
+- ✅ NewsNow ulagichi (`newsnow`) + "NewsNow: Cyber Attacks" manbasi (o'chiq, admin yoqadi; scope `global`)
+- ✅ Xalqaro kiber-saytlar → Global (migratsiya `0014`, hudud filtrisiz; Markaziy Osiyo haqidagisi baribir regional)
+- ✅ Ishlamayotgan manbalar Events'da nomi va sababi bilan (`failing`, HTTP 5xx / Cloudflare 52x izohlari)
+- ✅ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` yig'ish vaqti bilan cheklanadi (`0015`)
+- ✅ Telegram: dialoglar chegarasidan (`TG_DIALOG_LIMIT`) tashqaridagi a'zo bo'lingan chatlar ham o'qiladi
+- ✅ Admin: Telegram chat tanlash — butun ro'yxat (chegarasiz, 5 daq. kesh), qidiruv, "kuzatilmoqda" belgisi
+- ✅ Telegram manbalari → Global + kiber filtri (`0016`); Markaziy Osiyo kalit so'zi bo'lsa — asosiy lentaga
+- ✅ Global manbalarda "chet el" qoidasi o'chirildi (NewsNow 85 tadan 26 kiber yangilikni yo'qotardi)
+- ✅ Sizish (leak) qoidalari: yolg'iz "breach", yozuvlar soni / hajm, "stolen ... data", dark web / forum (`0017`; 42 hodisa → leak)
+- ⬜ Telegram Global oqimini kuzatish: shovqinli kanallar (BugAlerts ~300/kun) — kerak bo'lsa admin'da o'chirish yoki regional'ga qaytarish
+- ⬜ Next 15 ga ko'chish (alohida ish)
+
 ## Keyingi — Kengaytirish
-- ⬜ Rate limiting, natijalarni keshlash
-- ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
-- ⬜ Testlar (pytest), Alembic migratsiyalar
+- ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash
+- ✅ Events eksporti — CSV / JSON, joriy filtrlar bilan (`GET /api/events/export`, ≤5000, formula himoyasi)
+- ⬜ Bir nechta qidiruvni bitta hisobotga jamlash
+- ⬜ Manba xato matnlari (`last_error`) interfeys tilida (hozir bazada o'zbek lotinida saqlanadi)
+- ✅ Testlar (pytest), Alembic migratsiyalar (v2 Bosqich 0 / 9)

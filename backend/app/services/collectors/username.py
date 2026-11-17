@@ -6,6 +6,7 @@ from dataclasses import dataclass
 
 import httpx
 
+from app.core.i18n import CodedValueError
 from app.services.collectors.base import BaseCollector, CollectResult
 
 # Realistik User-Agent — shaxsiy ma'lumotsiz, generic brauzer
@@ -93,7 +94,7 @@ class UsernameCollector(BaseCollector):
     async def run(self, query: str) -> list[CollectResult]:
         username = query.strip().lstrip("@")
         if not _USERNAME_RE.match(username):
-            raise ValueError("Username faqat harf, raqam, '.', '_', '-' dan iborat bo'lishi kerak")
+            raise CodedValueError("invalid_username_query")
 
         headers = {"User-Agent": _USER_AGENT, "Accept-Language": "en-US,en;q=0.9"}
         async with httpx.AsyncClient(timeout=self._timeout, headers=headers) as client:

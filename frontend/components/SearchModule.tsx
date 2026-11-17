@@ -18,6 +18,7 @@ import {
   XCircle,
   type LucideIcon,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -32,12 +33,11 @@ import {
   Skeleton,
   StatTile,
   StatusBadge,
-  timeAgo,
+  useFormat,
 } from "@/components/ui";
 import { getHistory, type CollectResult, type SearchJob, type SearchResponse } from "@/lib/api";
 import type { Tone } from "@/lib/categories";
 import ExportButtons from "@/components/ExportButtons";
-import { AnimatePresence, EASE, SPRING, motion } from "@/components/motion";
 import { cn } from "@/lib/cn";
 
 export type SearchKind = "username" | "email" | "phone" | "domain";
@@ -46,28 +46,12 @@ type Filter = "all" | "found" | "not_found" | "error";
 
 const ORDER: Record<string, number> = { found: 0, error: 1, not_found: 2 };
 
-const FILTERS: { id: Filter; label: string; icon: LucideIcon }[] = [
-  { id: "all", label: "Hammasi", icon: Layers },
-  { id: "found", label: "Topildi", icon: CheckCircle2 },
-  { id: "not_found", label: "Yo'q", icon: XCircle },
-  { id: "error", label: "Noaniq", icon: CircleHelp },
+const FILTERS: { id: Filter; labelKey: string; icon: LucideIcon }[] = [
+  { id: "all", labelKey: "all", icon: Layers },
+  { id: "found", labelKey: "status_found", icon: CheckCircle2 },
+  { id: "not_found", labelKey: "status_not_found", icon: XCircle },
+  { id: "error", labelKey: "status_unclear", icon: CircleHelp },
 ];
-
-/** Manba nomi uchun barqaror gradient (tashqi rasmsiz avatar). */
-const AVATAR_GRADIENTS = [
-  "from-cyan-400 to-violet-500",
-  "from-violet-500 to-fuchsia-500",
-  "from-sky-400 to-cyan-400",
-  "from-fuchsia-500 to-violet-500",
-  "from-emerald-400 to-cyan-500",
-  "from-sky-500 to-violet-500",
-];
-
-function gradientFor(name: string) {
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
-  return AVATAR_GRADIENTS[h % AVATAR_GRADIENTS.length];
-}
 
 function normStatus(s: string): Exclude<Filter, "all"> {
   return s === "found" || s === "not_found" ? s : "error";
@@ -75,6 +59,7 @@ function normStatus(s: string): Exclude<Filter, "all"> {
 
 /* ------------------------------------------------------------------ CopyButton */
 function CopyButton({ text }: { text: string }) {
+  const t = useTranslations("common");
   const [copied, setCopied] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -97,22 +82,23 @@ function CopyButton({ text }: { text: string }) {
     <button
       type="button"
       onClick={copy}
-      title={copied ? "Nusxalandi" : "Nusxalash"}
-      aria-label="Nusxalash"
+      title={copied ? t("copied") : t("copy")}
+      aria-label={t("copy")}
       className={cn(
-        "grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition",
+        "focus-ring grid h-8 w-8 shrink-0 place-items-center rounded-lg border transition-colors",
         copied
-          ? "border-emerald-400/30 bg-emerald-500/10 text-emerald-300"
-          : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-100",
+          ? "tone-green border-tone-border bg-tone-bg text-tone-fg"
+          : "border-border bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg",
       )}
     >
-      {copied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
+      {copied ? <Check className="h-3.5 w-3.5" aria-hidden /> : <Copy className="h-3.5 w-3.5" aria-hidden />}
     </button>
   );
 }
 
 /* ------------------------------------------------------------------ ResultCard */
-function ResultCard({ r, index }: { r: CollectResult; index: number }) {
+function ResultCard({ r }: { r: CollectResult }) {
+  const t = useTranslations("common");
   const status = normStatus(r.status);
   const found = status === "found";
   const copyText = r.url || r.value;
@@ -125,29 +111,26 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
     <Card
       hover
       className={cn(
-        "group relative flex h-full animate-fade-in flex-col gap-3 overflow-hidden p-4",
-        found && "border-emerald-400/20",
-        status === "not_found" && "opacity-80 hover:opacity-100",
+        "flex h-full animate-fade-in flex-col gap-3 p-4",
+        found && "border-success/40",
+        status === "not_found" && "bg-surface-2/50",
       )}
-      style={{ animationDelay: `${Math.min(index, 20) * 40}ms` }}
     >
-      {found && (
-        <div className="pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-emerald-400/10 blur-2xl" />
-      )}
       <div className="flex items-start gap-3">
         <div
           className={cn(
-            "grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br font-semibold text-white shadow-lg ring-2 ring-white/10",
-            found ? gradientFor(r.source) : "from-slate-600 to-slate-700",
+            "grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-border bg-surface-2 font-semibold",
+            found ? "text-success" : "text-fg-muted",
           )}
+          aria-hidden
         >
           {letter}
         </div>
         <div className="min-w-0 flex-1">
-          <div className="line-clamp-2 break-words font-medium leading-snug text-slate-100" title={r.source}>
+          <div className="line-clamp-2 break-words font-medium leading-snug text-fg" title={r.source}>
             {r.source}
           </div>
-          <div className="truncate font-mono text-[11px] uppercase tracking-wider text-slate-500">{r.type}</div>
+          <div className="truncate font-mono text-[11px] uppercase tracking-wider text-fg-subtle">{r.type}</div>
         </div>
         <StatusBadge status={r.status} />
       </div>
@@ -158,31 +141,31 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-expanded={expanded}
-            title={expanded ? "Yig'ish" : "To'liq ko'rsatish"}
+            title={expanded ? t("showLess") : t("showMore")}
             className={cn(
-              "break-words rounded text-left text-sm leading-relaxed text-slate-400 transition hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
+              "focus-ring break-words rounded text-left text-sm leading-relaxed text-fg-muted transition-colors hover:text-fg",
               !expanded && "line-clamp-3",
             )}
           >
             {r.detail}
           </button>
         ) : (
-          <p className="break-words text-sm leading-relaxed text-slate-400">{r.detail}</p>
+          <p className="break-words text-sm leading-relaxed text-fg-muted">{r.detail}</p>
         ))}
 
-      <div className="mt-auto flex items-center gap-2 border-t border-white/[0.06] pt-3">
+      <div className="mt-auto flex items-center gap-2 border-t border-border pt-3">
         {r.url ? (
           <a
             href={r.url}
             target="_blank"
             rel="noreferrer"
-            className="flex min-w-0 flex-1 items-center gap-1.5 font-mono text-xs text-cyan-300/90 transition hover:text-cyan-200"
+            className="focus-ring flex min-w-0 flex-1 items-center gap-1.5 rounded font-mono text-xs text-primary hover:underline"
           >
-            <ExternalLink className="h-3.5 w-3.5 shrink-0" />
+            <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden />
             <span className="truncate">{r.url.replace(/^https?:\/\//, "")}</span>
           </a>
         ) : (
-          <span className="min-w-0 flex-1 truncate font-mono text-xs text-slate-500">{r.value || "—"}</span>
+          <span className="min-w-0 flex-1 truncate font-mono text-xs text-fg-subtle">{r.value || "—"}</span>
         )}
         {copyText && <CopyButton text={copyText} />}
       </div>
@@ -192,48 +175,36 @@ function ResultCard({ r, index }: { r: CollectResult; index: number }) {
 
 /* ------------------------------------------------------------------ Scanning */
 function ScanningState({ query, tone }: { query: string; tone: Tone }) {
+  const t = useTranslations("checks.search");
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
-    const t = setInterval(() => setElapsed((s) => s + 1), 1000);
-    return () => clearInterval(t);
+    const id = setInterval(() => setElapsed((s) => s + 1), 1000);
+    return () => clearInterval(id);
   }, []);
 
   return (
-    <div className="space-y-4 animate-fade-in">
-      <Card glow className="relative overflow-hidden p-6">
-        {/* skanerlash nuri */}
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute inset-x-0 top-0 h-full animate-scan bg-gradient-to-b from-transparent via-cyan-400/10 to-transparent" />
-        </div>
-        <div className="relative flex flex-col items-center gap-5 text-center sm:flex-row sm:text-left">
-          <div className="relative grid h-16 w-16 shrink-0 place-items-center">
-            <span className="absolute inset-0 animate-pulse-ring rounded-full bg-cyan-400/30" />
-            <span className="absolute inset-0 rounded-full border border-cyan-400/30" />
-            <span className="absolute inset-2 animate-spin-slow rounded-full border border-dashed border-violet-400/40" />
-            <IconBox icon={Radar} tone={tone} />
-          </div>
+    <div className="animate-fade-in space-y-4" role="status" aria-live="polite">
+      <Card className="p-5 sm:p-6">
+        <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
+          <IconBox icon={Radar} tone={tone} size="lg" />
           <div className="min-w-0 flex-1">
-            <div className="font-mono text-[11px] uppercase tracking-[0.2em] text-brand-cyan/80">Skanerlanmoqda</div>
-            <div className="mt-1 text-lg font-medium text-white">Manbalar tekshirilmoqda...</div>
-            <div className="mt-1 truncate text-sm text-slate-400">
-              Nishon: <span className="font-mono text-slate-200">{query}</span>
+            <div className="font-medium text-fg">{t("scanning")}</div>
+            <div className="mt-1 truncate text-sm text-fg-muted">
+              {t("target")}: <span className="font-mono text-fg">{query}</span>
             </div>
           </div>
-          <div className="font-mono text-2xl tabular-nums text-slate-300">
+          <div className="font-mono text-2xl tabular-nums text-fg-muted">
             {String(Math.floor(elapsed / 60)).padStart(2, "0")}:{String(elapsed % 60).padStart(2, "0")}
           </div>
         </div>
-        <div className="relative mt-5 h-1.5 overflow-hidden rounded-full bg-ink-800">
-          <div className="absolute inset-0 bg-gradient-to-r from-cyan-400/30 via-violet-500/30 to-fuchsia-500/30" />
-          <div className="skeleton relative h-full w-full rounded-full bg-transparent" />
-        </div>
+        <Skeleton className="mt-5 h-1.5 w-full rounded-full" />
       </Card>
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="animate-fade-in p-4" style={{ animationDelay: `${i * 70}ms` }}>
+          <Card key={i} className="p-4">
             <div className="flex items-center gap-3">
-              <Skeleton className="h-10 w-10 rounded-full" />
+              <Skeleton className="h-10 w-10 rounded-lg" />
               <div className="flex-1 space-y-2">
                 <Skeleton className="h-3.5 w-2/3" />
                 <Skeleton className="h-2.5 w-1/3" />
@@ -256,8 +227,7 @@ export default function SearchModule({
   search,
   kind,
   icon = Search,
-  tone = "cyan",
-  eyebrow = "Tekshiruv moduli",
+  tone = "blue",
   examples = [],
   checks = [],
   inputMono,
@@ -269,12 +239,14 @@ export default function SearchModule({
   kind: SearchKind;
   icon?: LucideIcon;
   tone?: Tone;
-  eyebrow?: string;
   examples?: string[];
-  /** Modul nimalarni tekshirishi (bo'sh holat va yon panel uchun). */
+  /** Modul nimalarni tekshirishi (bo'sh holat va yon panel uchun) — tarjima qilingan matnlar. */
   checks?: string[];
   inputMono?: boolean;
 }) {
+  const t = useTranslations("checks.search");
+  const tc = useTranslations("common");
+  const f = useFormat();
   const [query, setQuery] = useState("");
   const [running, setRunning] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -317,7 +289,7 @@ export default function SearchModule({
       try {
         setData(await search(q));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+        setError(err instanceof Error ? err.message : tc("error"));
       } finally {
         setRunning(null);
         loadHistory();
@@ -353,13 +325,11 @@ export default function SearchModule({
 
   return (
     <div>
-      <PageHeader icon={icon} tone={tone} eyebrow={eyebrow} title={title} subtitle={description} />
+      <PageHeader icon={icon} tone={tone} title={title} description={description} />
 
       {/* ---------------- Qidiruv paneli */}
-      <Card glow className="relative mb-6 animate-fade-in overflow-hidden p-5 sm:p-6" style={{ animationDelay: "60ms" }}>
-        <div className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full bg-brand-violet/10 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-brand-cyan/10 blur-3xl" />
-        <form onSubmit={onSubmit} className="relative flex flex-col gap-3 sm:flex-row">
+      <Card className="mb-6 animate-fade-in p-4 sm:p-5">
+        <form onSubmit={onSubmit} className="flex flex-col gap-3 sm:flex-row">
           <Input
             ref={inputRef}
             value={query}
@@ -375,13 +345,13 @@ export default function SearchModule({
             aria-label={title}
           />
           <Button type="submit" size="lg" icon={Search} loading={!!running} className="sm:w-44">
-            {running ? "Qidirilmoqda" : "Qidirish"}
+            {running ? t("searching") : tc("search")}
           </Button>
         </form>
         {examples.length > 0 && (
-          <div className="relative mt-4 flex flex-wrap items-center gap-2">
-            <span className="flex items-center gap-1 text-xs text-slate-500">
-              <Sparkles className="h-3.5 w-3.5" /> Namuna:
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="flex items-center gap-1 text-xs text-fg-muted">
+              <Sparkles className="h-3.5 w-3.5" aria-hidden /> {t("examples")}:
             </span>
             {examples.map((ex) => (
               <button
@@ -391,7 +361,7 @@ export default function SearchModule({
                   setQuery(ex);
                   inputRef.current?.focus();
                 }}
-                className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 font-mono text-xs text-slate-300 transition hover:border-brand-cyan/40 hover:bg-brand-cyan/10 hover:text-cyan-200"
+                className="focus-ring rounded-full border border-border bg-surface px-3 py-1 font-mono text-xs text-fg-muted transition-colors hover:bg-primary-soft hover:text-primary"
               >
                 {ex}
               </button>
@@ -407,7 +377,7 @@ export default function SearchModule({
             <div className="animate-fade-in space-y-3">
               <ErrorBanner message={error} />
               <Button variant="secondary" size="sm" icon={RotateCcw} onClick={() => run(query)}>
-                Qayta urinish
+                {tc("retry")}
               </Button>
             </div>
           )}
@@ -415,21 +385,20 @@ export default function SearchModule({
           {running && <ScanningState query={running} tone={tone} />}
 
           {!running && !data && !error && (
-            <Card className="animate-fade-in" style={{ animationDelay: "120ms" }}>
+            <Card className="animate-fade-in">
               <EmptyState
                 icon={Radar}
-                title="Qidiruvni boshlang"
-                description={`${description} Faqat ochiq manbalardan foydalaniladi.`}
+                title={t("emptyTitle")}
+                description={`${description} ${t("publicOnly")}`}
               />
               {checks.length > 0 && (
-                <div className="grid gap-2 border-t border-white/[0.06] p-5 sm:grid-cols-2">
-                  {checks.map((c, i) => (
+                <div className="grid gap-2 border-t border-border p-5 sm:grid-cols-2">
+                  {checks.map((c) => (
                     <div
                       key={c}
-                      className="flex animate-fade-in items-center gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 text-sm text-slate-300"
-                      style={{ animationDelay: `${160 + i * 50}ms` }}
+                      className="flex items-center gap-2.5 rounded-lg border border-border bg-surface-2 px-3 py-2.5 text-sm text-fg"
                     >
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-emerald-400" />
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-success" aria-hidden />
                       {c}
                     </div>
                   ))}
@@ -439,46 +408,36 @@ export default function SearchModule({
           )}
 
           {!running && data && (
-            <div className="space-y-6">
+            <div className="animate-fade-in space-y-6">
               {/* Xulosa */}
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="animate-fade-in">
-                  <StatTile label="Tekshirildi" value={checked} icon={Layers} tone="cyan" hint="manba" />
-                </div>
-                <div className="animate-fade-in" style={{ animationDelay: "60ms" }}>
-                  <StatTile label="Topildi" value={found} icon={CheckCircle2} tone="emerald" hint="mos kelish" />
-                </div>
-                <div className="animate-fade-in" style={{ animationDelay: "120ms" }}>
-                  <StatTile label="Noaniq" value={counts.error} icon={CircleHelp} tone="amber" hint="javob yo'q / xato" />
-                </div>
+                <StatTile label={t("checked")} value={f.number(checked)} icon={Layers} tone="blue" hint={t("checkedHint")} />
+                <StatTile label={tc("status_found")} value={f.number(found)} icon={CheckCircle2} tone="green" hint={t("foundHint")} />
+                <StatTile label={tc("status_unclear")} value={f.number(counts.error)} icon={CircleHelp} tone="amber" hint={t("unclearHint")} />
               </div>
 
-              <Card className="animate-fade-in p-5" style={{ animationDelay: "160ms" }}>
+              <Card className="p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-                  <div className="min-w-0 text-slate-400">
-                    Nishon: <span className="break-all font-mono text-slate-100">{data.query}</span>
+                  <div className="min-w-0 text-fg-muted">
+                    {t("target")}: <span className="break-all font-mono text-fg">{data.query}</span>
                   </div>
-                  <div className="font-mono tabular-nums text-slate-300">
-                    <span className="text-emerald-300">{found}</span> / {checked} ·{" "}
-                    <span className="text-white">{ratio}%</span>
+                  <div className="font-mono tabular-nums text-fg-muted">
+                    <span className="text-success">{found}</span> / {checked} ·{" "}
+                    <span className="text-fg">{ratio}%</span>
                   </div>
                 </div>
                 <div
-                  className="mt-3 h-2 overflow-hidden rounded-full bg-ink-800"
+                  className="mt-3 h-2 overflow-hidden rounded-full bg-surface-2"
                   role="progressbar"
+                  aria-label={t("foundRatio")}
                   aria-valuenow={ratio}
                   aria-valuemin={0}
                   aria-valuemax={100}
                 >
-                  <motion.div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 shadow-[0_0_12px_rgba(52,211,153,.6)]"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${ratio}%` }}
-                    transition={{ duration: 1.1, ease: EASE, delay: 0.2 }}
-                  />
+                  <div className="h-full rounded-full bg-success transition-[width] duration-500" style={{ width: `${ratio}%` }} />
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-white/[0.06] pt-3">
-                  <span className="text-xs text-slate-500">Hisobotni eksport qilish</span>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+                  <span className="text-xs text-fg-muted">{t("exportReport")}</span>
                   <ExportButtons jobId={data.job_id} labels="always" onError={setExportError} />
                 </div>
                 {exportError && (
@@ -489,37 +448,26 @@ export default function SearchModule({
               </Card>
 
               {/* Filtrlar */}
-              <div className="flex flex-wrap gap-2">
-                {FILTERS.map((f) => {
-                  const active = filter === f.id;
+              <div className="flex flex-wrap gap-2" role="group" aria-label={t("filters")}>
+                {FILTERS.map((fl) => {
+                  const active = filter === fl.id;
                   return (
                     <button
-                      key={f.id}
+                      key={fl.id}
                       type="button"
-                      onClick={() => setFilter(f.id)}
+                      onClick={() => setFilter(fl.id)}
+                      aria-pressed={active}
                       className={cn(
-                        "relative inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition active:scale-95",
+                        "focus-ring inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
                         active
-                          ? "border-transparent text-cyan-200"
-                          : "border-white/10 bg-white/[0.03] text-slate-400 hover:border-white/20 hover:text-slate-200",
+                          ? "border-primary bg-primary-soft text-primary"
+                          : "border-border bg-surface text-fg-muted hover:bg-surface-2 hover:text-fg",
                       )}
                     >
-                      {active && (
-                        <motion.span
-                          layoutId="search-filter-active"
-                          transition={SPRING}
-                          className="absolute inset-0 rounded-full bg-brand-cyan/10 shadow-glow ring-1 ring-brand-cyan/40"
-                        />
-                      )}
-                      <f.icon className="relative h-3.5 w-3.5" />
-                      <span className="relative">{f.label}</span>
-                      <span
-                        className={cn(
-                          "relative rounded-full px-1.5 font-mono text-[10px] tabular-nums",
-                          active ? "bg-cyan-400/20 text-cyan-100" : "bg-white/5 text-slate-500",
-                        )}
-                      >
-                        {counts[f.id]}
+                      <fl.icon className="h-3.5 w-3.5" aria-hidden />
+                      <span>{tc(fl.labelKey)}</span>
+                      <span className="rounded-full bg-surface-2 px-1.5 font-mono text-[10px] tabular-nums text-fg-muted">
+                        {counts[fl.id]}
                       </span>
                     </button>
                   );
@@ -528,29 +476,13 @@ export default function SearchModule({
 
               {visible.length === 0 ? (
                 <Card>
-                  <EmptyState
-                    icon={Search}
-                    title="Bu filtrda natija yo'q"
-                    description="Boshqa filtrni tanlang yoki yangi qidiruv bajaring."
-                  />
+                  <EmptyState icon={Search} title={t("noFilterTitle")} description={t("noFilterDesc")} />
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    {visible.map((r, i) => (
-                      <motion.div
-                        key={`${r.source}-${r.value}`}
-                        layout
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.15 } }}
-                        transition={SPRING}
-                        className="h-full"
-                      >
-                        <ResultCard r={r} index={i} />
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
+                  {visible.map((r) => (
+                    <ResultCard key={`${r.source}-${r.value}`} r={r} />
+                  ))}
                 </div>
               )}
             </div>
@@ -559,49 +491,47 @@ export default function SearchModule({
 
         {/* ---------------- Yon panel */}
         <aside className="space-y-6">
-          <Card className="animate-fade-in p-5" style={{ animationDelay: "100ms" }}>
+          <Card className="p-5">
             <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm font-medium text-slate-200">
-                <History className="h-4 w-4 text-brand-cyan" />
-                So'nggi qidiruvlar
+              <div className="flex items-center gap-2 text-sm font-medium text-fg">
+                <History className="h-4 w-4 text-primary" aria-hidden />
+                {t("recent")}
               </div>
-              {history && history.length > 0 && <Badge tone="slate">{history.length}</Badge>}
+              {history && history.length > 0 && <Badge tone="slate">{f.number(history.length)}</Badge>}
             </div>
 
             {history === null && !historyError && (
               <div className="space-y-2">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <Skeleton key={i} className="h-11 w-full rounded-xl" />
+                  <Skeleton key={i} className="h-11 w-full rounded-lg" />
                 ))}
               </div>
             )}
 
-            {historyError && (
-              <p className="text-xs text-slate-500">Tarixni yuklab bo'lmadi.</p>
-            )}
+            {historyError && <p className="text-xs text-fg-muted">{t("historyError")}</p>}
 
             {history && history.length === 0 && (
               <div className="flex flex-col items-center gap-2 py-6 text-center">
-                <Clock className="h-5 w-5 text-slate-600" />
-                <p className="text-xs text-slate-500">Hali qidiruv bajarilmagan.</p>
+                <Clock className="h-5 w-5 text-fg-subtle" aria-hidden />
+                <p className="text-xs text-fg-muted">{t("historyEmpty")}</p>
               </div>
             )}
 
             {history && history.length > 0 && (
               <ul className="space-y-1.5">
-                {history.map((h, i) => (
-                  <li key={h.id} className="animate-fade-in" style={{ animationDelay: `${i * 40}ms` }}>
+                {history.map((h) => (
+                  <li key={h.id}>
                     <button
                       type="button"
                       disabled={!!running}
                       onClick={() => run(h.query)}
-                      className="group flex w-full items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left transition hover:border-white/10 hover:bg-white/[0.04] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="focus-ring group flex w-full items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition-colors hover:border-border hover:bg-surface-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-mono text-sm text-slate-200">{h.query}</div>
-                        <div className="text-[11px] text-slate-500">{timeAgo(h.created_at)}</div>
+                        <div className="truncate font-mono text-sm text-fg">{h.query}</div>
+                        <div className="text-[11px] text-fg-muted">{f.ago(h.created_at)}</div>
                       </div>
-                      <ArrowRight className="h-4 w-4 shrink-0 text-slate-600 transition group-hover:translate-x-0.5 group-hover:text-brand-cyan" />
+                      <ArrowRight className="h-4 w-4 shrink-0 text-fg-subtle group-hover:text-primary" aria-hidden />
                     </button>
                   </li>
                 ))}
@@ -611,30 +541,28 @@ export default function SearchModule({
             {history && history.length > 0 && (
               <Link
                 href="/dashboard/history"
-                className="mt-3 flex items-center justify-center gap-1.5 rounded-xl border border-white/[0.06] py-2 text-xs text-slate-400 transition hover:border-brand-cyan/30 hover:text-brand-cyan"
+                className="focus-ring mt-3 flex items-center justify-center gap-1.5 rounded-lg border border-border py-2 text-xs text-fg-muted transition-colors hover:bg-surface-2 hover:text-primary"
               >
-                Butun tarix <ArrowRight className="h-3.5 w-3.5" />
+                {t("fullHistory")} <ArrowRight className="h-3.5 w-3.5" aria-hidden />
               </Link>
             )}
           </Card>
 
           {checks.length > 0 && (
-            <Card className="animate-fade-in p-5" style={{ animationDelay: "160ms" }}>
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-slate-200">
-                <ShieldCheck className="h-4 w-4 text-emerald-400" />
-                Nimalar tekshiriladi
+            <Card className="p-5">
+              <div className="mb-3 flex items-center gap-2 text-sm font-medium text-fg">
+                <ShieldCheck className="h-4 w-4 text-success" aria-hidden />
+                {t("whatChecked")}
               </div>
               <ul className="space-y-2">
                 {checks.map((c) => (
-                  <li key={c} className="flex items-start gap-2 text-xs text-slate-400">
-                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-brand-cyan" />
+                  <li key={c} className="flex items-start gap-2 text-xs text-fg-muted">
+                    <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-primary" aria-hidden />
                     {c}
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 border-t border-white/[0.06] pt-3 text-[11px] leading-relaxed text-slate-500">
-                Faqat ochiq manbalar. Natijalar taxminiy — muhim xulosadan oldin qo'lda tasdiqlang.
-              </p>
+              <p className="mt-4 border-t border-border pt-3 text-[11px] leading-relaxed text-fg-muted">{t("disclaimer")}</p>
             </Card>
           )}
         </aside>

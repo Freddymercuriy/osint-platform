@@ -6,6 +6,8 @@
 //   TOKEN=<JWT> node scripts/qa/smoke.js        # BASE=http://localhost:3000, API=http://localhost:8000 (default)
 // JWT olish: POST /api/auth/login (username=<email>&password=<parol>) → access_token.
 // TOKEN berilmasa faqat ochiq sahifalar tekshiriladi. Muammo topilsa exit code 1.
+// MATRIX=1 — asosiy sahifalar light/dark × uz/uz-Cyrl/ru/en (desktop va 360px) da; standart — hamma sahifa (light, uz).
+// Tarjimasi yo'q kalit next-intl tomonidan konsolga xato sifatida chiqadi — u ham muammo hisoblanadi.
 const { run } = require("./cdp");
 
 const BASE = process.env.BASE || "http://localhost:3000";
@@ -20,7 +22,15 @@ const PRIVATE = [
   "/dashboard/phone",
   "/dashboard/domain",
   "/dashboard/history",
+  "/dashboard/admin/sources",
+  "/dashboard/admin/categories",
+  "/dashboard/admin/system",
 ];
+const MAIN = ["/", "/login", "/dashboard", "/dashboard/events", "/dashboard/username", "/dashboard/history"];
+const MATRIX = process.env.MATRIX === "1";
+const COMBOS = MATRIX
+  ? ["light", "dark"].flatMap((theme) => ["uz", "uz-Cyrl", "ru", "en"].map((locale) => [theme, locale]))
+  : [[process.env.THEME || "light", process.env.LOCALE || "uz"]];
 const VIEWPORTS = [
   ["desktop", 1440, 900, false],
   ["mobile", 360, 740, true],
@@ -48,10 +58,15 @@ run(async (p) => {
     }
   }
   let problems = 0;
+  const list = MATRIX ? pages.filter((u) => MAIN.includes(u) || u.startsWith("/dashboard/admin")) : pages;
 
-  for (const [label, w, h, mobile] of VIEWPORTS) {
+  for (const [theme, locale] of COMBOS) {
+  await p.theme(theme);
+  await p.locale(locale, BASE);
+  for (const [vp, w, h, mobile] of VIEWPORTS) {
+    const label = `${vp}-${theme}-${locale}`;
     await p.viewport(w, h, mobile);
-    for (const url of pages) {
+    for (const url of list) {
       await p.goto(BASE + url, 2500);
       // foydalanuvchi kabi aylantiramiz: scroll-reveal animatsiyalari ishga tushsin
       const height = await p.eval("document.documentElement.scrollHeight");
@@ -72,11 +87,12 @@ run(async (p) => {
       const bad = issues.length > 0 || scrolls || hidden > 0;
       if (bad) problems++;
       console.log(
-        `${bad ? "✗" : "✓"} ${label.padEnd(7)} ${url.padEnd(22)} konsol=${issues.length} ` +
+        `${bad ? "✗" : "✓"} ${label.padEnd(16)} ${url.padEnd(22)} konsol=${issues.length} ` +
           `skroll=${scrolls ? "GORIZONTAL" : "ok"} yashirin=${hidden}`,
       );
       for (const i of issues) console.log("     " + i);
     }
+  }
   }
 
   console.log("");

@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
-from app.core.config import settings
-from app.models import EventRecord, NotificationState
+from app.models import AdminAlert, Category, EventRecord, NotificationState
+from app.api.events import localize
 from app.schemas import EventItemOut
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -16,11 +16,23 @@ class NotificationItem(EventItemOut):
     is_new: bool
 
 
+class SystemAlert(BaseModel):
+    """Adminlar uchun: matni frontendda `kind` bo'yicha tarjima qilinadi."""
+
+    id: int
+    kind: str
+    source_id: int | None
+    data: dict
+    created_at: datetime
+    is_new: bool
+
+
 class NotificationsResponse(BaseModel):
     unread: int
     categories: list[str]
     seen_at: datetime | None
     items: list[NotificationItem]
+    system: list[SystemAlert] = []
 
 
 async def _seen_at(db: DbSession, user_id: int) -> datetime | None:
@@ -33,10 +45,14 @@ async def list_notifications(
     current_user: CurrentUser,
     db: DbSession,
     limit: int = Query(20, ge=1, le=100),
+    lang: str | None = Query(None, pattern="^(en|ru|uz|uz-Cyrl)$", description="Ko'rsatish tili"),
 ) -> NotificationsResponse:
-    cats = settings.notify_categories_list
+    # Ogohlantiriladigan kategoriyalar — bazadan (categories.notify). Baseline hodisalar ogohlantirish bermaydi.
+    cats = list((await db.scalars(
+        select(Category.slug).where(Category.notify, Category.enabled).order_by(Category.sort_order)
+    )).all())
     seen_at = await _seen_at(db, current_user.id)
-    base = EventRecord.category.in_(cats)
+    base = EventRecord.category.in_(cats) & EventRecord.is_baseline.is_(False)
 
     unread_stmt = select(func.count(EventRecord.id)).where(base)
     if seen_at:
@@ -46,14 +62,20 @@ async def list_notifications(
     rows = (await db.scalars(
         select(EventRecord).where(base).order_by(EventRecord.first_seen.desc()).limit(limit)
     )).all()
+    localized = await localize(db, rows, lang)
     items = [
-        NotificationItem(
-            **EventItemOut.model_validate(r).model_dump(),
-            is_new=seen_at is None or r.first_seen > seen_at,
-        )
-        for r in rows
+        NotificationItem(**it.model_dump(), is_new=seen_at is None or r.first_seen > seen_at)
+        for it, r in zip(localized, rows, strict=True)
     ]
-    return NotificationsResponse(unread=unread, categories=cats, seen_at=seen_at, items=items)
+    system: list[SystemAlert] = []
+    if current_user.role == "admin":
+        alerts = (await db.scalars(
+            select(AdminAlert).where(AdminAlert.resolved_at.is_(None)).order_by(AdminAlert.created_at.desc()).limit(20)
+        )).all()
+        system = [SystemAlert(id=a.id, kind=a.kind, source_id=a.source_id, data=a.data, created_at=a.created_at,
+                              is_new=seen_at is None or a.created_at > seen_at) for a in alerts]
+        unread += sum(1 for a in system if a.is_new)
+    return NotificationsResponse(unread=unread, categories=cats, seen_at=seen_at, items=items, system=system)
 
 
 @router.post("/read")

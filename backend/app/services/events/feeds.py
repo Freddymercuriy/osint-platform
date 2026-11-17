@@ -1,51 +1,10 @@
+"""Kalit so'zlar va regexlar (hudud, mavzu, shovqin, chet el belgilari).
+
+Manbalar ro'yxati endi bazada (`sources` jadvali, admin panel / API orqali boshqariladi). v1 dagi `FEEDS`
+ro'yxati `migrations/versions/0004_seed_sources.py` ga muzlatib ko'chirilgan.
+"""
+
 from __future__ import annotations
-
-from dataclasses import dataclass
-
-
-@dataclass
-class Feed:
-    """Bitta Events manbasi.
-
-    kind:
-      - "rss"             — oddiy RSS/Atom feed (url = feed manzili)
-      - "telegram"        — ochiq Telegram kanal (url = kanal nomi, masalan "kunuzofficial")
-      - "telegram_user"   — foydalanuvchi akkaunti orqali Telegram
-      - "ransomware_live" — ransomware.live API (url = davlat kodlari, vergul bilan:
-                            "UZ,KZ,KG,TJ,TM"); bitta /v2/recentvictims so'rovi
-      - "google_news"     — Google News RSS qidiruvi (url = qidiruv so'rovi, masalan
-                            'site:example.com (Uzbekistan OR Kazakhstan) when:7d').
-                            Bot-himoyasi tufayli to'g'ridan-to'g'ri o'qib bo'lmaydigan saytlar
-                            uchun: saytning o'ziga murojaat qilinmaydi, faqat Google indeksidagi
-                            sarlavha + havola olinadi. Google maqolaning to'liq matni bo'yicha
-                            qidiradi, shuning uchun so'rovdagi shart sarlavhada ko'rinmasligi mumkin.
-
-    Filtrlar (title + summary bo'yicha):
-      region_filter: True bo'lsa, faqat Markaziy Osiyo (UZ/KZ/KG/TJ/TM) kalit so'zlari
-                     uchraganlari qoladi. Xalqaro kiber-saytlar uchun (mavzu manbadan ma'lum).
-      cyber_filter:  True bo'lsa, faqat kiberxavfsizlik / data leak mavzusidagilar qoladi.
-                     Mahalliy umumiy yangilik saytlari uchun (hudud manbadan ma'lum).
-      Ikkalasi ham True bo'lsa — ikkala shart ham bajarilishi kerak.
-      Faqat cyber_filter (mahalliy sayt) bo'lsa, qo'shimcha qoida: matnda chet el belgisi
-      (FOREIGN_MARKERS: AQSH, FQB, KXDR, "global" ...) bo'lib, Markaziy Osiyo so'zi umuman
-      uchramasa — yozuv tashlanadi (mahalliy sayt qayta bosgan jahon yangiligi).
-    """
-
-    name: str
-    url: str
-    kind: str = "rss"
-    lang: str = "uz"
-    category: str = "news"  # "news" | "ransomware" | "telegram" | "tg_group" | "leak"
-    region_filter: bool = False
-    cyber_filter: bool = False
-    ttl: int = 600  # kesh muddati (soniya)
-    min_interval: int = 0  # fon yig'uvchi (force) ham shundan tez-tez so'ramaydi (soniya)
-    enabled: bool = True
-
-    @property
-    def uz_filter(self) -> bool:
-        """Eski nom (orqaga moslik): endi region_filter bilan bir xil."""
-        return self.region_filter
 
 
 # =========================================================================
@@ -57,40 +16,57 @@ class Feed:
 #  Ataylab TASHLANGAN (yolg'on mos kelish): "osh", "semey", "kaspi" (Каспий),
 #  "karshi", "talas", "naryn", "mary", "petropavl".
 # =========================================================================
-REGION_KEYWORDS: tuple[str, ...] = (
-    # --- O'zbekiston ---
-    "uzbek", "o'zbek", "узбек", "ўзбек", "ӯзбек",
-    "tashkent", "toshkent", "ташкент", "тошкент",
-    "samarkand", "samarqand", "самарканд", "самарқанд",
-    "bukhara", "buxoro", "бухара", "бухоро",
-    "andijan", "andijon", "андижан", "андижон",
-    "namangan", "наманган", "fergana", "ferghana", "farg'ona", "фергана", "фарғона",
-    "nukus", "нукус", "urgench", "urganch", "ургенч", "termez", "termiz", "термез",
-    "kokand", "qo'qon", "коканд", "qoraqalpoq", "karakalpak", "каракалпак",
-    "khorezm", "xorazm", "хорезм",
-    # --- Qozog'iston ---
-    "kazakh", "kazakstan", "kazahstan", "qozoq", "qozog'", "қозоқ", "қозоғ",
-    "казах", "қазақ", "astana", "астана", "nur-sultan", "нур-султан",
-    "almaty", "алматы", "алма-ата", "shymkent", "шымкент", "chimkent", "чимкент",
-    "karaganda", "караганд", "қарағанды", "aktobe", "актобе", "ақтөбе",
-    "atyrau", "атырау", "aktau", "актау", "pavlodar", "павлодар",
-    "kostanay", "костанай", "kyzylorda", "кызылорда", "oskemen", "усть-каменогорск",
-    # --- Qirg'iziston ---
-    "kyrgyz", "kirghiz", "kirgiz", "qirg'iz", "киргиз", "кыргыз", "қирғиз", "қырғыз",
-    "bishkek", "бишкек", "jalal-abad", "джалал-абад",
-    # --- Tojikiston ---
-    "tajik", "tadjik", "tojik", "таджик", "тоҷик", "тожик", "тоҷик",
-    "dushanbe", "душанбе", "khujand", "xo'jand", "худжанд", "хуҷанд", "khatlon", "хатлон",
-    # --- Turkmaniston ---
-    "turkmen", "turkman", "туркмен", "ashgabat", "ashkhabad", "ashgabad",
-    "ашхабад", "ашгабат", "turkmenbashi", "dashoguz", "дашогуз",
-    # --- Butun mintaqa ---
+COUNTRY_KEYWORDS: dict[str, tuple[str, ...]] = {
+    "UZ": (
+        "uzbek", "o'zbek", "узбек", "ўзбек", "ӯзбек",
+        "tashkent", "toshkent", "ташкент", "тошкент",
+        "samarkand", "samarqand", "самарканд", "самарқанд",
+        "bukhara", "buxoro", "бухара", "бухоро",
+        "andijan", "andijon", "андижан", "андижон",
+        "namangan", "наманган", "fergana", "ferghana", "farg'ona", "фергана", "фарғона",
+        "nukus", "нукус", "urgench", "urganch", "ургенч", "termez", "termiz", "термез",
+        "kokand", "qo'qon", "коканд", "qoraqalpoq", "karakalpak", "каракалпак",
+        "khorezm", "xorazm", "хорезм",
+        ".uz",
+    ),
+    "KZ": (
+        "kazakh", "kazakstan", "kazahstan", "qozoq", "qozog'", "қозоқ", "қозоғ",
+        "казах", "қазақ", "astana", "астана", "nur-sultan", "нур-султан",
+        "almaty", "алматы", "алма-ата", "shymkent", "шымкент", "chimkent", "чимкент",
+        "karaganda", "караганд", "қарағанды", "aktobe", "актобе", "ақтөбе",
+        "atyrau", "атырау", "aktau", "актау", "pavlodar", "павлодар",
+        "kostanay", "костанай", "kyzylorda", "кызылорда", "oskemen", "усть-каменогорск",
+        ".kz",
+    ),
+    "KG": (
+        "kyrgyz", "kirghiz", "kirgiz", "qirg'iz", "киргиз", "кыргыз", "қирғиз", "қырғыз",
+        "bishkek", "бишкек", "jalal-abad", "джалал-абад",
+        ".kg",
+    ),
+    "TJ": (
+        "tajik", "tadjik", "tojik", "таджик", "тоҷик", "тожик",
+        "dushanbe", "душанбе", "khujand", "xo'jand", "худжанд", "хуҷанд", "khatlon", "хатлон",
+        ".tj",
+    ),
+    "TM": (
+        "turkmen", "turkman", "туркмен", "ashgabat", "ashkhabad", "ashgabad",
+        "ашхабад", "ашгабат", "turkmenbashi", "dashoguz", "дашогуз",
+        ".tm",
+    ),
+}
+
+# Butun mintaqa (aniq davlatni bildirmaydi)
+REGIONWIDE_KEYWORDS: tuple[str, ...] = (
     "central asia", "centralasia", "markaziy osiyo", "o'rta osiyo", "марказий осиё",
     "орталық азия", "центральная ази", "центральной ази", "центральную ази",
     "центральной азией", "центральноазиат", "средняя ази", "средней ази",
     "среднюю ази", "средней азией",
-    # --- Milliy domenlar ---
-    ".uz", ".kz", ".kg", ".tj", ".tm",
+)
+
+REGION_KEYWORDS: tuple[str, ...] = (
+    tuple(k for kws in COUNTRY_KEYWORDS.values() for k in kws if not k.startswith("."))
+    + REGIONWIDE_KEYWORDS
+    + tuple(k for kws in COUNTRY_KEYWORDS.values() for k in kws if k.startswith("."))
 )
 
 # Orqaga moslik: boshqa joylarda `UZ_KEYWORDS` import qilinadi.
@@ -105,7 +81,7 @@ UZ_KEYWORDS = REGION_KEYWORDS
 #     yetarli emas — faqat online/kiber kontekst bilan).
 #  3) TOPIC_NOISE — mavzuga o'xshab ketadigan, lekin kiber bo'lmagan iboralar;
 #     moslashishdan oldin matndan olib tashlanadi (kiberspot, jismoniy "взлом"...).
-#  Regex ichida "'" — ixtiyoriy apostrof (aggregator moslashtiradi).
+#  Regex ichida "'" — ixtiyoriy apostrof (filters.py moslashtiradi).
 # =========================================================================
 TOPIC_STEMS: tuple[str, ...] = (
     # umumiy kiber
@@ -274,155 +250,3 @@ FOREIGN_MARKERS: tuple[str, ...] = (
     r"дуров", r"durov", r"binance", r"bybit", r"coinbase", r"илон\w* маск", r"маск\b", r"musk\b",
     r"openai", r"трамп", r"trump",
 )
-
-
-# =========================================================================
-#  MANBALAR. Yangi manba = bitta qator.
-#  Faqat ochiq (login'siz) manbalar. Cloudflare/captcha/login chetlab o'tilmaydi.
-#  (BleepingComputer, CyberNews, CISA, The Cyber Express — 403 berdi, qo'shilmagan.)
-# =========================================================================
-_INTL = 900  # xalqaro kiber-saytlar ttl
-
-# Google News so'rovlari uchun mintaqa / mavzu shartlari
-_GN_EVERY = 1800  # Google News'ni 30 daqiqada bir martadan ko'p so'ramaymiz
-_CA_EN = '(Uzbekistan OR Kazakhstan OR Kyrgyzstan OR Tajikistan OR Turkmenistan OR "Central Asia")'
-_CA_RU = "(Узбекистан OR Казахстан OR Кыргызстан OR Таджикистан OR Туркменистан)"
-_CYBER_EN = ('(hackers OR cyberattack OR ransomware OR "data breach" OR "data leak" OR phishing '
-             "OR malware)")
-_CYBER_RU = ('(хакеры OR кибератака OR "утечка данных" OR взлом OR фишинг OR кибербезопасность)')
-
-FEEDS: list[Feed] = [
-    # --- Threat intel: bitta /v2/recentvictims so'rovi, 5 davlat bo'yicha filtr ---
-    Feed("ransomware.live", "UZ,KZ,KG,TJ,TM", kind="ransomware_live", lang="en",
-         category="ransomware", ttl=900),
-
-    # --- O'zbekiston: yangilik (mavzu filtri) ---
-    Feed("Gazeta.uz (UZ)", "https://www.gazeta.uz/uz/rss/", lang="uz", cyber_filter=True),
-    Feed("Gazeta.uz (RU)", "https://www.gazeta.uz/ru/rss/", lang="ru", cyber_filter=True),
-    Feed("Kun.uz (UZ)", "https://kun.uz/uz/news/rss", lang="uz", cyber_filter=True),
-    Feed("Kun.uz (RU)", "https://kun.uz/ru/news/rss", lang="ru", cyber_filter=True),
-    Feed("Spot.uz (RU)", "https://www.spot.uz/ru/rss/", lang="ru", cyber_filter=True),
-    Feed("Spot.uz (UZ)", "https://www.spot.uz/rss/", lang="uz", cyber_filter=True),
-    Feed("Daryo.uz (UZ)", "https://daryo.uz/feed/", lang="uz", cyber_filter=True),
-    Feed("Daryo.uz (RU)", "https://daryo.uz/ru/feed/", lang="ru", cyber_filter=True),
-    Feed("UzDaily (EN)", "https://uzdaily.uz/en/rss", lang="en", cyber_filter=True),
-    Feed("UzDaily (RU)", "https://uzdaily.uz/ru/rss", lang="ru", cyber_filter=True),
-    Feed("Nuz.uz", "https://nuz.uz/feed/", lang="ru", cyber_filter=True),
-    # UZCERT — o'zi kiber manba, filtrsiz
-    Feed("UZCERT", "https://uzcert.uz/rss", lang="uz"),
-
-    # --- Qozog'iston ---
-    Feed("Tengrinews.kz", "https://tengrinews.kz/news.rss", lang="ru", cyber_filter=True),
-    Feed("Kursiv.media (KZ)", "https://kz.kursiv.media/feed/", lang="ru", cyber_filter=True),
-    Feed("Profit.kz", "https://profit.kz/rss/", lang="ru", cyber_filter=True),
-    Feed("DigitalBusiness.kz", "https://digitalbusiness.kz/feed/", lang="ru",
-         cyber_filter=True),
-    Feed("Sputnik Казахстан", "https://sputnik.kz/export/rss2/archive/index.xml", lang="ru",
-         cyber_filter=True),
-
-    # --- Qirg'iziston ---
-    Feed("24.kg", "https://24.kg/rss/", lang="ru", cyber_filter=True),
-    Feed("Kaktus.media", "https://kaktus.media/?rss", lang="ru", cyber_filter=True),
-    Feed("AKIpress", "https://akipress.com/rss/news.rss", lang="en", cyber_filter=True),
-    Feed("Kloop.kg", "https://kloop.kg/feed/", lang="ru", cyber_filter=True),
-    Feed("Kabar.kg", "https://kabar.kg/rss/", lang="ru", cyber_filter=True),
-    Feed("Sputnik Кыргызстан", "https://ru.sputnik.kg/export/rss2/archive/index.xml",
-         lang="ru", cyber_filter=True),
-
-    # --- Tojikiston ---
-    Feed("Asia-Plus (RU)", "https://asiaplustj.info/ru/rss", lang="ru", cyber_filter=True),
-    Feed("Asia-Plus (EN)", "https://asiaplustj.info/en/rss", lang="en", cyber_filter=True),
-    Feed("Sputnik Таджикистан", "https://tj.sputniknews.ru/export/rss2/archive/index.xml",
-         lang="ru", cyber_filter=True),
-
-    # --- Turkmaniston ---
-    Feed("Turkmen.news", "https://turkmen.news/feed/", lang="ru", cyber_filter=True),
-    Feed("Хроника Туркменистана", "https://www.hronikatm.com/feed/", lang="ru",
-         cyber_filter=True),
-
-    # --- Butun mintaqa ---
-    Feed("CentralAsia.media", "https://centralasia.media/rss", lang="ru", cyber_filter=True),
-
-    # --- Xalqaro kiberxavfsizlik (hudud filtri) ---
-    Feed("The Hacker News", "https://feeds.feedburner.com/TheHackersNews", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("SecurityWeek", "https://www.securityweek.com/feed/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("The Record", "https://therecord.media/feed", lang="en", region_filter=True, ttl=_INTL),
-    Feed("DataBreaches.net", "https://databreaches.net/feed/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Securelist", "https://securelist.com/feed", lang="en", region_filter=True, ttl=_INTL),
-    Feed("Securelist (RU)", "https://securelist.ru/feed/", lang="ru",
-         region_filter=True, ttl=_INTL),
-    Feed("Security Affairs", "https://securityaffairs.com/feed", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("HackRead", "https://hackread.com/feed/", lang="en", region_filter=True, ttl=_INTL),
-    Feed("Krebs on Security", "https://krebsonsecurity.com/feed/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Dark Reading", "https://www.darkreading.com/rss.xml", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Help Net Security", "https://www.helpnetsecurity.com/feed/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Infosecurity Magazine", "https://www.infosecurity-magazine.com/rss/news/",
-         lang="en", region_filter=True, ttl=_INTL),
-    Feed("The Register (Security)", "https://www.theregister.com/security/headlines.atom",
-         lang="en", region_filter=True, ttl=_INTL),
-    Feed("CyberScoop", "https://cyberscoop.com/feed/", lang="en", region_filter=True,
-         ttl=_INTL),
-    Feed("WeLiveSecurity (ESET)", "https://www.welivesecurity.com/en/rss/feed/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Cisco Talos", "https://blog.talosintelligence.com/rss/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Bitdefender Labs", "https://www.bitdefender.com/blog/api/rss/labs/", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("Malwarebytes", "https://www.malwarebytes.com/blog/feed/index.xml", lang="en",
-         region_filter=True, ttl=_INTL),
-    Feed("SANS ISC", "https://isc.sans.edu/rssfeed.xml", lang="en", region_filter=True,
-         ttl=_INTL),
-    # Rus tilidagi kiber-saytlar
-    Feed("Xakep.ru", "https://xakep.ru/feed/", lang="ru", region_filter=True, ttl=_INTL),
-    Feed("SecurityLab.ru", "https://www.securitylab.ru/_services/export/rss/", lang="ru",
-         region_filter=True, ttl=_INTL),
-    Feed("Anti-Malware.ru", "https://www.anti-malware.ru/news/feed", lang="ru",
-         region_filter=True, ttl=_INTL),
-    Feed("Habr: Информационная безопасность", "https://habr.com/ru/rss/hub/infosecurity/all/",
-         lang="ru", region_filter=True, ttl=_INTL),
-    Feed("Kaspersky Daily (RU)", "https://www.kaspersky.ru/blog/feed/", lang="ru",
-         region_filter=True, ttl=_INTL),
-
-    # --- Google News RSS orqali (saytning o'zi 403/Cloudflare beradi — unga murojaat qilinmaydi) ---
-    # Kiber-saytlar: mintaqa sharti so'rovning o'zida (Google to'liq matn bo'yicha qidiradi) → filtrsiz.
-    Feed("BleepingComputer", f"site:bleepingcomputer.com {_CA_EN} when:7d", kind="google_news",
-         lang="en", min_interval=_GN_EVERY),
-    Feed("CyberNews", f"site:cybernews.com {_CA_EN} when:7d", kind="google_news",
-         lang="en", min_interval=_GN_EVERY),
-    Feed("The Cyber Express", f"site:thecyberexpress.com {_CA_EN} when:7d", kind="google_news",
-         lang="en", min_interval=_GN_EVERY),
-    # Mahalliy sayt: mavzu sharti so'rovda + sarlavha bo'yicha mavzu filtri
-    Feed("Turkmenportal", f"site:turkmenportal.com {_CYBER_RU} when:7d", kind="google_news",
-         lang="ru", cyber_filter=True, min_interval=_GN_EVERY),
-    # Umumiy qidiruv: istalgan nashr (Reuters, The Record ...) — mintaqa so'rovda, mavzu sarlavhada
-    Feed("Google News (EN)", f"{_CA_EN} {_CYBER_EN} when:7d", kind="google_news",
-         lang="en", cyber_filter=True, min_interval=_GN_EVERY),
-    Feed("Google News (RU)", f"{_CA_RU} {_CYBER_RU} when:7d", kind="google_news",
-         lang="ru", cyber_filter=True, min_interval=_GN_EVERY),
-
-    # --- Leak kuzatuvchilar: forumlarning o'zi emas, ular haqidagi ochiq xulosa (faqat metadata) ---
-    Feed("Dark Web Informer", "https://darkwebinformer.com/rss/", lang="en", category="leak",
-         region_filter=True, ttl=_INTL),
-    Feed("Have I Been Pwned", "https://feeds.feedburner.com/HaveIBeenPwnedLatestBreaches",
-         lang="en", category="leak", region_filter=True, ttl=_INTL),
-
-    # --- Telegram: o'z akkauntingiz orqali (a'zo bo'lgan kanal/guruhlar) ---
-    # Sozlash: backend/.env → TG_API_ID, TG_API_HASH, TG_CHATS ...; login: scripts/tg_login.py
-    # TG_UZ_FILTER=true bo'lsa — Markaziy Osiyo (5 davlat) kalit so'zlari filtri.
-    Feed("Telegram (akkaunt)", "", kind="telegram_user", category="telegram", ttl=300),
-
-    # --- Telegram ochiq kanallar (login'siz, t.me/s) ---
-    # Na'muna: Feed("Kanal nomi", "kanal_username", kind="telegram",
-    #               category="telegram", region_filter=True),
-]
-
-
-def enabled_feeds() -> list[Feed]:
-    return [f for f in FEEDS if f.enabled]

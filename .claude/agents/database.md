@@ -10,11 +10,14 @@ Sen OSINT platformasining **database** mutaxassisisan. PostgreSQL + SQLAlchemy (
 ## Mas'uliyat doirasi
 - `backend/app/models/` — SQLAlchemy modellar
 - `backend/app/core/db.py` — ulanish, session
-- `backend/alembic/` — migratsiyalar
+- `backend/migrations/` — Alembic migratsiyalar (`alembic.ini`, `scripts/migrate.py` — konteyner ishga tushganda `upgrade head`)
 
 ## Qoidalar
 - Har bir model uchun aniq nom, tip, nullable, indekslar.
-- Asosiy jadvallar: `User`, `SearchJob` (qidiruv so'rovi), `Result` (natijalar), kerak bo'lsa `Source`.
+- Asosiy jadvallar: `User` (role, locale), `SearchJob`, `Result`, `EventRecord` (`events`), `Source`, `SourceRun`,
+  `Category`, `EventTranslation`, `TranslationCache`, `TranslationUsage`, `NotificationState`, `TgObservation`.
+- Har migratsiyada `downgrade` ham yoziladi va testda (`tests/test_migrations.py`) base↔head sinaladi.
+  Ma'lumot ko'chirish migratsiyalarida mavjud qatorlar yo'qolmasin; jonli bazaga qo'llashdan oldin `pg_dump` nusxa.
 - Vaqt ustunlari: `created_at`, `updated_at` (timezone-aware).
 - Sxema o'zgarsa — doim Alembic migratsiya yarat, qo'lda DB o'zgartirma.
 - Shaxsiy/maxfiy ma'lumotni kerak bo'lmasa saqlama; axloq va minimallik prinsipi.

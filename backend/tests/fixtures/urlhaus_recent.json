@@ -1,0 +1,23 @@
+{
+  "_origin": "Shape copied from the URLhaus API documentation (https://urlhaus-api.abuse.ch/, 'Query recent URLs'); hosts/values are SYNTHETIC (no Auth-Key available when recorded).",
+  "query_status": "ok",
+  "urls": [
+    {"id": "3000001", "urlhaus_reference": "https://urlhaus.abuse.ch/url/3000001/",
+     "url": "http://cdn.example-bank.uz/files/update.apk?uid=victim@example.com", "url_status": "online",
+     "host": "cdn.example-bank.uz", "date_added": "2026-11-13 09:02:05 UTC", "threat": "malware_download",
+     "blacklists": {"spamhaus_dbl": "not listed", "surbl": "not listed"}, "reporter": "anonymous", "larted": "false",
+     "tags": ["apk", "Mirai"]},
+    {"id": "3000002", "urlhaus_reference": "https://urlhaus.abuse.ch/url/3000002/",
+     "url": "https://shop.example.kz/a.exe", "url_status": "offline", "host": "shop.example.kz",
+     "date_added": "2026-11-13 10:00:00 UTC", "threat": "malware_download", "tags": null},
+    {"id": "3000003", "urlhaus_reference": "https://urlhaus.abuse.ch/url/3000003/",
+     "url": "http://45.61.49.78/razor/r4z0r.mips", "url_status": "offline", "host": "45.61.49.78",
+     "date_added": "2019-08-10 09:02:05 UTC", "threat": "malware_download", "tags": ["elf"]},
+    {"id": "3000004", "urlhaus_reference": "https://urlhaus.abuse.ch/url/3000004/",
+     "url": "http://evil.example.com/x.sh", "url_status": "online", "host": "evil.example.com",
+     "date_added": "2026-11-13 11:00:00 UTC", "threat": "malware_download", "tags": ["sh"]},
+    {"id": "3000005", "urlhaus_reference": "https://urlhaus.abuse.ch/url/3000005/",
+     "url": "http://notkz.com/kz/a.exe", "url_status": "online", "host": "notkz.com",
+     "date_added": "2026-11-13 11:30:00 UTC", "threat": "malware_download", "tags": []}
+  ]
+}

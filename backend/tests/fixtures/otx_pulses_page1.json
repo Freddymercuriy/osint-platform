@@ -1,0 +1,6 @@
+{"count": 4, "next": "https://otx.alienvault.com/api/v1/pulses/subscribed?limit=50&modified_since=2026-11-01T00%3A00%3A00&page=2", "previous": null,
+ "results": [
+  {"id": "6700000000000000000000a1", "name": "Phishing wave against Uzbekistan banks", "description": "Campaign targeting banks in Uzbekistan with fake login pages.", "modified": "2026-11-10T08:00:00.123456", "created": "2026-11-09T08:00:00", "tlp": "white", "adversary": "TA-Example", "tags": ["phishing", "banking"], "targeted_countries": ["Uzbekistan"], "malware_families": [{"id": "Agent", "display_name": "Agent"}], "attack_ids": [{"id": "T1566", "name": "Phishing", "display_name": "T1566 - Phishing"}], "indicators": [{"indicator": "x", "type": "domain"}, {"indicator": "y", "type": "domain"}]},
+  {"id": "6700000000000000000000a2", "name": "Generic botnet in Europe", "description": "Targets Germany and France only.", "modified": "2026-11-10T09:00:00", "tlp": "white", "tags": [], "targeted_countries": ["Germany"], "indicators": []},
+  {"id": "6700000000000000000000a3", "name": "Secret APT report", "description": "Kazakhstan government targeting.", "modified": "2026-11-10T10:00:00", "tlp": "red", "tags": [], "targeted_countries": ["KZ"], "indicators": []}
+ ]}

@@ -1,0 +1,21 @@
+{
+  "_origin": "Shape copied from the ThreatFox API documentation (https://threatfox.abuse.ch/api/, 'Query recent IOCs'); values are SYNTHETIC (no Auth-Key available when recorded). The 'country' field on the IP rows is hypothetical: the docs list none, the connector only honours it if present.",
+  "query_status": "ok",
+  "data": [
+    {"id": "41", "ioc": "c2.example.uz", "threat_type": "botnet_cc", "ioc_type": "domain",
+     "malware": "win.dridex", "malware_printable": "Dridex", "confidence_level": 50,
+     "first_seen": "2026-11-13 13:36:27 UTC", "last_seen": null, "reporter": "abuse_ch", "tags": ["exe"]},
+    {"id": "42", "ioc": "https://drop.example.kg/gate.php?id=user@example.com", "threat_type": "payload_delivery",
+     "ioc_type": "url", "malware": "win.lumma", "malware_printable": "Lumma Stealer", "confidence_level": 75,
+     "first_seen": "2026-11-13 14:00:00 UTC", "tags": null},
+    {"id": "43", "ioc": "203.0.113.7:443", "threat_type": "botnet_cc", "ioc_type": "ip:port",
+     "malware_printable": "Cobalt Strike", "confidence_level": 100, "first_seen": "2026-11-13 15:00:00 UTC",
+     "country": "KZ"},
+    {"id": "44", "ioc": "203.0.113.8:80", "threat_type": "botnet_cc", "ioc_type": "ip:port",
+     "malware_printable": "Cobalt Strike", "confidence_level": 100, "first_seen": "2026-11-13 15:00:00 UTC"},
+    {"id": "45", "ioc": "c2.example.com", "threat_type": "botnet_cc", "ioc_type": "domain",
+     "malware_printable": "Dridex", "confidence_level": 50, "first_seen": "2026-11-13 16:00:00 UTC"},
+    {"id": "46", "ioc": "d41d8cd98f00b204e9800998ecf8427e", "threat_type": "payload", "ioc_type": "md5_hash",
+     "malware_printable": "X", "confidence_level": 50, "first_seen": "2026-11-13 16:00:00 UTC"}
+  ]
+}

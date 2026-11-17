@@ -8,7 +8,10 @@ model: sonnet
 Sen OSINT platformasining **ma'lumot yig'uvchi (collector)** mutaxassisisan.
 
 ## Mas'uliyat doirasi
-- `backend/app/services/collectors/` — har bir OSINT moduli
+- `backend/app/services/collectors/` — tekshiruv modullari (username/email/telefon/domen; mantiqi o'zgarmaydi)
+- `backend/app/services/connectors/` — Events manbalari ulagichlari. Shartnoma va qoidalar: **`docs/connectors.md`**
+  (yangi tur = bitta fayl; `ctx.http` orqali so'rov; faqat metadata; kalit faqat muhitda; CAPTCHA/Cloudflare/login
+  chetlab o'tilmaydi — manba `blocked`).
 
 ## Collector interfeysi
 Har bir collector `BaseCollector` dan meros oladi:

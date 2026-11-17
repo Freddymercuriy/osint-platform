@@ -23,6 +23,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from telethon import errors, functions, types
 
+from app.core.i18n import CodedValueError, current_lang, t
 from app.models import TgObservation
 from app.services import telegram_user as tg
 from app.services.collectors.base import BaseCollector, CollectResult
@@ -34,7 +35,11 @@ _ID_RE = re.compile(r"^(?:id)?\s*(-?\d{5,16})$", re.I)
 _MAX_COMMON = 100  # Telegram bir so'rovda beradigan umumiy chatlar soni
 _MAX_COUNTED = 15  # nechta guruhda xabarlar sanaladi (flood-wait'dan saqlanish)
 _TASHKENT = timezone(timedelta(hours=5))
-_MONTHS = ("yan", "fev", "mar", "apr", "may", "iyun", "iyul", "avg", "sen", "okt", "noy", "dek")
+
+
+def _t(code: str, **params) -> str:
+    """Joriy so'rov tilidagi matn (contextvar)."""
+    return t(code, current_lang(), **params)
 
 
 def parse_query(query: str) -> tuple[str, str | int]:
@@ -49,10 +54,7 @@ def parse_query(query: str) -> tuple[str, str | int]:
         q = m.group(1)
     q = q.lstrip("@")
     if not _USERNAME_RE.match(q):
-        raise ValueError(
-            "Telegram username (@nom yoki t.me/nom: 4–32 belgi, lotin harf, raqam, _) "
-            "yoki raqamli ID kiriting"
-        )
+        raise CodedValueError("invalid_telegram_query")
     return "username", q
 
 
@@ -62,7 +64,8 @@ def _fmt(dt: datetime | None) -> str:
     if dt.tzinfo is None:
         dt = dt.replace(tzinfo=UTC)
     d = dt.astimezone(_TASHKENT)
-    return f"{d.day} {_MONTHS[d.month - 1]} {d.year} {d:%H:%M}"
+    months = t("tg_months", current_lang()).split(",")
+    return f"{d.day} {months[d.month - 1]} {d.year} {d:%H:%M}"
 
 
 def _usernames(ent) -> list[str]:
@@ -84,7 +87,9 @@ def _kind(ent) -> str:
     return "group"
 
 
-_KIND_LABEL = {"user": "foydalanuvchi", "bot": "bot", "channel": "kanal", "group": "guruh"}
+
+def _kind_label(kind: str) -> str:
+    return _t(f"tg_kind_{kind}")
 
 
 def _link(usernames: list[str]) -> str | None:
@@ -175,46 +180,42 @@ class TelegramAccountCollector(BaseCollector):
             last = await client.get_messages(chat, from_user=user, limit=1)
             total = getattr(last, "total", 0) or 0
             if not total:
-                return "bu akkauntdan xabar topilmadi"
+                return _t("tg_act_none")
             first = await client.get_messages(chat, from_user=user, limit=1, reverse=True)
             first_date = first[0].date if first else None
             last_date = last[0].date if last else None
-            return f"xabarlar: {total} (birinchi: {_fmt(first_date)}, oxirgi: {_fmt(last_date)})"
+            return _t("tg_act_counts", total=total, first=_fmt(first_date), last=_fmt(last_date))
         except errors.FloodWaitError as exc:
-            return f"xabarlar sanalmadi (Telegram cheklovi, {exc.seconds} s)"
+            return _t("tg_act_flood", seconds=exc.seconds)
         except Exception:
-            return "xabarlar sanalmadi (ruxsat yo'q)"
+            return _t("tg_act_denied")
 
     # ------------------------------------------------------------ natija qatorlari
     def _history_rows(self, history: list[TgObservation]) -> CollectResult:
         def names(row: TgObservation) -> str:
-            return ", ".join(f"@{u}" for u in row.usernames.split(",")) if row.usernames else "username yo'q"
+            return ", ".join(f"@{u}" for u in row.usernames.split(",")) if row.usernames else _t("tg_hist_no_username")
 
         if len(history) < 2:
             return CollectResult(
-                source="Username tarixi",
+                source=_t("tg_src_history"),
                 type="history",
-                value="O'zgarish qayd etilmagan",
+                value=_t("tg_hist_none_value"),
                 status="not_found",
-                detail=(
-                    f"Kuzatuv boshlangan: {_fmt(history[0].first_seen)}. Telegram o'tgan "
-                    "o'zgarishlarni bermaydi — platforma har qidiruvda holatni yozib boradi; "
-                    "username o'zgarsa, keyingi qidiruvda (ID bo'yicha ham) shu yerda chiqadi."
-                ),
+                detail=_t("tg_hist_none_detail", since=_fmt(history[0].first_seen)),
             )
         steps = []
         for prev, cur in zip(history, history[1:]):
             steps.append(
-                f"{names(prev)} → {names(cur)}: {_fmt(prev.last_seen)} va {_fmt(cur.first_seen)} oralig'ida"
+                _t("tg_hist_step", prev=names(prev), cur=names(cur), a=_fmt(prev.last_seen), b=_fmt(cur.first_seen))
             )
         return CollectResult(
-            source="Username tarixi",
+            source=_t("tg_src_history"),
             type="history",
-            value=f"{len(history) - 1} ta o'zgarish",
+            value=_t("tg_hist_count", n=len(history) - 1),
             status="found",
             detail=(
                 " · ".join(reversed(steps))
-                + f" · Kuzatuv boshlangan: {_fmt(history[0].first_seen)} ({names(history[0])})"
+                + " · " + _t("tg_hist_since", since=_fmt(history[0].first_seen), names=names(history[0]))
             ),
         )
 
@@ -225,33 +226,30 @@ class TelegramAccountCollector(BaseCollector):
             )
         except errors.FloodWaitError as exc:
             return [CollectResult(
-                source="Umumiy guruhlar", type="groups", value="Tekshirilmadi", status="error",
-                detail=f"Telegram so'rovlarni vaqtincha chekladi — {exc.seconds} soniyadan keyin urinib ko'ring.",
+                source=_t("tg_src_common"), type="groups", value=_t("tg_not_checked"), status="error",
+                detail=_t("tg_flood", seconds=exc.seconds),
             )]
         except errors.RPCError as exc:
             return [CollectResult(
-                source="Umumiy guruhlar", type="groups", value="Tekshirilmadi", status="error",
-                detail=f"Telegram xatosi: {type(exc).__name__}",
+                source=_t("tg_src_common"), type="groups", value=_t("tg_not_checked"), status="error",
+                detail=_t("tg_rpc_error", name=type(exc).__name__),
             )]
         chats = list(res.chats)
         if not chats:
             return [CollectResult(
-                source="Umumiy guruhlar", type="groups", value="Yo'q", status="not_found",
-                detail=(
-                    "Sizning Telegram akkauntingiz a'zo bo'lgan guruhlarning hech birida bu akkaunt "
-                    "yo'q. Telegram faqat umumiy guruhlarni ko'rsatadi — boshqa guruhlari ko'rinmaydi."
-                ),
+                source=_t("tg_src_common"), type="groups", value=_t("tg_common_none_value"), status="not_found",
+                detail=_t("tg_common_none_detail"),
             )]
         rows: list[CollectResult] = []
         for n, chat in enumerate(chats):
             members = getattr(chat, "participants_count", None)
-            parts = ["Umumiy guruh" + (" (ochiq)" if getattr(chat, "username", None) else " (yopiq)")]
+            parts = [_t("tg_common_group") + _t("tg_public" if getattr(chat, "username", None) else "tg_private")]
             if members:
-                parts.append(f"a'zolar: {members}")
+                parts.append(_t("tg_members", n=members))
             if n < _MAX_COUNTED:
                 parts.append(await self._activity(client, chat, user))
             rows.append(CollectResult(
-                source=f"Guruh: {chat.title}",
+                source=_t("tg_group_src", title=chat.title),
                 type="group",
                 value=f"ID {chat.id}",
                 url=_chat_link(chat),
@@ -268,7 +266,7 @@ class TelegramAccountCollector(BaseCollector):
         except tg.TelegramNotConfigured as exc:
             return [CollectResult(
                 source="Telegram", type="account", value=str(target), status="error",
-                detail=f"Telegram akkaunti ulanmagan: {exc}",
+                detail=_t("tg_not_connected", error=exc),
             )]
 
         results: list[CollectResult] = []
@@ -277,9 +275,9 @@ class TelegramAccountCollector(BaseCollector):
                 ent = await self._resolve_username(client, str(target))
                 if ent is None:
                     return [CollectResult(
-                        source="Telegram akkaunt", type="account", value=f"@{target}",
+                        source=_t("tg_src_account"), type="account", value=f"@{target}",
                         url=f"https://t.me/{target}", status="not_found",
-                        detail="Bu username hozir hech kimga tegishli emas (bo'sh yoki o'zgartirilgan).",
+                        detail=_t("tg_username_free"),
                     )] + await self._orphan_rows(str(target))
             else:
                 ent = await self._resolve_id(client, int(target))
@@ -291,28 +289,21 @@ class TelegramAccountCollector(BaseCollector):
                         ent = cand
                     elif cand is not None:
                         results.append(CollectResult(
-                            source="Username boshqa akkauntda", type="history",
+                            source=_t("tg_src_moved"), type="history",
                             value=f"@{known[0]} → ID {cand.id}", url=f"https://t.me/{known[0]}",
                             status="found",
-                            detail=(
-                                f"ID {target} avval @{known[0]} bilan ko'rilgan edi; hozir bu username "
-                                f"boshqa akkauntga (ID {cand.id}) tegishli — egasi usernameni o'zgartirgan."
-                            ),
+                            detail=_t("tg_moved_detail", id=target, name=known[0], new_id=cand.id),
                         ))
                 if ent is None:
                     return results + [CollectResult(
-                        source="Telegram akkaunt", type="account", value=f"ID {target}",
+                        source=_t("tg_src_account"), type="account", value=f"ID {target}",
                         status="error",
-                        detail=(
-                            "Bu ID'ni ochib bo'lmadi. Telegram ID bo'yicha faqat akkauntingiz avval "
-                            "ko'rgan (umumiy guruhda uchragan yoki username orqali qidirilgan) "
-                            "akkauntlarni ochadi. Username bilan bir marta qidiring — keyin ID ishlaydi."
-                        ),
+                        detail=_t("tg_id_unresolved"),
                     )]
         except errors.FloodWaitError as exc:
             return [CollectResult(
                 source="Telegram", type="account", value=str(target), status="error",
-                detail=f"Telegram so'rovlarni vaqtincha chekladi — {exc.seconds} soniyadan keyin urinib ko'ring.",
+                detail=_t("tg_flood", seconds=exc.seconds),
             )]
 
         usernames = _usernames(ent)
@@ -324,23 +315,24 @@ class TelegramAccountCollector(BaseCollector):
             name = " ".join(p for p in (ent.first_name, ent.last_name) if p) or "—"
             flags = [
                 label for label, on in (
-                    ("o'chirilgan akkaunt", ent.deleted), ("tasdiqlangan", ent.verified),
-                    ("Premium", ent.premium), ("SCAM belgisi", ent.scam), ("FAKE belgisi", ent.fake),
-                    ("cheklangan", ent.restricted), ("kontaktlaringizda", ent.contact),
+                    (_t("tg_flag_deleted"), ent.deleted), (_t("tg_flag_verified"), ent.verified),
+                    (_t("tg_flag_premium"), ent.premium), (_t("tg_flag_scam"), ent.scam),
+                    (_t("tg_flag_fake"), ent.fake),
+                    (_t("tg_flag_restricted"), ent.restricted), (_t("tg_flag_contact"), ent.contact),
                 ) if on
             ]
-            detail = f"Tur: {_KIND_LABEL[kind]} · Ism: {name}"
+            detail = _t("tg_detail_user", kind=_kind_label(kind), name=name)
         else:
             flags = [
                 label for label, on in (
-                    ("tasdiqlangan", getattr(ent, "verified", False)),
-                    ("SCAM belgisi", getattr(ent, "scam", False)),
-                    ("FAKE belgisi", getattr(ent, "fake", False)),
+                    (_t("tg_flag_verified"), getattr(ent, "verified", False)),
+                    (_t("tg_flag_scam"), getattr(ent, "scam", False)),
+                    (_t("tg_flag_fake"), getattr(ent, "fake", False)),
                 ) if on
             ]
-            detail = f"Tur: {_KIND_LABEL[kind]} · Nomi: {getattr(ent, 'title', '—')}"
+            detail = _t("tg_detail_chat", kind=_kind_label(kind), name=getattr(ent, "title", "—"))
             if getattr(ent, "participants_count", None):
-                detail += f" · a'zolar: {ent.participants_count}"
+                detail += " · " + _t("tg_members", n=ent.participants_count)
         if flags:
             detail += " · " + ", ".join(flags)
         results.append(CollectResult(
@@ -350,14 +342,14 @@ class TelegramAccountCollector(BaseCollector):
 
         # --- usernamelar ---
         results.append(CollectResult(
-            source="Username",
+            source=_t("tg_src_username"),
             type="username",
-            value=", ".join(f"@{u}" for u in usernames) if usernames else "Username yo'q",
+            value=", ".join(f"@{u}" for u in usernames) if usernames else _t("tg_no_username"),
             url=url,
             status="found" if usernames else "not_found",
             detail=(
-                f"Faol usernamelar: {len(usernames)}" if usernames
-                else "Akkauntda hozir ochiq username yo'q (o'chirilgan yoki umuman qo'yilmagan)."
+                _t("tg_active_usernames", n=len(usernames)) if usernames
+                else _t("tg_no_public_username")
             ),
         ))
 
@@ -365,14 +357,14 @@ class TelegramAccountCollector(BaseCollector):
         about, personal = await self._about(client, ent)
         if about:
             results.append(CollectResult(
-                source="Bio" if isinstance(ent, types.User) else "Tavsif",
+                source=_t("tg_src_bio" if isinstance(ent, types.User) else "tg_src_about"),
                 type="bio", value=about, detail=about, status="found",
             ))
         if personal is not None:
             results.append(CollectResult(
-                source="Shaxsiy kanal", type="channel", value=personal.title,
+                source=_t("tg_src_personal_channel"), type="channel", value=personal.title,
                 url=_chat_link(personal), status="found",
-                detail=f"ID {personal.id} · profilida ko'rsatilgan kanal",
+                detail=_t("tg_personal_channel_detail", id=personal.id),
             ))
 
         # --- username tarixi (o'z jurnalimiz) ---
@@ -381,12 +373,9 @@ class TelegramAccountCollector(BaseCollector):
         for u in usernames:
             for row in await self._previous_owners(u, ent.id):
                 results.append(CollectResult(
-                    source="Username avvalgi egasi", type="history",
+                    source=_t("tg_src_prev_owner"), type="history",
                     value=f"@{u} — ID {row.tg_id}", status="found",
-                    detail=(
-                        f"@{u} {_fmt(row.first_seen)} – {_fmt(row.last_seen)} oralig'ida boshqa "
-                        f"akkauntda (ID {row.tg_id}) ko'rilgan."
-                    ),
+                    detail=_t("tg_prev_owner_detail", name=u, first=_fmt(row.first_seen), last=_fmt(row.last_seen), id=row.tg_id),
                 ))
 
         # --- umumiy guruhlar ---
@@ -416,12 +405,9 @@ class TelegramAccountCollector(BaseCollector):
         rows = await self._previous_owners(username, tg_id=0)
         return [
             CollectResult(
-                source="Username avvalgi egasi", type="history",
+                source=_t("tg_src_prev_owner"), type="history",
                 value=f"@{username} — ID {r.tg_id}", status="found",
-                detail=(
-                    f"@{username} {_fmt(r.first_seen)} – {_fmt(r.last_seen)} oralig'ida ID {r.tg_id} "
-                    "akkauntida ko'rilgan. Shu ID bo'yicha qidirsangiz, joriy usernamesi chiqadi."
-                ),
+                detail=_t("tg_orphan_detail", name=username, first=_fmt(r.first_seen), last=_fmt(r.last_seen), id=r.tg_id),
             )
             for r in rows
         ]

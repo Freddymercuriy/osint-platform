@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { API_URL } from "@/lib/config";
 
 const TOKEN_KEY = "osint_token";
 
@@ -13,9 +13,46 @@ export function setToken(token: string) {
 
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
+  meCache = null;
 }
 
-type ApiError = { detail?: string };
+/** /me keshini tozalash (rol o'zgarganda). */
+export function invalidateMe() {
+  meCache = null;
+}
+
+// --- Til: cookie (next-intl o'qiydi) va backend'ga Accept-Language ---
+const LOCALE_COOKIE = "NEXT_LOCALE";
+
+export function currentLocale(): string {
+  if (typeof document === "undefined") return "uz";
+  const m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=(uz|ru|en)/);
+  return m ? m[1] : document.documentElement.lang || "uz";
+}
+
+export function setLocaleCookie(locale: string) {
+  document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+}
+
+/** Backend'ga har so'rovda interfeys tili yuboriladi — xato matnlari shu tilda qaytadi. */
+export function apiFetch(input: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (!headers.has("Accept-Language")) headers.set("Accept-Language", currentLocale());
+  return fetch(input, { ...init, headers });
+}
+
+/** Backend xatosi: `detail` (tarjima qilingan matn) va barqaror `code`. */
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  constructor(message: string, status: number, code?: string) {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}
+
+type ErrorBody = { detail?: string | { msg?: string }[]; code?: string };
 
 export async function handle<T>(res: Response): Promise<T> {
   // Token muddati tugagan/yaroqsiz — tizimdan chiqarib, login sahifasiga qaytaramiz
@@ -24,23 +61,37 @@ export async function handle<T>(res: Response): Promise<T> {
     if (!window.location.pathname.startsWith("/login")) {
       window.location.assign("/login?expired=1");
     }
-    throw new Error("Sessiya muddati tugadi. Qaytadan kiring.");
+    throw new ApiError("session_expired", 401, "session_expired");
   }
   if (!res.ok) {
-    let msg = `Xatolik: ${res.status}`;
+    let msg = `HTTP ${res.status}`;
+    let code: string | undefined;
     try {
-      const data = (await res.json()) as ApiError;
-      if (data.detail) msg = data.detail;
+      const data = (await res.json()) as ErrorBody;
+      code = data.code;
+      if (typeof data.detail === "string") msg = data.detail;
+      else if (Array.isArray(data.detail) && data.detail[0]?.msg) msg = data.detail[0].msg;
     } catch {
       /* ignore */
     }
-    throw new Error(msg);
+    throw new ApiError(msg, res.status, code);
   }
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
 }
 
+export async function updateMyLocale(locale: string): Promise<Me> {
+  const res = await apiFetch(`${API_URL}/api/auth/me`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${getToken()}` },
+    body: JSON.stringify({ locale }),
+  });
+  meCache = null;
+  return handle<Me>(res);
+}
+
 export async function register(email: string, password: string) {
-  const res = await fetch(`${API_URL}/api/auth/register`, {
+  const res = await apiFetch(`${API_URL}/api/auth/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
@@ -50,7 +101,7 @@ export async function register(email: string, password: string) {
 
 export async function login(email: string, password: string): Promise<string> {
   const body = new URLSearchParams({ username: email, password });
-  const res = await fetch(`${API_URL}/api/auth/login`, {
+  const res = await apiFetch(`${API_URL}/api/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body,
@@ -60,13 +111,31 @@ export async function login(email: string, password: string): Promise<string> {
   return data.access_token;
 }
 
-export type Me = { id: number; email: string; is_active: boolean; created_at: string };
+export type Role = "admin" | "analyst";
+
+export type Me = {
+  id: number;
+  email: string;
+  is_active: boolean;
+  role: Role;
+  locale: string | null;
+  created_at: string;
+};
+
+// Bitta sahifa yuklanishida /me bir marta so'raladi (layout, dashboard, events bir xil javobni ishlatadi)
+let meCache: { token: string | null; promise: Promise<Me> } | null = null;
 
 export async function getMe(): Promise<Me> {
-  const res = await fetch(`${API_URL}/api/auth/me`, {
-    headers: { Authorization: `Bearer ${getToken()}` },
+  const token = getToken();
+  if (meCache && meCache.token === token) return meCache.promise;
+  const promise = apiFetch(`${API_URL}/api/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+  }).then((res) => handle<Me>(res));
+  meCache = { token, promise };
+  promise.catch(() => {
+    meCache = null;
   });
-  return handle<Me>(res);
+  return promise;
 }
 
 function authHeaders(): HeadersInit {
@@ -110,7 +179,7 @@ export type SearchJob = {
 };
 
 async function postSearch(path: string, query: string): Promise<SearchResponse> {
-  const res = await fetch(`${API_URL}${path}`, {
+  const res = await apiFetch(`${API_URL}${path}`, {
     method: "POST",
     headers: authHeaders(),
     body: JSON.stringify({ query }),
@@ -133,7 +202,7 @@ export async function getHistory(params: HistoryParams = {}): Promise<SearchJob[
   if (params.limit) sp.set("limit", String(params.limit));
   if (params.offset) sp.set("offset", String(params.offset));
   const qs = sp.toString();
-  const res = await fetch(`${API_URL}/api/search/history${qs ? `?${qs}` : ""}`, {
+  const res = await apiFetch(`${API_URL}/api/search/history${qs ? `?${qs}` : ""}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<SearchJob[]>(res);
@@ -141,7 +210,7 @@ export async function getHistory(params: HistoryParams = {}): Promise<SearchJob[
 
 /** Bitta qidiruvning saqlangan natijalari. */
 export async function getJob(id: number): Promise<SearchResponse> {
-  const res = await fetch(`${API_URL}/api/search/jobs/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/search/jobs/${id}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<SearchResponse>(res);
@@ -157,14 +226,14 @@ export type JobReport = {
 
 /** Bitta qidiruvning hisoboti (JSON eksport va chop etish sahifasi uchun). */
 export async function getJobReport(id: number): Promise<JobReport> {
-  const res = await fetch(`${API_URL}/api/search/jobs/${id}/export`, {
+  const res = await apiFetch(`${API_URL}/api/search/jobs/${id}/export`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<JobReport>(res);
 }
 
 export async function deleteJob(id: number): Promise<void> {
-  const res = await fetch(`${API_URL}/api/search/jobs/${id}`, {
+  const res = await apiFetch(`${API_URL}/api/search/jobs/${id}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${getToken()}` },
   });
@@ -172,8 +241,18 @@ export async function deleteJob(id: number): Promise<void> {
 }
 
 /** Tarixni tozalash (kind berilsa — faqat shu modul). O'chirilganlar sonini qaytaradi. */
+export type HistoryCounts = { total: number; by_kind: Record<string, number> };
+
+/** Tarix tablari uchun: qidiruvlar soni turlar bo'yicha. */
+export async function getHistoryCounts(): Promise<HistoryCounts> {
+  const res = await apiFetch(`${API_URL}/api/search/history/counts`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<HistoryCounts>(res);
+}
+
 export async function clearHistory(kind?: string): Promise<{ deleted: number }> {
-  const res = await fetch(`${API_URL}/api/search/history${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`, {
+  const res = await apiFetch(`${API_URL}/api/search/history${kind ? `?kind=${encodeURIComponent(kind)}` : ""}`, {
     method: "DELETE",
     headers: { Authorization: `Bearer ${getToken()}` },
   });
@@ -189,10 +268,13 @@ export type TgStatus = {
   chats_filter: string[];
   uz_filter: boolean;
   message: string;
+  /** yoqilgan telegram_user manbalari (haqiqatda kuzatilayotgan chatlar) va ulardan Global bo'lganlari */
+  sources?: number;
+  global_sources?: number;
 };
 
 export async function getTgStatus(): Promise<TgStatus> {
-  const res = await fetch(`${API_URL}/api/telegram/status`, {
+  const res = await apiFetch(`${API_URL}/api/telegram/status`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<TgStatus>(res);
@@ -209,9 +291,42 @@ export type EventItem = {
   category: string;
   id?: number;
   first_seen?: string | null;
+  // v2
+  source_id?: number | null;
+  category_id?: number | null;
+  channel?: string;
+  scope?: string;
+  severity?: string;
+  countries?: string[];
+  sector?: string | null;
+  actor?: string | null;
+  matched_keywords?: string[];
+  extra?: Record<string, unknown>;
+  also_reported_by?: { source: string; url: string; at: string }[];
+  is_baseline?: boolean;
+  // tarjima (?lang=)
+  source_lang?: string | null;
+  display_lang?: string | null;
+  translated?: boolean;
+  translation_status?: string | null;
+  original_title?: string | null;
+  original_summary?: string | null;
 };
 
 export type EventsResponse = { count: number; items: EventItem[] };
+
+/** Ishlamayotgan (down / blocked) yoqilgan manba — Events holat qatorida nomi va sababi bilan */
+export type FailingSource = {
+  id: number;
+  name: string;
+  status: string;
+  outcome: string | null;
+  http_status: number | null;
+  error: string | null;
+  since: string | null;
+  next_run_at: string | null;
+  retry_after_seconds: number | null;
+};
 
 export type CollectorStatus = {
   enabled: boolean;
@@ -235,27 +350,41 @@ export type CollectorStatus = {
   retention_keep: string[];
   last_purged: number;
   purged_total: number;
+  /** yig'uvchining o'zi emas — alohida manbalar (≤ 5, eng yangi tekshirilgani birinchi) */
+  failing?: FailingSource[];
+  failing_total?: number;
 };
 
 // --- Saytdagi ogohlantirishlar (🔔) ---
 export type NotificationItem = EventItem & { id: number; first_seen: string; is_new: boolean };
+
+/** Adminlar uchun tizim ogohlantirishi (matni `kind` bo'yicha tarjima qilinadi). */
+export type SystemAlert = {
+  id: number;
+  kind: "source_down" | string;
+  source_id: number | null;
+  data: { source?: string; status?: string; since?: string | null; error?: string; http_status?: number | null };
+  created_at: string;
+  is_new: boolean;
+};
 
 export type NotificationsResponse = {
   unread: number;
   categories: string[];
   seen_at: string | null;
   items: NotificationItem[];
+  system?: SystemAlert[];
 };
 
-export async function getNotifications(limit = 20): Promise<NotificationsResponse> {
-  const res = await fetch(`${API_URL}/api/notifications?limit=${limit}`, {
+export async function getNotifications(limit = 20, lang?: string): Promise<NotificationsResponse> {
+  const res = await apiFetch(`${API_URL}/api/notifications?limit=${limit}${lang ? `&lang=${lang}` : ""}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<NotificationsResponse>(res);
 }
 
 export async function markNotificationsRead(): Promise<void> {
-  const res = await fetch(`${API_URL}/api/notifications/read`, {
+  const res = await apiFetch(`${API_URL}/api/notifications/read`, {
     method: "POST",
     headers: { Authorization: `Bearer ${getToken()}` },
   });
@@ -263,32 +392,135 @@ export async function markNotificationsRead(): Promise<void> {
 }
 
 export async function getCollectorStatus(): Promise<CollectorStatus> {
-  const res = await fetch(`${API_URL}/api/events/status`, {
+  const res = await apiFetch(`${API_URL}/api/events/status`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<CollectorStatus>(res);
 }
 
 export async function refreshEvents(): Promise<{ new: number }> {
-  const res = await fetch(`${API_URL}/api/events/refresh`, {
+  const res = await apiFetch(`${API_URL}/api/events/refresh`, {
     method: "POST",
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<{ new: number }>(res);
 }
 
+/** Hodisalar filtrlari (hammasi birlashadi; ro'yxatlar — YOKI). URL query bilan bir xil nomlar. */
+export type EventFilters = {
+  q?: string;
+  category?: string[];
+  severity?: string[];
+  country?: string[];
+  channel?: string[];
+  source?: string[];
+  scope?: "regional" | "global" | "all";
+  source_lang?: string[];
+  date_from?: string;
+  date_to?: string;
+  /** Nisbiy davr hozirdan orqaga (soat aniqligida). date_from/date_to bilan birga kelmaydi — sanalar ustun. */
+  range?: EventRange;
+};
+
+export const EVENT_RANGES = ["24h", "7d", "30d", "90d"] as const;
+export type EventRange = (typeof EVENT_RANGES)[number];
+
+export function eventFiltersToParams(f: EventFilters, params = new URLSearchParams()): URLSearchParams {
+  for (const [k, v] of Object.entries(f)) {
+    if (v === undefined || v === null || v === "") continue;
+    if (Array.isArray(v)) {
+      if (v.length) params.set(k, v.join(","));
+    } else params.set(k, String(v));
+  }
+  return params;
+}
+
+/**
+ * Hodisalar. v1 chaqiruvi `getEvents(q, category, limit, offset)` ham ishlaydi;
+ * yangi: `getEvents({filters, lang, limit, offset})` — `lang` berilsa matn shu tilda (zanjir: til → en → asl).
+ */
 export async function getEvents(
-  q?: string,
+  arg?: string | { filters?: EventFilters; lang?: string; limit?: number; offset?: number },
   category?: string,
   limit = 60,
   offset?: number,
 ): Promise<EventsResponse> {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (q) params.set("q", q);
-  if (category) params.set("category", category);
-  if (offset) params.set("offset", String(offset));
-  const res = await fetch(`${API_URL}/api/events?${params.toString()}`, {
+  const opts =
+    typeof arg === "object" && arg !== null
+      ? arg
+      : { filters: { q: arg || undefined, category: category ? [category] : undefined }, limit, offset };
+  const params = eventFiltersToParams(opts.filters ?? {});
+  params.set("limit", String(opts.limit ?? 60));
+  if (opts.offset) params.set("offset", String(opts.offset));
+  if (opts.lang) params.set("lang", opts.lang);
+  const res = await apiFetch(`${API_URL}/api/events?${params.toString()}`, {
     headers: { Authorization: `Bearer ${getToken()}` },
   });
   return handle<EventsResponse>(res);
+}
+
+/**
+ * Hodisalarni joriy filtrlar bilan faylga yuklab olish (server: eng yangi 5000 tasi; CSV — formula himoyasi bilan).
+ * `lang` — sarlavha/matn shu tilda (asl sarlavha alohida ustunda). Qaytaradi: yuklangan va jami son.
+ */
+export async function downloadEvents(opts: {
+  filters: EventFilters;
+  format: "csv" | "json";
+  lang?: string;
+}): Promise<{ count: number; total: number }> {
+  const params = eventFiltersToParams(opts.filters);
+  params.set("format", opts.format);
+  if (opts.lang) params.set("lang", opts.lang);
+  const res = await apiFetch(`${API_URL}/api/events/export?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) await handle<unknown>(res); // xato matni bilan istisno
+  const blob = await res.blob();
+  const name =
+    /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? `osint-events.${opts.format}`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { count: Number(res.headers.get("X-Export-Count") ?? 0), total: Number(res.headers.get("X-Export-Total") ?? 0) };
+}
+
+export type AuthConfig = { registration_open: boolean };
+
+export async function getAuthConfig(): Promise<AuthConfig> {
+  return handle<AuthConfig>(await apiFetch(`${API_URL}/api/auth/config`));
+}
+
+
+// --- Kategoriyalar (bazadan) ---
+export type Category = {
+  id: number;
+  slug: string;
+  name_en: string;
+  name_ru: string;
+  name_uz: string;
+  description_en: string;
+  description_ru: string;
+  description_uz: string;
+  /** O'zbek kirill (backend hisoblaydi, latin.jaybi.uz dvigateli) */
+  name_uz_cyrl?: string;
+  description_uz_cyrl?: string;
+  severity: string;
+  color: string;
+  icon: string;
+  notify: boolean;
+  retention_days: number | null;
+  sort_order: number;
+  enabled: boolean;
+  is_system: boolean;
+  event_count: number;
+};
+
+export async function getCategories(): Promise<Category[]> {
+  const res = await apiFetch(`${API_URL}/api/categories`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  return handle<Category[]>(res);
 }

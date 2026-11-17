@@ -1,141 +1,56 @@
 "use client";
 
+import { CalendarDays, ChevronDown, Download, Radar, RefreshCw, Search, X } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Card, EmptyState, ErrorBanner, PageHeader, Skeleton } from "@/components/ui";
+import { EventCard, eventTime, type FilterKey } from "@/components/events/EventCard";
+import { EventFilterBar, SCOPES, type Scope } from "@/components/events/EventFilterBar";
+import { StatusStrip } from "@/components/events/StatusStrip";
 import {
-  ArrowUpRight,
-  CalendarDays,
-  ChevronDown,
-  Clock,
-  Database,
-  Hash,
-  Layers,
-  Radar,
-  RefreshCw,
-  Search,
-  Send,
-  Sparkles,
-  X,
-  type LucideIcon,
-} from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import {
-  Badge,
-  Button,
-  Card,
-  CategoryBadge,
-  EmptyState,
-  ErrorBanner,
-  Input,
-  LiveDot,
-  PageHeader,
-  Skeleton,
-  formatDate,
-  formatDateTime,
-  formatTime,
-  timeAgo,
-} from "@/components/ui";
-import { CountUp, SPRING, motion } from "@/components/motion";
-import { trackPointer } from "@/components/ui";
-import {
+  EVENT_RANGES,
+  downloadEvents,
+  eventFiltersToParams,
   getCollectorStatus,
   getEvents,
+  getMe,
   getTgStatus,
   refreshEvents,
   type CollectorStatus,
+  type EventFilters,
   type EventItem,
+  type EventRange,
   type TgStatus,
 } from "@/lib/api";
-import { CATEGORY_ORDER, categoryMeta, type Tone } from "@/lib/categories";
-import { cn } from "@/lib/cn";
+import { getEventFacets, type EventFacets } from "@/lib/adminApi";
+import { useCategories } from "@/lib/useCategories";
+import { useFormat } from "@/lib/format";
 
 const PAGE_SIZE = 40;
+const LIST_KEYS = ["category", "severity", "country", "channel", "source", "source_lang"] as const;
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
-/* ------------------------------------------------------------ tone classes */
-// Tailwind statik klasslar talab qiladi — shuning uchun to'liq satrlar.
-const DOT: Record<Tone, string> = {
-  cyan: "text-cyan-300 ring-cyan-400/40 shadow-[0_0_18px_-2px_rgba(34,211,238,.55)]",
-  sky: "text-sky-300 ring-sky-400/40 shadow-[0_0_18px_-2px_rgba(56,189,248,.55)]",
-  violet: "text-violet-300 ring-violet-400/40 shadow-[0_0_18px_-2px_rgba(139,92,246,.55)]",
-  fuchsia: "text-fuchsia-300 ring-fuchsia-400/40 shadow-[0_0_18px_-2px_rgba(217,70,239,.55)]",
-  red: "text-red-300 ring-red-400/50 shadow-[0_0_18px_-2px_rgba(239,68,68,.6)]",
-  orange: "text-orange-300 ring-orange-400/50 shadow-[0_0_18px_-2px_rgba(249,115,22,.6)]",
-  amber: "text-amber-300 ring-amber-400/40 shadow-[0_0_18px_-2px_rgba(245,158,11,.55)]",
-  emerald: "text-emerald-300 ring-emerald-400/40 shadow-[0_0_18px_-2px_rgba(16,185,129,.55)]",
-  slate: "text-slate-300 ring-slate-400/30",
-};
-
-const BAR: Record<Tone, string> = {
-  cyan: "bg-cyan-400",
-  sky: "bg-sky-400",
-  violet: "bg-violet-400",
-  fuchsia: "bg-fuchsia-400",
-  red: "bg-red-400",
-  orange: "bg-orange-400",
-  amber: "bg-amber-400",
-  emerald: "bg-emerald-400",
-  slate: "bg-slate-400",
-};
-
-const ICON_TEXT: Record<Tone, string> = {
-  cyan: "text-cyan-300",
-  sky: "text-sky-300",
-  violet: "text-violet-300",
-  fuchsia: "text-fuchsia-300",
-  red: "text-red-300",
-  orange: "text-orange-300",
-  amber: "text-amber-300",
-  emerald: "text-emerald-300",
-  slate: "text-slate-300",
-};
-
-/** Kategoriya bo'yicha bo'sh holat matnlari */
-const EMPTY_TEXT: Record<string, { title: string; description: string }> = {
-  "": {
-    title: "Hozircha hodisalar yo'q",
-    description:
-      "Lentaga faqat Markaziy Osiyoga oid kiberxavfsizlik va data leak hodisalari tushadi. Fon yig'uvchi manbalarni kuzatmoqda — mos hodisa chiqishi bilan shu yerda paydo bo'ladi.",
-  },
-  ransomware: {
-    title: "Ransomware hujumlari qayd etilmagan",
-    description: "ransomware.live'da Markaziy Osiyo tashkilotlariga oid yangi yozuv topilmadi.",
-  },
-  leak: {
-    title: "Leak chatlarida Markaziy Osiyo tilga olinmagan",
-    description: "Kuzatilayotgan leak chatlari va forumlarida mos xabar topilmadi.",
-  },
-  telegram: {
-    title: "TG kanallarda mos xabar yo'q",
-    description: "Kuzatilayotgan Telegram kanallarida Markaziy Osiyoga oid xabar hali uchramadi.",
-  },
-  tg_group: {
-    title: "TG guruhlarda mos xabar yo'q",
-    description: "Kuzatilayotgan Telegram guruhlarida Markaziy Osiyoga oid xabar hali uchramadi.",
-  },
-  news: {
-    title: "Mos yangilik hali yo'q",
-    description: "Markaziy Osiyoga oid kiberxavfsizlik yoki data leak yangiligi chiqsa, shu yerda paydo bo'ladi.",
-  },
-};
-
-/* ------------------------------------------------------------ helpers */
-type FeedItem = EventItem & { first_seen?: string | null };
-
-function eventTime(e: FeedItem): string | null {
-  return e.published || e.first_seen || null;
-}
-
-/** "🔎 uzbek, .uz · matn" → { keywords: ["uzbek", ".uz"], snippet: "matn" } */
-function parseSummary(summary: string): { keywords: string[]; snippet: string } {
-  const s = (summary || "").trim();
-  const m = s.match(/^🔎️?\s*([^\n·]{1,160}?)\s*·\s*([\s\S]*)$/);
-  if (m) {
-    const keywords = m[1]
-      .split(",")
-      .map((k) => k.trim())
-      .filter(Boolean);
-    return { keywords, snippet: m[2].trim() };
+/** URL query -> filtrlar (API bilan bir xil nomlar, ro'yxatlar vergul bilan). */
+function parseFilters(sp: URLSearchParams): { filters: EventFilters; scope: Scope } {
+  const filters: EventFilters = {};
+  for (const k of LIST_KEYS) {
+    const v = (sp.get(k) ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+    if (v.length) filters[k] = v;
   }
-  // Marker bo'lsa-yu, ajratuvchi bo'lmasa — emoji'ni olib tashlaymiz
-  return { keywords: [], snippet: s.replace(/^🔎️?\s*/, "") };
+  const q = (sp.get("q") ?? "").trim();
+  if (q) filters.q = q;
+  const from = sp.get("date_from");
+  const to = sp.get("date_to");
+  if (from && DATE_RE.test(from)) filters.date_from = from;
+  if (to && DATE_RE.test(to)) filters.date_to = to;
+  const range = sp.get("range");
+  if (range && (EVENT_RANGES as readonly string[]).includes(range) && !filters.date_from && !filters.date_to) {
+    filters.range = range as EventRange;
+  }
+  const sc = sp.get("scope");
+  const scope = (SCOPES as string[]).includes(sc ?? "") ? (sc as Scope) : "regional";
+  return { filters, scope };
 }
 
 function dayKey(iso: string | null): string {
@@ -145,372 +60,15 @@ function dayKey(iso: string | null): string {
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
 }
 
-function dayLabel(iso: string | null): string {
-  if (!iso) return "Sanasiz";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "Sanasiz";
-  const today = new Date();
-  const yest = new Date();
-  yest.setDate(today.getDate() - 1);
-  if (dayKey(d.toISOString()) === dayKey(today.toISOString())) return "Bugun";
-  if (dayKey(d.toISOString()) === dayKey(yest.toISOString())) return "Kecha";
-  return formatDate(d, { year: d.getFullYear() !== today.getFullYear() });
-}
-
-function clockTime(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return formatTime(d);
-}
-
-function escapeRe(s: string) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-/** Qidiruv so'zini matnda yoritish */
-function Highlight({ text, query }: { text: string; query: string }) {
-  const q = query.trim();
-  if (!q) return <>{text}</>;
-  const parts = text.split(new RegExp(`(${escapeRe(q)})`, "gi"));
-  return (
-    <>
-      {parts.map((p, i) =>
-        p.toLowerCase() === q.toLowerCase() ? (
-          <mark key={i} className="rounded bg-brand-cyan/20 px-0.5 text-cyan-100">
-            {p}
-          </mark>
-        ) : (
-          <span key={i}>{p}</span>
-        ),
-      )}
-    </>
-  );
-}
-
-function fmt(n: number | undefined) {
-  return (n ?? 0).toLocaleString("en-US").replace(/,/g, " ");
-}
-
-/* ------------------------------------------------------------ status strip */
-function StatusStrip({
-  cs,
-  tg,
-  loading,
-  lastNew,
-}: {
-  cs: CollectorStatus | null;
-  tg: TgStatus | null;
-  loading: boolean;
-  lastNew: number | null;
-}) {
-  if (loading && !cs) {
-    return (
-      <Card className="flex flex-wrap items-center gap-4 px-5 py-3.5">
-        <Skeleton className="h-4 w-56" />
-        <Skeleton className="h-4 w-40" />
-        <Skeleton className="h-4 w-32" />
-      </Card>
-    );
-  }
-  const minutes = cs ? Math.max(1, Math.round(cs.poll_seconds / 60)) : null;
-  return (
-    <div className="space-y-3">
-      <Card className="relative overflow-hidden px-5 py-3.5">
-        {/* nozik skaner chizig'i */}
-        <div className="pointer-events-none absolute inset-y-0 left-0 w-full bg-gradient-to-r from-transparent via-brand-cyan/[0.04] to-transparent" />
-        <div className="relative flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
-            <div className="flex items-center gap-2.5">
-              <LiveDot tone={!cs ? "red" : cs.last_error ? "amber" : cs.running ? "emerald" : "amber"} />
-              <span className="font-medium text-slate-200">
-                {!cs ? "Yig'uvchi holati noma'lum" : cs.running ? "Jonli kuzatuv" : "Yig'uvchi to'xtagan"}
-              </span>
-            </div>
-            {cs && (
-              <>
-                <span className="flex items-center gap-1.5 text-slate-400">
-                  <Clock className="h-3.5 w-3.5 text-slate-500" />
-                  har <span className="font-mono tabular-nums text-slate-200">{minutes}</span> daq · oxirgi:{" "}
-                  <span className="text-slate-200">{cs.last_run ? timeAgo(cs.last_run) : "hali yo'q"}</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-slate-400">
-                  <Database className="h-3.5 w-3.5 text-slate-500" />
-                  bazada <span className="font-mono tabular-nums text-slate-200">{fmt(cs.total_events)}</span> ta
-                </span>
-                {cs.since && (
-                  <span
-                    className="flex items-center gap-1.5 text-slate-400"
-                    title={`Lenta ${formatDateTime(cs.since)} dan boshlanadi — undan oldingi hodisalar saqlanmaydi.`}
-                  >
-                    <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
-                    <span className="text-slate-200">{formatDate(cs.since, { short: true })}</span> dan boshlab
-                  </span>
-                )}
-                {cs.retention_days > 0 && (
-                  <span
-                    className="flex items-center gap-1.5 text-slate-400"
-                    title={
-                      `${cs.retention_days} kundan eski hodisalar avtomatik o'chiriladi.` +
-                      (cs.retention_keep.length
-                        ? ` Doim saqlanadi: ${cs.retention_keep.map((k) => categoryMeta(k).label).join(", ")}.`
-                        : "")
-                    }
-                  >
-                    <CalendarDays className="h-3.5 w-3.5 text-slate-500" />
-                    saqlash <span className="font-mono tabular-nums text-slate-200">{cs.retention_days}</span> kun
-                  </span>
-                )}
-                {cs.last_new > 0 && (
-                  <span className="flex items-center gap-1.5 text-emerald-300">
-                    <Sparkles className="h-3.5 w-3.5" />
-                    <span className="font-mono tabular-nums">+{cs.last_new}</span> oxirgi yig'ishda
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-          <div className="flex flex-wrap items-center gap-2">
-            {lastNew !== null && (
-              <Badge tone={lastNew > 0 ? "emerald" : "slate"} icon={Sparkles} className="animate-fade-in">
-                {lastNew > 0 ? `${lastNew} ta yangi hodisa` : "Yangi hodisa yo'q"}
-              </Badge>
-            )}
-            {tg && (
-              <span
-                title={tg.authorized ? undefined : tg.message}
-                className={cn(
-                  "inline-flex max-w-full items-center gap-1.5 truncate rounded-full border px-2.5 py-1 text-xs",
-                  tg.authorized
-                    ? "border-sky-400/25 bg-sky-400/10 text-sky-300"
-                    : "border-amber-400/30 bg-amber-500/10 text-amber-300",
-                )}
-              >
-                <Send className="h-3 w-3 shrink-0" />
-                <span className="truncate">
-                  {tg.authorized ? (
-                    <>
-                      Telegram: <span className="font-mono">{tg.account}</span>
-                      <span className="text-sky-300/60">
-                        {" "}
-                        · {tg.chats_filter.length ? `${tg.chats_filter.length} chat` : "barcha chatlar"}
-                        {tg.uz_filter ? " · MO filtr" : ""}
-                      </span>
-                    </>
-                  ) : (
-                    <>Telegram ulanmagan</>
-                  )}
-                </span>
-              </span>
-            )}
-          </div>
-        </div>
-      </Card>
-      {cs?.last_error && <ErrorBanner message={`Yig'uvchi xatosi: ${cs.last_error}`} />}
-    </div>
-  );
-}
-
-/* ------------------------------------------------------------ category cards */
-function CategoryCard({
-  label,
-  icon: Icon,
-  tone,
-  count,
-  share,
-  active,
-  onClick,
-  index,
-}: {
-  label: string;
-  icon: LucideIcon;
-  tone: Tone | "brand";
-  count: number | null;
-  share: number;
-  active: boolean;
-  onClick: () => void;
-  index: number;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={active}
-      style={{ animationDelay: `${index * 50}ms` }}
-      className={cn(
-        "glass group relative animate-fade-in overflow-hidden p-4 text-left transition duration-300 active:scale-[0.97]",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/60",
-        active ? "bg-ink-800/80" : "hover:-translate-y-0.5 hover:border-white/15 hover:bg-ink-800/60",
-      )}
-    >
-      {active && (
-        <motion.div
-          layoutId="events-category-active"
-          transition={SPRING}
-          className="pointer-events-none absolute inset-0 rounded-2xl bg-brand-gradient-soft ring-1 ring-inset ring-brand-cyan/50 shadow-[inset_0_0_30px_rgba(34,211,238,.12)]"
-        />
-      )}
-      <div className="relative flex items-center justify-between gap-2">
-        <Icon
-          className={cn(
-            "h-4 w-4 transition",
-            tone === "brand" ? "text-brand-cyan" : ICON_TEXT[tone],
-            !active && "opacity-80 group-hover:opacity-100",
-          )}
-        />
-        {active && <span className="h-1.5 w-1.5 rounded-full bg-brand-cyan shadow-[0_0_8px_rgba(34,211,238,.9)]" />}
-      </div>
-      <div className="relative mt-3 font-mono text-2xl font-semibold tabular-nums text-white">
-        {count === null ? <Skeleton className="h-7 w-12" /> : <CountUp value={count} />}
-      </div>
-      <div className={cn("relative mt-0.5 truncate text-xs font-medium", active ? "text-slate-200" : "text-slate-400")}>
-        {label}
-      </div>
-      <div className="relative mt-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
-        <div
-          className={cn("animate-bar-grow-x h-full rounded-full transition-all duration-700", tone === "brand" ? "bg-brand-gradient" : BAR[tone])}
-          style={{ width: `${Math.max(share > 0 ? 4 : 0, Math.round(share * 100))}%` }}
-        />
-      </div>
-    </button>
-  );
-}
-
-/* ------------------------------------------------------------ event card */
-function EventCard({ e, query, delay }: { e: FeedItem; query: string; delay: number }) {
-  const meta = categoryMeta(e.category);
-  const Icon = meta.icon;
-  const t = eventTime(e);
-  const { keywords, snippet } = parseSummary(e.summary);
-  const critical = e.category === "ransomware" || e.category === "leak";
-
-  return (
-    <motion.li
-      className="relative pl-12 sm:pl-14"
-      initial={{ opacity: 0, x: -18 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: "0px 0px -30px 0px" }}
-      transition={{ duration: 0.5, delay: Math.min(delay, 300) / 1000, ease: [0.16, 1, 0.3, 1] }}
-    >
-      {/* timeline tuguni */}
-      <motion.div
-        initial={{ scale: 0 }}
-        whileInView={{ scale: 1 }}
-        viewport={{ once: true }}
-        transition={{ ...SPRING, delay: Math.min(delay, 300) / 1000 + 0.1 }}
-        className={cn(
-          "absolute left-0 top-4 z-[1] grid h-8 w-8 place-items-center rounded-full bg-ink-900 ring-1 sm:left-1",
-          DOT[meta.tone],
-        )}
-      >
-        {critical && (
-          <span
-            className={cn(
-              "absolute inset-0 animate-pulse-ring rounded-full",
-              e.category === "ransomware" ? "bg-red-500/40" : "bg-orange-500/40",
-            )}
-          />
-        )}
-        <Icon className="relative h-4 w-4" />
-      </motion.div>
-
-      <article
-        onMouseMove={trackPointer}
-        className={cn(
-          "glass glass-hover spotlight group relative overflow-hidden p-4 sm:p-5",
-          critical && (e.category === "ransomware" ? "bg-red-500/[0.03]" : "bg-orange-500/[0.03]"),
-        )}
-      >
-        {critical && (
-          <span
-            className={cn(
-              "absolute inset-y-3 left-0 w-[3px] rounded-r-full",
-              e.category === "ransomware"
-                ? "bg-red-400/80 shadow-[0_0_12px_rgba(239,68,68,.7)]"
-                : "bg-orange-400/80 shadow-[0_0_12px_rgba(249,115,22,.7)]",
-            )}
-          />
-        )}
-
-        <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5 text-xs">
-          <CategoryBadge category={e.category} />
-          {e.source && (
-            <span className="max-w-[16rem] truncate font-mono text-[11px] text-slate-400" title={e.source}>
-              {e.source}
-            </span>
-          )}
-          {t && (
-            <span
-              className="ml-auto flex items-center gap-1.5 text-slate-500"
-              title={formatDateTime(t)}
-            >
-              <span className="font-mono tabular-nums text-slate-600">{clockTime(t)}</span>
-              <span>{timeAgo(t)}</span>
-            </span>
-          )}
-        </div>
-
-        <h3 className="mt-2.5 line-clamp-2 font-semibold leading-snug text-white">
-          {e.url ? (
-            <a
-              href={e.url}
-              target="_blank"
-              rel="noreferrer"
-              className="transition hover:text-cyan-200 focus-visible:outline-none focus-visible:underline"
-            >
-              <Highlight text={e.title || "Sarlavhasiz"} query={query} />
-            </a>
-          ) : (
-            <Highlight text={e.title || "Sarlavhasiz"} query={query} />
-          )}
-        </h3>
-
-        {snippet && (
-          <p className="mt-1.5 line-clamp-3 text-sm leading-relaxed text-slate-400">
-            <Highlight text={snippet} query={query} />
-          </p>
-        )}
-
-        {(keywords.length > 0 || e.url) && (
-          <div className="mt-3 flex flex-wrap items-center gap-1.5">
-            {keywords.map((k) => (
-              <span
-                key={k}
-                className="inline-flex items-center gap-1 rounded-md border border-cyan-400/20 bg-cyan-400/[0.07] px-1.5 py-0.5 font-mono text-[11px] text-cyan-300"
-              >
-                <Hash className="h-3 w-3 opacity-60" />
-                {k}
-              </span>
-            ))}
-            {e.url && (
-              <a
-                href={e.url}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-slate-400 transition hover:bg-white/[0.06] hover:text-cyan-200"
-              >
-                Manbani ochish
-                <ArrowUpRight className="h-3.5 w-3.5 transition group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </a>
-            )}
-          </div>
-        )}
-      </article>
-    </motion.li>
-  );
-}
-
 function FeedSkeleton() {
   return (
-    <ol className="relative space-y-4">
-      <div className="absolute bottom-0 left-4 top-0 w-px bg-white/[0.06] sm:left-5" />
+    <ul className="space-y-3" aria-hidden>
       {Array.from({ length: 5 }).map((_, i) => (
-        <li key={i} className="relative pl-12 sm:pl-14">
-          <Skeleton className="absolute left-0 top-4 h-8 w-8 rounded-full sm:left-1" />
+        <li key={i}>
           <Card className="space-y-3 p-5">
             <div className="flex items-center gap-2">
               <Skeleton className="h-5 w-20 rounded-full" />
-              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-5 w-16 rounded-full" />
               <Skeleton className="ml-auto h-4 w-16" />
             </div>
             <Skeleton className="h-5 w-4/5" />
@@ -519,63 +77,119 @@ function FeedSkeleton() {
           </Card>
         </li>
       ))}
-    </ol>
+    </ul>
   );
 }
 
-/* ------------------------------------------------------------ page */
-export default function EventsPage() {
-  const [items, setItems] = useState<FeedItem[]>([]);
+function EventsView() {
+  const t = useTranslations("events");
+  const tc = useTranslations("common");
+  const locale = useLocale();
+  const f = useFormat();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const { list: categories } = useCategories();
+
+  const spKey = searchParams.toString();
+  const { filters, scope } = useMemo(() => parseFilters(new URLSearchParams(spKey)), [spKey]);
+  const effective = useMemo<EventFilters>(() => ({ ...filters, scope }), [filters, scope]);
+  const queryKey = useMemo(() => eventFiltersToParams(effective).toString(), [effective]);
+
+  const [items, setItems] = useState<EventItem[]>([]);
   const [total, setTotal] = useState(0);
-  const [qInput, setQInput] = useState("");
-  const [q, setQ] = useState("");
-  const [cat, setCat] = useState("");
+  const [qInput, setQInput] = useState(filters.q ?? "");
+  const [facets, setFacets] = useState<EventFacets | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cs, setCs] = useState<CollectorStatus | null>(null);
   const [tg, setTg] = useState<TgStatus | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [statusLoading, setStatusLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastNew, setLastNew] = useState<number | null>(null);
+  const [exporting, setExporting] = useState<"csv" | "json" | null>(null);
+  const [exportNote, setExportNote] = useState<string | null>(null);
   const reqId = useRef(0);
+  const lastQ = useRef(filters.q ?? "");
+  const spRef = useRef(spKey);
+  spRef.current = spKey;
+
+  /** Filtrlarni URL ga yozish (skrollsiz). */
+  const setFilters = useCallback(
+    (patch: Partial<EventFilters>) => {
+      const p = new URLSearchParams(spRef.current);
+      for (const [k, v] of Object.entries(patch)) {
+        if (v === undefined || v === "" || (Array.isArray(v) && v.length === 0) || (k === "scope" && v === "regional")) {
+          p.delete(k);
+        } else p.set(k, Array.isArray(v) ? v.join(",") : String(v));
+      }
+      const qs = p.toString();
+      spRef.current = qs;
+      router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
+    },
+    [router, pathname],
+  );
+
+  const resetAll = useCallback(() => {
+    lastQ.current = "";
+    setQInput("");
+    spRef.current = "";
+    router.replace(pathname, { scroll: false });
+  }, [router, pathname]);
+
+  const addFilter = useCallback(
+    (key: FilterKey, value: string) => {
+      const cur = filters[key] ?? [];
+      if (!cur.includes(value)) setFilters({ [key]: [...cur, value] });
+    },
+    [filters, setFilters],
+  );
 
   const loadStatus = useCallback(async () => {
-    const [c, t] = await Promise.allSettled([getCollectorStatus(), getTgStatus()]);
+    // Telegram akkaunt ma'lumotlari va yangilash faqat admin uchun (backend 403 qaytaradi)
+    const admin = await getMe().then((m) => m.role === "admin", () => false);
+    setIsAdmin(admin);
+    const [c, g] = await Promise.allSettled([
+      getCollectorStatus(),
+      admin ? getTgStatus() : Promise.reject(new Error("not admin")),
+    ]);
     setCs(c.status === "fulfilled" ? c.value : null);
-    setTg(t.status === "fulfilled" ? t.value : null);
+    setTg(g.status === "fulfilled" ? g.value : null);
     setStatusLoading(false);
   }, []);
 
-  const load = useCallback(async (query: string, category: string) => {
+  const load = useCallback(async () => {
     const id = ++reqId.current;
     setLoading(true);
     setError(null);
     try {
-      const res = await getEvents(query || undefined, category || undefined, PAGE_SIZE);
+      const res = await getEvents({ filters: effective, lang: locale, limit: PAGE_SIZE });
       if (id !== reqId.current) return;
       setItems(res.items);
       setTotal(res.count);
     } catch (err) {
       if (id !== reqId.current) return;
-      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+      setError(err instanceof Error ? err.message : tc("error"));
       setItems([]);
       setTotal(0);
     } finally {
       if (id === reqId.current) setLoading(false);
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryKey, locale, tc]);
 
   async function loadMore() {
     const id = reqId.current;
     setLoadingMore(true);
     try {
-      const res = await getEvents(q || undefined, cat || undefined, PAGE_SIZE, items.length);
+      const res = await getEvents({ filters: effective, lang: locale, limit: PAGE_SIZE, offset: items.length });
       if (id !== reqId.current) return;
       setItems((prev) => [...prev, ...res.items]);
       setTotal(res.count);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+      setError(err instanceof Error ? err.message : tc("error"));
     } finally {
       setLoadingMore(false);
     }
@@ -587,192 +201,200 @@ export default function EventsPage() {
     try {
       const r = await refreshEvents();
       setLastNew(r.new);
-      await Promise.all([load(q, cat), loadStatus()]);
+      await Promise.all([load(), loadStatus(), getEventFacets().then(setFacets, () => {})]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Xatolik yuz berdi");
+      setError(err instanceof Error ? err.message : tc("error"));
     } finally {
       setRefreshing(false);
     }
   }
 
-  // Holat: dastlab va har daqiqada
   useEffect(() => {
     loadStatus();
-    const t = setInterval(loadStatus, 60_000);
-    return () => clearInterval(t);
+    const id = setInterval(loadStatus, 60_000);
+    return () => clearInterval(id);
   }, [loadStatus]);
 
-  // Qidiruv — 400ms debounce
   useEffect(() => {
-    const t = setTimeout(() => setQ(qInput.trim()), 400);
-    return () => clearTimeout(t);
+    getEventFacets().then(setFacets, () => setFacets(null));
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // Qidiruv — 400ms debounce, keyin URL ga
+  useEffect(() => {
+    const v = qInput.trim();
+    if (v === (filters.q ?? "")) return;
+    const id = setTimeout(() => {
+      lastQ.current = v;
+      setFilters({ q: v || undefined });
+    }, 400);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qInput]);
 
+  // URL tashqaridan o'zgarsa (orqaga, havola) — qidiruv maydonini moslash
   useEffect(() => {
-    load(q, cat);
-  }, [q, cat, load]);
+    const urlQ = filters.q ?? "";
+    if (urlQ !== lastQ.current) {
+      lastQ.current = urlQ;
+      setQInput(urlQ);
+    }
+  }, [filters.q]);
 
-  // "Yangi hodisalar" yorlig'ini biroz vaqtdan keyin yashirish
   useEffect(() => {
     if (lastNew === null) return;
-    const t = setTimeout(() => setLastNew(null), 8000);
-    return () => clearTimeout(t);
+    const id = setTimeout(() => setLastNew(null), 8000);
+    return () => clearTimeout(id);
   }, [lastNew]);
 
-  // Kunlar bo'yicha guruhlash (API tartibi saqlanadi)
+  const dayLabel = useCallback(
+    (iso: string | null) => {
+      if (!iso || dayKey(iso) === "none") return t("noDate");
+      const d = new Date(iso);
+      const today = new Date();
+      const yest = new Date();
+      yest.setDate(today.getDate() - 1);
+      if (dayKey(iso) === dayKey(today.toISOString())) return t("today");
+      if (dayKey(iso) === dayKey(yest.toISOString())) return t("yesterday");
+      return f.date(d, { year: d.getFullYear() !== today.getFullYear() });
+    },
+    [f, t],
+  );
+
   const groups = useMemo(() => {
-    const out: { key: string; label: string; items: { e: FeedItem; idx: number }[] }[] = [];
+    const out: { key: string; label: string; items: { e: EventItem; idx: number }[] }[] = [];
     items.forEach((e, idx) => {
-      const t = eventTime(e);
-      const key = dayKey(t);
+      const when = eventTime(e);
+      const key = dayKey(when);
       const last = out[out.length - 1];
       if (last && last.key === key) last.items.push({ e, idx });
-      else out.push({ key, label: dayLabel(t), items: [{ e, idx }] });
+      else out.push({ key, label: dayLabel(when), items: [{ e, idx }] });
     });
     return out;
-  }, [items]);
+  }, [items, dayLabel]);
 
-  const totalAll = cs?.total_events ?? null;
-  const catCards = [
-    { key: "", label: "Hammasi", icon: Layers as LucideIcon, tone: "brand" as const, count: totalAll },
-    ...CATEGORY_ORDER.map((k) => {
-      const m = categoryMeta(k);
-      return { key: k, label: m.label, icon: m.icon, tone: m.tone, count: cs ? cs.by_category[k] ?? 0 : null };
-    }),
-  ];
+  const updateItem = useCallback((next: EventItem) => {
+    setItems((prev) => prev.map((x) => (x.id !== undefined && x.id === next.id ? next : x)));
+  }, []);
 
-  const activeMeta = cat ? categoryMeta(cat) : null;
-  const empty = EMPTY_TEXT[cat] ?? EMPTY_TEXT[""];
+  // Eksport — ro'yxat bilan aynan bir xil filtrlar (scope ham) va ko'rsatish tili
+  const onExport = async (format: "csv" | "json") => {
+    setExporting(format);
+    setExportNote(null);
+    try {
+      const r = await downloadEvents({ filters: effective, format, lang: locale });
+      setExportNote(
+        r.total > r.count ? t("export.truncated", { count: r.count, total: r.total }) : t("export.done", { count: r.count }),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tc("error"));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   const hasMore = items.length < total;
+  const filtered = Object.keys(filters).length > 0 || scope !== "regional";
 
   return (
-    <div>
+    <div className="animate-fade-in">
       <PageHeader
         icon={Radar}
         tone="cyan"
-        eyebrow="THREAT INTELLIGENCE · MARKAZIY OSIYO"
-        title="Events"
-        subtitle="Ransomware hujumlari, leak chatlari, Telegram kanal va guruhlari hamda kiberxavfsizlik yangiliklari — Markaziy Osiyoga oid barcha signallar bitta lentada."
+        title={t("title")}
+        description={t("description")}
         actions={
-          <Button icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
-            {refreshing ? "Yig'ilmoqda..." : "Yangilash"}
-          </Button>
+          isAdmin ? (
+            <Button icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
+              {refreshing ? t("refreshing") : tc("refresh")}
+            </Button>
+          ) : undefined
         }
       />
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         <StatusStrip cs={cs} tg={tg} loading={statusLoading} lastNew={lastNew} />
 
-        {/* Kategoriyalar */}
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {catCards.map((c, i) => (
-            <CategoryCard
-              key={c.key || "all"}
-              index={i}
-              label={c.label}
-              icon={c.icon}
-              tone={c.tone}
-              count={c.count}
-              share={c.key === "" ? (totalAll ? 1 : 0) : totalAll ? (c.count ?? 0) / totalAll : 0}
-              active={cat === c.key}
-              onClick={() => setCat(c.key)}
-            />
-          ))}
-        </div>
+        <EventFilterBar
+          filters={filters}
+          scope={scope}
+          qInput={qInput}
+          onQInput={setQInput}
+          onChange={setFilters}
+          onReset={resetAll}
+          facets={facets}
+        />
 
-        {/* Qidiruv */}
-        <form
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            const v = qInput.trim();
-            if (v === q) load(v, cat);
-            else setQ(v);
-          }}
-          className="flex flex-col gap-3 sm:flex-row sm:items-center"
-        >
-          <div className="relative flex-1">
-            <Input
-              icon={Search}
-              inputSize="lg"
-              value={qInput}
-              onChange={(ev) => setQInput(ev.target.value)}
-              placeholder="Kalit so'z bo'yicha qidirish: bank, .uz, Toshkent, uzcard..."
-              className="!pr-10"
-              aria-label="Hodisalarni qidirish"
-            />
-            {qInput && (
-              <button
-                type="button"
-                onClick={() => {
-                  setQInput("");
-                  setQ("");
-                }}
-                className="absolute right-3 top-1/2 grid h-6 w-6 -translate-y-1/2 place-items-center rounded-md text-slate-500 transition hover:bg-white/[0.06] hover:text-slate-200"
-                aria-label="Tozalash"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-fg-muted">
+          <div aria-live="polite">
+            {loading ? <Skeleton className="h-4 w-36" /> : <span className="font-medium text-fg">{t("eventsCount", { count: total })}</span>}
           </div>
-          <div className="flex shrink-0 items-center gap-2 text-xs text-slate-500">
-            {loading ? (
-              <Skeleton className="h-4 w-36" />
-            ) : (
-              <span>
-                <span className="font-mono tabular-nums text-slate-300">{fmt(total)}</span> ta natija
-                {activeMeta && (
-                  <>
-                    {" "}
-                    · <span className={ICON_TEXT[activeMeta.tone]}>{activeMeta.label}</span>
-                  </>
-                )}
-                {q && (
-                  <>
-                    {" "}
-                    · <span className="font-mono text-cyan-300">&quot;{q}&quot;</span>
-                  </>
-                )}
+          <div className="flex flex-wrap items-center gap-2">
+            {exportNote && (
+              <span role="status" className="text-xs">
+                {exportNote}
               </span>
             )}
+            <span className="text-xs">{t("export.label")}:</span>
+            {(["csv", "json"] as const).map((fmt) => (
+              <Button
+                key={fmt}
+                variant="secondary"
+                size="sm"
+                icon={Download}
+                loading={exporting === fmt}
+                disabled={exporting !== null || loading || total === 0}
+                aria-label={t(`export.${fmt}`)}
+                title={t(`export.${fmt}`)}
+                onClick={() => onExport(fmt)}
+              >
+                {fmt.toUpperCase()}
+              </Button>
+            ))}
           </div>
-        </form>
+        </div>
 
-        {error && <ErrorBanner message={error} />}
+        {error && (
+          <ErrorBanner
+            message={error}
+            action={
+              <Button variant="secondary" size="sm" onClick={() => load()}>
+                {tc("retry")}
+              </Button>
+            }
+          />
+        )}
 
-        {/* Lenta */}
         {loading ? (
           <FeedSkeleton />
         ) : items.length === 0 ? (
           !error && (
             <Card>
-              {q ? (
+              {filtered ? (
                 <EmptyState
                   icon={Search}
-                  title={`"${q}" bo'yicha hech narsa topilmadi`}
-                  description="Boshqa kalit so'z bilan urinib ko'ring yoki kategoriya filtrini o'zgartiring."
+                  title={t("emptyFilteredTitle")}
+                  description={t("emptyFilteredDesc")}
                   action={
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      icon={X}
-                      onClick={() => {
-                        setQInput("");
-                        setQ("");
-                      }}
-                    >
-                      Qidiruvni tozalash
+                    <Button variant="secondary" size="sm" icon={X} onClick={resetAll}>
+                      {t("resetFilters")}
                     </Button>
                   }
                 />
               ) : (
                 <EmptyState
-                  icon={activeMeta?.icon ?? Radar}
-                  title={empty.title}
-                  description={empty.description}
+                  icon={Radar}
+                  title={t("emptyTitle")}
+                  description={t("emptyNoneDesc")}
                   action={
-                    <Button variant="secondary" size="sm" icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
-                      Hozir yig'ish
-                    </Button>
+                    isAdmin ? (
+                      <Button variant="secondary" size="sm" icon={RefreshCw} loading={refreshing} onClick={onRefresh}>
+                        {t("collectNow")}
+                      </Button>
+                    ) : undefined
                   }
                 />
               )}
@@ -782,46 +404,50 @@ export default function EventsPage() {
           <div className="space-y-6">
             {groups.map((g) => (
               <section key={g.key + g.items[0].idx}>
-                <div className="sticky top-16 z-10 -mx-1 mb-3 px-1 py-2">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-white/[0.08] bg-ink-900/85 px-3 py-1 shadow-card backdrop-blur-xl">
-                    <CalendarDays className="h-3.5 w-3.5 text-brand-cyan" />
-                    <span className="text-xs font-semibold text-slate-200">{g.label}</span>
-                    <span className="font-mono text-[11px] tabular-nums text-slate-500">{g.items.length}</span>
-                  </div>
+                <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1">
+                  <CalendarDays className="h-3.5 w-3.5 text-fg-muted" aria-hidden />
+                  <h2 className="text-xs font-semibold text-fg">{g.label}</h2>
+                  <span className="font-mono text-[11px] tabular-nums text-fg-muted">{g.items.length}</span>
                 </div>
-                <ol className="relative space-y-3">
-                  <div className="pointer-events-none absolute bottom-0 left-4 top-0 w-px bg-gradient-to-b from-brand-cyan/30 via-white/[0.08] to-white/[0.03] sm:left-5" />
+                <ul className="space-y-3">
                   {g.items.map(({ e, idx }) => (
                     <EventCard
-                      key={`${e.url}-${idx}`}
+                      key={`${e.id ?? e.url}-${idx}`}
                       e={e}
-                      query={q}
-                      delay={Math.min(idx % PAGE_SIZE, 12) * 40}
+                      query={filters.q ?? ""}
+                      onFilter={addFilter}
+                      isAdmin={isAdmin}
+                      categories={categories}
+                      onUpdated={updateItem}
                     />
                   ))}
-                </ol>
+                </ul>
               </section>
             ))}
 
             <div className="flex flex-col items-center gap-2 pt-2">
               {hasMore ? (
                 <Button variant="secondary" icon={ChevronDown} loading={loadingMore} onClick={loadMore}>
-                  Ko&apos;proq yuklash
+                  {tc("loadMore")}
                 </Button>
               ) : (
-                <div className="flex items-center gap-2 text-xs text-slate-600">
-                  <span className="h-px w-10 bg-white/[0.08]" />
-                  Lenta oxiri
-                  <span className="h-px w-10 bg-white/[0.08]" />
-                </div>
+                <div className="text-xs text-fg-muted">{t("feedEnd")}</div>
               )}
-              <div className="font-mono text-[11px] tabular-nums text-slate-600">
-                {fmt(items.length)} / {fmt(total)}
+              <div className="font-mono text-[11px] tabular-nums text-fg-muted">
+                {f.number(items.length)} / {f.number(total)}
               </div>
             </div>
           </div>
         )}
       </div>
     </div>
+  );
+}
+
+export default function EventsPage() {
+  return (
+    <Suspense fallback={<FeedSkeleton />}>
+      <EventsView />
+    </Suspense>
   );
 }

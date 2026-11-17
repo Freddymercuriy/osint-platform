@@ -1,23 +1,45 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
-from sqlalchemy import select
+from pydantic import BaseModel
+from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
+from app.core import ratelimit
+from app.core.config import settings
+from app.core.errors import api_error
 from app.core.security import create_access_token, hash_password, verify_password
 from app.models import User
-from app.schemas import Token, UserCreate, UserOut
+from app.schemas import Token, UserCreate, UserOut, UserUpdate
+from app.services.admin_roles import role_for_new_user
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
 
+class AuthConfig(BaseModel):
+    registration_open: bool
+
+
+@router.get("/config", response_model=AuthConfig)
+async def auth_config() -> AuthConfig:
+    """Login/ro'yxatdan o'tish sahifalari uchun ochiq sozlamalar."""
+    return AuthConfig(registration_open=settings.registration_allowed)
+
+
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
 async def register(data: UserCreate, db: DbSession) -> User:
-    exists = await db.scalar(select(User).where(User.email == data.email))
+    if not settings.registration_allowed:
+        raise api_error(status.HTTP_403_FORBIDDEN, "registration_closed")
+    exists = await db.scalar(select(User).where(func.lower(User.email) == data.email.lower()))
     if exists:
-        raise HTTPException(status.HTTP_409_CONFLICT, "Bu email allaqachon ro'yxatdan o'tgan")
-    user = User(email=data.email, hashed_password=hash_password(data.password))
+        raise api_error(status.HTTP_409_CONFLICT, "email_taken")
+    users_before = await db.scalar(select(func.count(User.id))) or 0
+    user = User(
+        email=data.email,
+        hashed_password=hash_password(data.password),
+        role=role_for_new_user(data.email, users_before),
+    )
     db.add(user)
     await db.commit()
     await db.refresh(user)
@@ -26,17 +48,33 @@ async def register(data: UserCreate, db: DbSession) -> User:
 
 @router.post("/login", response_model=Token)
 async def login(
+    request: Request,
     form: Annotated[OAuth2PasswordRequestForm, Depends()],
     db: DbSession,
 ) -> Token:
+    # Parol tanlashni sekinlatish: IP va email bo'yicha (muvaffaqiyatli urinishlar ham sanaladi)
+    ratelimit.check("login-ip", ratelimit.client_ip(request), settings.login_rate_ip, settings.login_rate_window)
+    ratelimit.check("login-email", form.username.lower(), settings.login_rate_email, settings.login_rate_window)
     # OAuth2 formasi 'username' maydonini ishlatadi — bu yerda email
     user = await db.scalar(select(User).where(User.email == form.username))
     if not user or not verify_password(form.password, user.hashed_password):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Email yoki parol noto'g'ri")
+        raise api_error(status.HTTP_401_UNAUTHORIZED, "invalid_credentials")
+    if not user.is_active:
+        raise api_error(status.HTTP_403_FORBIDDEN, "account_disabled")
     token = create_access_token(subject=str(user.id))
     return Token(access_token=token)
 
 
 @router.get("/me", response_model=UserOut)
 async def me(current_user: CurrentUser) -> User:
+    return current_user
+
+
+@router.patch("/me", response_model=UserOut)
+async def update_me(data: UserUpdate, current_user: CurrentUser, db: DbSession) -> User:
+    """Foydalanuvchining o'z sozlamalari (hozircha interfeys tili)."""
+    if "locale" in data.model_fields_set:
+        current_user.locale = data.locale
+    await db.commit()
+    await db.refresh(current_user)
     return current_user

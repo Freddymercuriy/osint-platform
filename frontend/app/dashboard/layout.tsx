@@ -1,17 +1,23 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import NotificationBell from "@/components/NotificationBell";
-import { titleFor } from "@/components/shell/nav";
+import { navKeyFor } from "@/components/shell/nav";
 import Sidebar from "@/components/shell/Sidebar";
+import LocaleSwitcher from "@/components/theme/LocaleSwitcher";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import { Logo, Spinner } from "@/components/ui";
-import { clearToken, getMe, getToken, type Me } from "@/lib/api";
+import { clearToken, getMe, getToken, setLocaleCookie, type Me } from "@/lib/api";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const locale = useLocale();
+  const t = useTranslations("nav");
+  const tc = useTranslations("common");
   const [me, setMe] = useState<Me | null>(null);
   const [unread, setUnread] = useState(0);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -22,12 +28,30 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
     getMe()
-      .then(setMe)
+      .then((m) => {
+        setMe(m);
+        // Akkauntda saqlangan til boshqa bo'lsa — shunga o'tamiz (boshqa qurilmadan tanlangan)
+        if (m.locale && m.locale !== locale) {
+          setLocaleCookie(m.locale);
+          router.refresh();
+        }
+      })
       .catch(() => {
         clearToken();
         router.replace("/login");
       });
+    // locale ataylab qo'shilmagan: faqat birinchi yuklanishda sinxronlanadi
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
+
+  useEffect(() => setMobileOpen(false), [pathname]);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setMobileOpen(false);
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
 
   const logout = useCallback(() => {
     clearToken();
@@ -39,7 +63,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="grid min-h-screen place-items-center">
         <div className="flex flex-col items-center gap-4">
           <Logo />
-          <Spinner />
+          <Spinner label={tc("loading")} />
         </div>
       </div>
     );
@@ -47,20 +71,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-screen">
-      {/* Desktop sidebar */}
+      <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-lg focus:bg-surface focus:px-3 focus:py-2 focus:text-fg focus:ring-2 focus:ring-ring">
+        {tc("skipToContent")}
+      </a>
+
       <div className="sticky top-0 hidden h-screen lg:block">
         <Sidebar me={me} unread={unread} onLogout={logout} />
       </div>
 
-      {/* Mobil sidebar */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
-          <div className="relative h-full w-64 animate-fade-in">
+        <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label={tc("menu")}>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
+          <div className="relative h-full w-64 animate-fade-in shadow-xl">
             <Sidebar me={me} unread={unread} onLogout={logout} onNavigate={() => setMobileOpen(false)} />
             <button
+              type="button"
               onClick={() => setMobileOpen(false)}
-              className="absolute -right-12 top-4 grid h-10 w-10 place-items-center rounded-xl bg-ink-800 text-slate-300"
+              aria-label={tc("close")}
+              className="focus-ring absolute -right-11 top-3 grid h-9 w-9 place-items-center rounded-lg bg-surface text-fg"
             >
               <X className="h-5 w-5" />
             </button>
@@ -69,26 +97,25 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       )}
 
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Yuqori panel */}
-        <header className="sticky top-0 z-40 flex h-16 items-center gap-3 border-b border-white/[0.06] bg-ink-950/70 px-4 backdrop-blur-xl sm:px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center gap-2 border-b border-border bg-bg/90 px-3 backdrop-blur sm:gap-3 sm:px-6">
           <button
+            type="button"
             onClick={() => setMobileOpen(true)}
-            className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 text-slate-300 lg:hidden"
-            aria-label="Menyu"
+            className="focus-ring grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface text-fg-muted lg:hidden"
+            aria-label={tc("menu")}
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div className="min-w-0 flex-1">
-            <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-600">OSINT.uz</div>
-            <div className="truncate text-sm font-medium text-slate-200">{titleFor(pathname)}</div>
-          </div>
-          <div className="hidden items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/5 px-3 py-1 text-[11px] text-emerald-300 md:flex">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Faqat ochiq manbalar
-          </div>
+          <div className="min-w-0 flex-1 truncate text-sm font-medium text-fg">{t(navKeyFor(pathname))}</div>
+          <span className="hidden text-xs text-fg-subtle md:inline">{tc("publicSourcesOnly")}</span>
+          <LocaleSwitcher className="hidden sm:inline-flex" />
+          <ThemeToggle />
           <NotificationBell onUnreadChange={setUnread} />
         </header>
 
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main id="main" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </main>
       </div>
     </div>
   );

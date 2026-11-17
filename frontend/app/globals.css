@@ -2,84 +2,141 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "./tones.css";
+
+/* ================================================================ Semantik tokenlar (docs/design-system.md)
+   Qiymatlar — "R G B" (Tailwind'da shaffoflik: bg-primary/10). Kontrast: oddiy matn ≥ 4.5:1 ikkala temada. */
 :root {
+  color-scheme: light;
+  --bg: 246 247 249;
+  --surface: 255 255 255;
+  --surface-2: 241 244 248;
+  --border: 223 228 235;
+  --border-strong: 198 206 217;
+  --fg: 15 23 42;
+  --fg-muted: 71 85 105;
+  --fg-subtle: 92 104 122;
+  --primary: 29 78 216;
+  --primary-fg: 255 255 255;
+  --primary-soft: 235 241 255;
+  --ring: 37 99 235;
+  --success: 21 128 61;
+  --warning: 180 83 9;
+  --danger: 185 28 28;
+  --info: 3 105 161;
+  /* Grafiklar (dataviz validatori: CVD ΔE ≥ 8.4, normal ≥ 19.3; 3 rang <3:1 → jadval ko'rinishi majburiy) */
+  --chart-1: 42 120 214;
+  --chart-2: 235 104 52;
+  --chart-3: 27 175 122;
+  --chart-4: 237 161 0;
+  --chart-5: 232 123 164;
+  --chart-6: 0 131 0;
+  --chart-7: 98 80 214;
+  --chart-8: 227 73 72;
+  --chart-other: 154 163 178;
+  --seq-1: 205 226 251;
+  --seq-2: 158 197 244;
+  --seq-3: 109 167 236;
+  --seq-4: 57 135 229;
+  --seq-5: 37 106 191;
+  --seq-6: 24 79 149;
+  --seq-7: 13 54 107;
+  --sev-info: 134 182 239;
+  --sev-low: 85 152 231;
+  --sev-medium: 42 120 214;
+  --sev-high: 28 92 171;
+  --sev-critical: 16 66 129;
+}
+
+.dark {
   color-scheme: dark;
+  --bg: 11 15 23;
+  --surface: 18 24 38;
+  --surface-2: 26 34 50;
+  --border: 37 48 69;
+  --border-strong: 52 65 90;
+  --fg: 230 234 240;
+  --fg-muted: 163 173 189;
+  --fg-subtle: 139 150 168;
+  --primary: 96 165 250;
+  --primary-fg: 11 15 23;
+  --primary-soft: 23 37 64;
+  --ring: 96 165 250;
+  --success: 74 222 128;
+  --warning: 251 191 36;
+  --danger: 248 113 113;
+  --info: 56 189 248;
+  /* Grafiklar — qorong'i sirt uchun alohida qadamlar (hammasi ≥ 3:1) */
+  --chart-1: 57 135 229;
+  --chart-2: 217 89 38;
+  --chart-3: 25 158 112;
+  --chart-4: 201 133 0;
+  --chart-5: 213 81 129;
+  --chart-6: 12 163 12;
+  --chart-7: 144 133 233;
+  --chart-8: 230 103 103;
+  --chart-other: 107 116 134;
+  --seq-1: 13 54 107;
+  --seq-2: 24 79 149;
+  --seq-3: 37 106 191;
+  --seq-4: 57 135 229;
+  --seq-5: 109 167 236;
+  --seq-6: 158 197 244;
+  --seq-7: 205 226 251;
+  --sev-info: 24 79 149;
+  --sev-low: 37 106 191;
+  --sev-medium: 57 135 229;
+  --sev-high: 109 167 236;
+  --sev-critical: 183 211 246;
 }
 
 @layer base {
   body {
-    @apply bg-ink-950 font-sans text-slate-200 antialiased;
-    /* Nozik kiber-to'r + rangli nur dog'lari */
-    background-image:
-      radial-gradient(60rem 40rem at 10% -10%, rgba(34, 211, 238, 0.08), transparent 60%),
-      radial-gradient(50rem 35rem at 100% 0%, rgba(139, 92, 246, 0.1), transparent 60%),
-      linear-gradient(rgba(148, 163, 184, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(148, 163, 184, 0.035) 1px, transparent 1px);
-    background-size: auto, auto, 32px 32px, 32px 32px;
-    background-attachment: fixed;
+    @apply bg-bg font-sans text-fg antialiased;
   }
-
   ::selection {
-    background: rgba(34, 211, 238, 0.3);
+    background: rgb(var(--primary) / 0.2);
   }
-
-  /* Ingichka scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: #26324a transparent;
+    scrollbar-color: rgb(var(--border-strong)) transparent;
   }
   *::-webkit-scrollbar {
     width: 8px;
     height: 8px;
   }
   *::-webkit-scrollbar-thumb {
-    background: #26324a;
+    background: rgb(var(--border-strong));
     border-radius: 8px;
+  }
+  :focus-visible {
+    outline: none;
   }
 }
 
 @layer components {
-  /* Shisha karta — asosiy konteyner */
-  .glass {
-    /* backdrop-blur ataylab yo'q: harakatlanuvchi fon ustida har kadrda qayta hisoblanib, sekinlashtiradi */
-    @apply rounded-2xl border border-white/[0.06] bg-ink-850/80 shadow-card;
+  /* Asosiy konteyner */
+  .card {
+    @apply rounded-xl border border-border bg-surface shadow-sm;
   }
-  .glass-hover {
-    @apply transition duration-300 hover:border-brand-cyan/30 hover:bg-ink-800/70;
-  }
-  /* Gradientli matn */
-  .text-gradient {
-    @apply bg-brand-gradient bg-clip-text text-transparent;
-  }
-  /* Gradient chegarali element (ichida .glass) */
-  .gradient-border {
-    position: relative;
-  }
-  .gradient-border::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    padding: 1px;
-    border-radius: inherit;
-    background: linear-gradient(135deg, rgba(34, 211, 238, 0.5), rgba(139, 92, 246, 0.35), transparent 70%);
-    -webkit-mask:
-      linear-gradient(#000 0 0) content-box,
-      linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-  }
-  /* Skeleton yuklanish */
   .skeleton {
-    @apply rounded-md bg-ink-800;
-    background-image: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
-    background-size: 400px 100%;
-    background-repeat: no-repeat;
-    animation: shimmer 1.4s linear infinite;
+    @apply rounded-md bg-surface-2;
+    animation: skeleton-pulse 1.4s ease-in-out infinite;
   }
-  /* Kichik monospace "kod" yorlig'i */
   .kbd {
-    @apply rounded border border-white/10 bg-white/5 px-1.5 py-0.5 font-mono text-[11px] text-slate-400;
+    @apply rounded border border-border bg-surface-2 px-1.5 py-0.5 font-mono text-[11px] text-fg-muted;
+  }
+  .link {
+    @apply text-primary underline-offset-2 hover:underline;
+  }
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-bg;
+  }
+}
+
+@keyframes skeleton-pulse {
+  50% {
+    opacity: 0.55;
   }
 }
 
@@ -93,101 +150,28 @@
   }
 }
 
-/* ================================================================ Motion design */
-@keyframes aurora-drift {
-  0%   { transform: translate3d(0, 0, 0) scale(1); }
-  33%  { transform: translate3d(6%, 8%, 0) scale(1.12); }
-  66%  { transform: translate3d(-5%, 4%, 0) scale(0.94); }
-  100% { transform: translate3d(0, 0, 0) scale(1); }
-}
-@keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
-@keyframes bar-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@keyframes sheen { from { transform: translateX(-120%) skewX(-20deg); } to { transform: translateX(220%) skewX(-20deg); } }
-@keyframes bell-ring {
-  0%, 100% { transform: rotate(0); }
-  15% { transform: rotate(14deg); } 30% { transform: rotate(-12deg); }
-  45% { transform: rotate(9deg); }  60% { transform: rotate(-6deg); } 75% { transform: rotate(3deg); }
-}
-@keyframes gradient-pan { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
-@keyframes dash-flow { to { stroke-dashoffset: -24; } }
-@keyframes blink { 50% { opacity: 0; } }
-
-@layer components {
-  /* Fon nur dog'lari */
-  .aurora-blob {
-    position: absolute;
-    border-radius: 9999px;
-    /* filter: blur o'rniga yumshoq radial gradient — GPU uchun ancha arzon */
-    background-image: radial-gradient(closest-side, currentColor, transparent);
-    background-color: transparent !important;
-    animation: aurora-drift 30s ease-in-out infinite;
-    will-change: transform;
-  }
-
-  /* Sichqonchani kuzatuvchi yorug'lik (Card hover) — --mx/--my JS orqali beriladi */
-  .spotlight { position: relative; isolation: isolate; }
-  .spotlight::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(34, 211, 238, 0.13), rgba(139, 92, 246, 0.06) 40%, transparent 65%);
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    pointer-events: none;
-    z-index: -1;
-  }
-  .spotlight:hover::after { opacity: 1; }
-  .spotlight { transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s, background-color 0.3s; }
-  .spotlight:hover { transform: translateY(-2px); }
-
-  /* Asosiy tugma ustidan o'tadigan yaltirash */
-  .btn-sheen { position: relative; overflow: hidden; }
-  .btn-sheen::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    width: 45%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.35), transparent);
-    transform: translateX(-120%) skewX(-20deg);
-    pointer-events: none;
-  }
-  .btn-sheen:hover::after { animation: sheen 0.9s ease; }
-
-  /* Harakatlanuvchi gradient matn/chegara */
-  .text-gradient-animated {
-    background-image: linear-gradient(90deg, #22d3ee, #8b5cf6, #d946ef, #22d3ee);
-    background-size: 200% 100%;
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-    animation: gradient-pan 6s linear infinite;
-  }
-
-  .animate-bell-ring { animation: bell-ring 0.9s ease-in-out; transform-origin: 50% 10%; }
-  .animate-bar-grow { animation: bar-grow 0.9s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom; transform-box: fill-box; }
-  .animate-bar-grow-x { animation: bar-grow-x 1s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: left; }
-  .animate-dash-flow { stroke-dasharray: 4 8; animation: dash-flow 1.2s linear infinite; }
-  .caret::after { content: "▍"; margin-left: 2px; color: #22d3ee; animation: blink 1s steps(1) infinite; }
-}
-
-/* ================================================================ Chop etish (hisobot → PDF) */
+/* ================================================================ Chop etish (hisobot → PDF) — har doim yorug' */
 @media print {
-  :root { color-scheme: light; }
+  :root,
+  .dark {
+    color-scheme: light;
+  }
   html,
   body {
     background: #fff !important;
-    background-image: none !important;
   }
-  /* fon ranglari (holat nishonlari, jadval sarlavhasi) qog'ozda ham chiqsin */
   .report-sheet,
   .report-sheet * {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
   .report-sheet tr,
-  .report-sheet .avoid-break { break-inside: avoid; }
-  .report-sheet thead { display: table-header-group; }
+  .report-sheet .avoid-break {
+    break-inside: avoid;
+  }
+  .report-sheet thead {
+    display: table-header-group;
+  }
 }
 @page {
   size: A4;

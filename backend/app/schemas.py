@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from typing import Literal
+
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
@@ -15,7 +17,13 @@ class UserOut(BaseModel):
     id: int
     email: EmailStr
     is_active: bool
+    role: str = "analyst"
+    locale: str | None = None
     created_at: datetime
+
+
+class UserUpdate(BaseModel):
+    locale: Literal["uz", "uz-Cyrl", "ru", "en"] | None = None
 
 
 class Token(BaseModel):
@@ -106,7 +114,27 @@ class EventItemOut(BaseModel):
     summary: str
     published: datetime | None = None
     lang: str
-    category: str
+    category: str  # kategoriya slug'i (v1 bilan mos)
+    # v2
+    source_id: int | None = None
+    category_id: int | None = None
+    channel: str = "news"
+    scope: str = "regional"
+    severity: str = "info"
+    countries: list[str] = []
+    sector: str | None = None
+    actor: str | None = None
+    matched_keywords: list[str] = []
+    extra: dict = {}
+    also_reported_by: list = []
+    is_baseline: bool = False
+    # Tarjima (?lang=en|ru|uz berilganda title/summary shu tilda, zanjir: so'ralgan → en → asl)
+    source_lang: str | None = None
+    display_lang: str | None = None
+    translated: bool = False
+    translation_status: str | None = None
+    original_title: str | None = None
+    original_summary: str | None = None
 
 
 class EventsResponse(BaseModel):

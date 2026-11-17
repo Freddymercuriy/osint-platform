@@ -1,9 +1,13 @@
 from datetime import UTC, datetime
 
-from fastapi import APIRouter, HTTPException, Query, Response, status
-from sqlalchemy import delete, select
+from fastapi import APIRouter, Query, Response, status
+from pydantic import BaseModel
+from sqlalchemy import delete, func, select
 
+from app.core.errors import api_error
+from app.core.i18n import CodedValueError
 from app.api.deps import CurrentUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.models import Result, SearchJob
 from app.models.user import User
@@ -53,10 +57,13 @@ async def _run_and_save(
     user: User,
     db: DbSession,
 ) -> SearchResponse:
+    ratelimit.check("search", str(user.id), settings.search_rate, settings.search_rate_window)
     try:
         results = await collector.run(data.query)
-    except ValueError as exc:
-        raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
+    except CodedValueError as exc:
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, exc.code, **exc.params) from exc
+    except ValueError as exc:  # kodsiz (kutilmagan) yaroqsiz so'rov
+        raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "invalid_query", message=str(exc)) from exc
 
     job = SearchJob(user_id=user.id, kind=kind, query=data.query.strip())
     for r in results:
@@ -122,6 +129,21 @@ async def history(
     return list(rows)
 
 
+class HistoryCounts(BaseModel):
+    total: int
+    by_kind: dict[str, int]
+
+
+@router.get("/history/counts", response_model=HistoryCounts)
+async def history_counts(current_user: CurrentUser, db: DbSession) -> HistoryCounts:
+    """Tarix sahifasidagi tur tablari uchun: foydalanuvchining qidiruvlari soni turlar bo'yicha."""
+    by_kind = dict((await db.execute(
+        select(SearchJob.kind, func.count(SearchJob.id))
+        .where(SearchJob.user_id == current_user.id).group_by(SearchJob.kind)
+    )).all())
+    return HistoryCounts(total=sum(by_kind.values()), by_kind=by_kind)
+
+
 @router.delete("/history")
 async def clear_history(
     current_user: CurrentUser,
@@ -142,7 +164,7 @@ async def _own_job(job_id: int, user: User, db: DbSession) -> SearchJob:
         select(SearchJob).where(SearchJob.id == job_id, SearchJob.user_id == user.id)
     )
     if job is None:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, "Qidiruv topilmadi")
+        raise api_error(status.HTTP_404_NOT_FOUND, "search_not_found")
     return job
 
 

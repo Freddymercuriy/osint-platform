@@ -1,43 +1,99 @@
-# Dizayn tizimi — OSINT.uz
+# Dizayn tizimi — OSINT Platform (v2)
 
-Uslub: **qorong'i "intelligence center"** — chuqur navy fon, nozik kiber-to'r, shisha (glass) kartalar,
-cyan → violet → fuchsia gradient aksent, monospace texnik yorliqlar, o'lchovli animatsiya.
+Maqsad: **xavfsizlik mutaxassisi bo'lmagan odam ham har ekranni bir necha soniyada tushunsin.**
+Uslub — toza, sokin, mazmun birinchi: bitta aksent rangi, oddiy kartalar, aniq matn. Bezak (aurora dog'lar, to'r fon,
+radar, "scramble"/"reveal" matn, magnit/tilt, spotlight, sheen, harakatlanuvchi gradient) **ishlatilmaydi**.
+
+Uchta tema — **Light / Dark / System** (standart: System) va uchta til — **o'zbek (lotin) / русский / English**.
 
 ## Fayllar
 | Fayl | Nima |
 |---|---|
-| `frontend/tailwind.config.ts` | ranglar (`ink-*`, `brand-*`), shriftlar, soyalar, animatsiyalar |
-| `frontend/app/globals.css` | fon (to'r + nur), `.glass`, `.glass-hover`, `.text-gradient`, `.gradient-border`, `.skeleton`, `.kbd` |
-| `frontend/components/ui/index.tsx` | barcha umumiy komponentlar (pastda) |
-| `frontend/lib/categories.ts` | Events kategoriyalari: nom, rang (tone), ikon — butun UI'da bir xil |
+| `frontend/app/globals.css` | Semantik tokenlar (CSS o'zgaruvchilar) — `:root` (light) va `.dark` qiymatlari; tone'lar (`.tone-*`) |
+| `frontend/tailwind.config.ts` | Tokenlarni Tailwind ranglariga bog'lash (`bg-surface`, `text-fg-muted`, `border-border` ...) |
+| `frontend/scripts/gen-tones.mjs` | `.tone-*` CSS bloklarini Tailwind palitrasidan yaratadi |
+| `frontend/components/ui/index.tsx` | Umumiy komponentlar |
+| `frontend/components/theme/*` | `ThemeProvider` (next-themes), `ThemeToggle`, `LocaleSwitcher` |
+| `frontend/i18n/request.ts`, `frontend/messages/{uz,uz-Cyrl,ru,en}.json` | next-intl: til cookie'dan, xabarlar |
+| `frontend/lib/format.ts` | Sana/son formatlash (uz — qo'lda oy nomlari; ru/en — `Intl`) |
 | `frontend/components/shell/*` | Sidebar, navigatsiya (`nav.ts`) |
-| `frontend/app/dashboard/layout.tsx` | dashboard qobig'i: sidebar + yuqori panel (🔔). Sahifalar faqat `<main>` ichini chizadi |
 
-## Ranglar
-- Fon: `ink-950` (sahifa), `ink-900` (panel), `ink-850` (karta), `ink-800` (input/hover), chegaralar `white/[0.06]`–`white/10`.
-- Aksent: `brand-cyan #22d3ee`, `brand-violet #8b5cf6`, `brand-fuchsia #d946ef`; gradient: `bg-brand-gradient`, matn: `.text-gradient`.
-- Matn: sarlavha `text-white`, asosiy `text-slate-200`, ikkinchi darajali `text-slate-400`, sokin `text-slate-500/600`.
-- Tone'lar (Badge/IconBox): `cyan sky violet fuchsia red orange amber emerald slate`.
-- Kategoriya ranglari (o'zgartirma): ransomware=red, leak=orange, telegram=sky, tg_group=violet, news=slate.
-- Holat: found=emerald, not_found=slate, error/noaniq=amber. Rang hech qachon yolg'iz ma'no tashimaydi — doim ikon + matn.
+## Tokenlar (faqat shular — `ink-*`, `slate-*`, `white/…`, `dark:` variantlar ishlatilmaydi)
+| Token | Tailwind | Ma'nosi |
+|---|---|---|
+| `--bg` | `bg-bg` | sahifa foni |
+| `--surface` | `bg-surface` | karta, panel, sidebar |
+| `--surface-2` | `bg-surface-2` | hover, input foni, ichki blok |
+| `--border`, `--border-strong` | `border-border`, `border-border-strong` | chegaralar |
+| `--fg`, `--fg-muted`, `--fg-subtle` | `text-fg`, `text-fg-muted`, `text-fg-subtle` | asosiy / ikkinchi darajali / yordamchi matn |
+| `--primary`, `--primary-fg`, `--primary-soft` | `bg-primary text-primary-fg`, `bg-primary-soft text-primary` | **yagona aksent** (tugma, havola, faol element) |
+| `--ring` | `ring-ring` | fokus halqasi |
+| `--success`, `--warning`, `--danger`, `--info` | `text-success` ... | holat ranglari |
+| `.tone-<rang>` + `--tone-fg/bg/border` | `tone-red bg-tone-bg text-tone-fg border-tone-border` | nishonlar, kategoriya/jiddiylik ranglari |
 
-## Tipografiya
-- `font-sans` (Inter), `font-mono` (JetBrains Mono) — raqamlar, ID, yorliqlar, "eyebrow" uchun.
-- Sahifa sarlavhasi `PageHeader` orqali (2xl/3xl, semibold). Eyebrow: mono, uppercase, `tracking-[0.2em]`.
-- Raqamlar: `font-mono tabular-nums`.
+Tone ranglari: `red orange amber yellow lime green emerald teal cyan sky blue indigo violet purple fuchsia pink rose slate`
+(kategoriya rangi bazadan — `categories.color`). Light: matn 700, fon 50, chegara 200; Dark: matn 300, fon 950, chegara 800 —
+ikkala temada WCAG AA kontrast.
+
+**Jiddiylik** (severity): critical=red, high=orange, medium=amber, low=sky, info=slate.
+**Manba holati**: ok=green, degraded=amber, down=red, blocked=purple, auth_missing=yellow, disabled/never_run=slate.
+Rang hech qachon yolg'iz ma'no tashimaydi — doim matn (va kerak bo'lsa ikon) bilan.
+
+### Grafiklar (Apache ECharts — `components/charts/EChart.tsx`, `lib/chartTheme.ts`)
+- Bitta yupqa o'ram: `echarts` faqat kerakli modullar bilan (`lib/echarts.ts`, SVG renderer), dinamik import — alohida bo'lak.
+  Ranglar tokenlardan o'qiladi va tema almashganda grafik qayta chiziladi.
+- **Kategorial** `--chart-1..8` (tartib qat'iy — CVD xavfsizligi shu tartibda tekshirilgan) + `--chart-other` (kulrang
+  "Boshqa"). Dataviz validatori: light (sirt #fff) — CVD ΔE ≥ 9.1, normal ≥ 19.6; dark (sirt #121826) — CVD ≥ 8.4,
+  normal ≥ 19.3, hammasi ≥ 3:1. Light'da 3 rang < 3:1 — shuning uchun **har vidjetda jadval ko'rinishi** va legenda bor.
+- Bitta grafikda ≤ 8 rang: kategoriyalar uchun barqaror to'plam (tanlangan kategoriyalar yoki eng ko'p uchraydigan 7 tasi),
+  qolgani "Boshqa". Rang entity'ga bog'langan — filtr o'zgarsa qolganlari qayta bo'yalmaydi.
+- **Ketma-ket** (issiqlik xaritasi) `--seq-1..7` — bitta ko'k ton; **ordinal** jiddiylik `--sev-info..critical` — bitta ton,
+  to'qlik bilan (validator `--ordinal` o'tgan). Holat ranglari (success/warning/danger) seriya uchun ishlatilmaydi.
+- Ustun/top-N ro'yxatlari bitta rangda (uzunlik = qiymat, nom = yorliq). Tooltip, jadval, CSV — har vidjetda.
+
+## Tema
+- `next-themes`: `attribute="class"`, standart `system`, sahifa yuklanishida "miltillash" yo'q.
+- Almashtirgich (`ThemeToggle`, 3 holat: Light / Dark / System) — yuqori panelda va login sahifasida.
+- Token qiymatlari temaga qarab o'zgaradi; komponentlarda `dark:` yozilmaydi.
+- Chop etish hisoboti (`/report/[id]`) har doim yorug' (qog'oz).
+
+## Til (i18n)
+- `next-intl`, URL'da til prefiksi yo'q. Til cookie `NEXT_LOCALE` da va `users.locale` da; birinchi tashrifda brauzer
+  tili, bo'lmasa `uz`.
+- Tillar: `uz` (lotin), `uz-Cyrl` ("Ўзбекча", kirill), `ru`, `en`. `messages/uz-Cyrl.json` qo'lda **yozilmaydi** —
+  `uz.json` dan latin.jaybi.uz dvigateli bilan generatsiya qilinadi: `python3 backend/scripts/gen_uz_cyrl_messages.py`
+  (ICU tuzilmasi, `{param}`, `<tag>`, `<code>`, URL, qisqartmalar va texnik so'zlar lotinda qoladi). `uz.json` o'zgarsa —
+  generatorni qayta ishga tushiring (`npm run test:i18n` eskirganini topadi).
+- Hamma matn `messages/{uz,uz-Cyrl,ru,en}.json` da (kalitlar to'rtala faylda bir xil — test tekshiradi). Komponentda
+  `useTranslations("namespace")`; ko'plik — ICU (`{count, plural, one {...} few {...} many {...} other {...}}`, rus tili uchun shart).
+- Sana/son: `useFormat()` (`lib/format.ts`). O'zbekcha oy nomlari qo'lda (brauzerlarda `uz-UZ` to'liq emas),
+  ru/en — `Intl`. **`toLocaleDateString("uz-UZ")` ishlatilmaydi.** Ikkala o'zbek yozuvi uchun — `isUzbek(locale)`.
+- Hodisa matni interfeys tilida (`/api/events?lang=`), "Asl matn" tugmasi bilan; kategoriya nomlari bazadan (`name_uz/ru/en`;
+  kirill — API'dagi `name_uz_cyrl`, `categoryText(c, field, locale)` orqali).
+- Backend xatolari: javobda `code` + tarjima qilingan `detail` (`Accept-Language`).
+
+## Sahifa tuzilishi (hamma sahifada bir xil)
+1. **Sarlavha** (`PageHeader title`) — nima ekanini aytadi.
+2. **Bitta gap** (`description`) — sahifa nima uchun.
+3. **Asosiy amal** (`actions`) — bitta asosiy tugma (`Button variant="primary"`), qolganlari `secondary`/`ghost`.
+4. **Kontent.**
+- Atamalar (CVE, IOC, TLP, baseline ...) uchun qisqa yordam matni yoki `title`/tooltip.
+- Bo'sh holat: **bu yerda nima paydo bo'lishini** va **hozir nega bo'shligini** aytadi (`EmptyState title + description`).
+- Yuklanish — `Skeleton`; xato — `ErrorBanner` (nima bo'ldi + nima qilish mumkin).
+- Navigatsiya: **Umumiy ko'rinish**, **Hodisalar**, **Tekshiruvlar** (username, email, telefon, domen, tarix),
+  **Admin** (faqat adminlar).
 
 ## Komponentlar (`@/components/ui`)
-`Card` (glass; `hover`, `glow`) · `Button` (`primary|secondary|ghost|danger`, `sm|md|lg`, `loading`, `icon`) · `ButtonLink` ·
-`Input` (`icon`, `mono`, `inputSize="lg"`) · `Label` · `Badge` (`tone`, `icon`) · `CategoryBadge` · `StatusBadge` ·
-`IconBox` · `PageHeader` (`icon`, `tone`, `eyebrow`, `title`, `subtitle`, `actions`) · `StatTile` · `EmptyState` ·
-`ErrorBanner` · `Spinner` · `Skeleton` · `LiveDot` · `Logo` · `timeAgo()`.
-Ikonlar: **`lucide-react`** (emoji ishlatilmaydi).
+`Card` · `Button` (`primary|secondary|ghost|danger`, `sm|md|lg`, `loading`, `icon`) · `ButtonLink` · `Input` · `Select` ·
+`Label` · `Badge` (`tone`) · `SeverityBadge` · `StatusBadge` · `IconBox` · `PageHeader` (`title`, `description`, `actions`,
+`icon`) · `StatTile` · `EmptyState` · `ErrorBanner` · `Spinner` · `Skeleton` · `Logo`.
+Ikonlar — `lucide-react` (emoji emas).
 
 ## Qoidalar
-1. Har sahifa: `PageHeader` → kontent kartalari. Bo'sh holat `EmptyState`, xato `ErrorBanner`, yuklanish `Skeleton`/`Spinner`.
-2. Kartalar orasidagi bo'shliq `gap-4`/`gap-6`; ichki padding `p-5`/`p-6`.
-3. Animatsiya: kirishda `animate-fade-in` (ro'yxatlarda `style={{animationDelay}}` bilan zinapoya), hover o'tishlari. `prefers-reduced-motion` globalda hurmat qilinadi.
-4. Responsive: 360px dan; grid'lar `sm:`/`lg:` bilan.
+1. Kirish animatsiyasi — qisqa `animate-fade-in`; hover — rang/chegara o'tishi. `prefers-reduced-motion` hurmat qilinadi.
+2. Fokus halqasi doim ko'rinadi (`focus-visible:ring-2 ring-ring`); hamma amal klaviatura bilan bajariladi
+   (tugmalar `<button>`, havolalar `<a>`, ochiladigan menyular `Esc` bilan yopiladi).
+3. Kontrast — WCAG AA (oddiy matn ≥ 4.5:1) ikkala temada.
+4. Responsive: 360px dan; gorizontal skroll yo'q (smoke-test tekshiradi).
 5. Tashqi havolalar: `target="_blank" rel="noreferrer"`.
-6. Matnlar o'zbek (lotin) tilida.
-7. Grafiklar: `docs/design-system.md` dagi ranglardan alohida — bitta qatorli grafik bitta rangda (`#3987e5`), hover tooltip, nozik chiziq, ortiqcha yorliq yo'q.
+6. Raqamlar `tabular-nums`; ID/hash/URL — `font-mono`.

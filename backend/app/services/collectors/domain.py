@@ -12,6 +12,7 @@ import dns.resolver
 import dns.reversename
 import httpx
 
+from app.core.i18n import CodedValueError, current_lang, t
 from app.services.collectors.base import BaseCollector, CollectResult
 
 # Generic User-Agent (shaxsiy ma'lumotsiz)
@@ -70,7 +71,7 @@ def _normalize(query: str) -> tuple[str, str]:
     """So'rovni normallashtiradi. ("ip"|"domain", qiymat) qaytaradi yoki ValueError."""
     s = (query or "").strip().lower()
     if not s:
-        raise ValueError("Domen yoki IP manzil kiriting")
+        raise CodedValueError("domain_query_empty")
     if "://" in s:
         s = s.split("://", 1)[1]
     elif s.startswith("//"):
@@ -79,20 +80,20 @@ def _normalize(query: str) -> tuple[str, str]:
     if "@" in s:
         s = s.rsplit("@", 1)[1]
     if not s:
-        raise ValueError("Domen yoki IP manzil topilmadi — to'g'ri qiymat kiriting")
+        raise CodedValueError("domain_not_found")
 
     host = s
     if s.startswith("["):  # [ipv6]:port
         end = s.find("]")
         if end == -1:
-            raise ValueError("IPv6 manzil formati noto'g'ri")
+            raise CodedValueError("invalid_ipv6")
         host = s[1:end]
     elif s.count(":") >= 2:  # port'siz IPv6
         host = s
     elif ":" in s:
         host, port = s.rsplit(":", 1)
         if not port.isdigit():
-            raise ValueError("Port noto'g'ri — domen yoki IP manzil kiriting")
+            raise CodedValueError("invalid_port")
 
     host = host.split("%", 1)[0]  # IPv6 zone id
     try:
@@ -102,19 +103,17 @@ def _normalize(query: str) -> tuple[str, str]:
 
     host = host.rstrip(".")
     if not host:
-        raise ValueError("Domen yoki IP manzil topilmadi — to'g'ri qiymat kiriting")
+        raise CodedValueError("domain_not_found")
     try:
         host = host.encode("idna").decode("ascii")
     except UnicodeError:
-        raise ValueError("Domen nomi noto'g'ri (IDNA/punycode xatosi)") from None
+        raise CodedValueError("invalid_idna") from None
     if (
         len(host) > 253
         or not _DOMAIN_RE.fullmatch(host)
         or not re.search(r"[a-z]", host.rsplit(".", 1)[1])
     ):
-        raise ValueError(
-            "Yaroqsiz domen yoki IP manzil (masalan: example.uz yoki 8.8.8.8)"
-        )
+        raise CodedValueError("invalid_domain")
     return "domain", host
 
 
@@ -156,11 +155,16 @@ def _txt_strings(rdata: Any) -> str:
     return b"".join(rdata.strings).decode("utf-8", "replace")
 
 
+def _t(code: str, **params: Any) -> str:
+    """Joriy so'rov tilidagi matn (contextvar)."""
+    return t(code, current_lang(), **params)
+
+
 def _err_text(exc: BaseException) -> str:
     if isinstance(exc, (dns.exception.Timeout, asyncio.TimeoutError, httpx.TimeoutException)):
-        return "vaqt tugadi"
+        return _t("c_dom_timeout")
     if isinstance(exc, (httpx.HTTPError, OSError)):
-        return "manbaga ulanib bo'lmadi"
+        return _t("c_dom_unreachable")
     return exc.__class__.__name__
 
 
@@ -196,13 +200,13 @@ def _expiry_result(domain: str, expires: str | None) -> CollectResult | None:
         return None
     days = (exp - datetime.now(timezone.utc)).days
     if days < 0:
-        detail = f"OGOHLANTIRISH: domen muddati {-days} kun oldin tugagan ({expires})"
+        detail = _t("c_dom_expired", days=-days, date=expires)
     elif days < 30:
-        detail = f"OGOHLANTIRISH: muddati tugashiga {days} kun qoldi ({expires})"
+        detail = _t("c_dom_expiring", days=days, date=expires)
     else:
-        detail = f"Muddati tugashiga {days} kun qoldi ({expires})"
+        detail = _t("c_dom_expires_in", days=days, date=expires)
     return _res(
-        "Domen muddati", "whois", domain, detail, raw={"expires": expires, "days_left": days}
+        _t("c_dom_expiry_src"), "whois", domain, detail, raw={"expires": expires, "days_left": days}
     )
 
 
@@ -410,10 +414,10 @@ class DomainCollector(BaseCollector):
             out = await asyncio.wait_for(coro, timeout)
             return out if isinstance(out, list) else [out]
         except (asyncio.TimeoutError, TimeoutError):
-            msg = "vaqt tugadi"
+            msg = _t("c_dom_timeout")
         except Exception as exc:  # bitta manba yiqilsa, qolganlari davom etadi
             msg = _err_text(exc)
-        return [_res(source, type_, value, f"Tekshirib bo'lmadi: {msg}", status="error")]
+        return [_res(source, type_, value, _t("c_dom_check_failed", msg=msg), status="error")]
 
     # ------------------------------------------------------------------ DOMEN
 
@@ -425,7 +429,7 @@ class DomainCollector(BaseCollector):
             (self._dns_spf(d), _DNS_TIMEOUT, "SPF", "dns"),
             (self._dns_dmarc(d), _DNS_TIMEOUT, "DMARC", "dns"),
             (self._whois(d, client), _WHOIS_TIMEOUT, "WHOIS / RDAP", "whois"),
-            (self._subdomains(d, client), _CRT_TIMEOUT, "Subdomenlar (CT)", "subdomain"),
+            (self._subdomains(d, client), _CRT_TIMEOUT, _t("c_dom_subs_src"), "subdomain"),
             (self._network(d), _DNS_TIMEOUT, "Hosting / ASN", "network"),
         ]
         groups = await asyncio.gather(
@@ -444,7 +448,7 @@ class DomainCollector(BaseCollector):
                 raise a
             return _res(
                 "DNS A/AAAA", "dns", d,
-                "A/AAAA yozuvi topilmadi — domen mavjud emas yoki IP manziliga ega emas",
+                _t("c_dom_addr_none"),
                 status="not_found",
             )
         parts = []
@@ -460,7 +464,7 @@ class DomainCollector(BaseCollector):
         if not hosts:
             return _res(
                 "DNS NS", "dns", d,
-                "NS yozuvi topilmadi (domen mavjud emas yoki bu subdomen)",
+                _t("c_dom_ns_none"),
                 status="not_found",
             )
         return _res("DNS NS", "dns", d, ", ".join(hosts), raw={"ns": hosts})
@@ -471,12 +475,12 @@ class DomainCollector(BaseCollector):
         if not items:
             return _res(
                 "DNS MX", "dns", d,
-                "MX yozuvi yo'q — domen pochta qabul qilmasligi mumkin",
+                _t("c_dom_mx_none"),
                 status="not_found",
             )
         return _res(
             "DNS MX", "dns", d,
-            ", ".join(f"{h} (prioritet {p})" for p, h in items),
+            ", ".join(_t("c_dom_mx_item", host=h, priority=p) for p, h in items),
             raw={"mx": [{"priority": p, "host": h} for p, h in items]},
         )
 
@@ -486,7 +490,7 @@ class DomainCollector(BaseCollector):
         if not spf:
             return _res(
                 "SPF", "dns", d,
-                "SPF yo'q — domen nomidan soxta xat yuborilishi osonroq",
+                _t("c_dom_spf_none"),
                 status="not_found",
             )
         return _res("SPF", "dns", d, spf[0], raw={"spf": spf})
@@ -497,7 +501,7 @@ class DomainCollector(BaseCollector):
         if not dm:
             return _res(
                 "DMARC", "dns", d,
-                "DMARC yo'q — domen nomidan soxta xat yuborish osonroq",
+                _t("c_dom_dmarc_none"),
                 status="not_found",
             )
         return _res("DMARC", "dns", d, dm[0], raw={"dmarc": dm})
@@ -532,7 +536,7 @@ class DomainCollector(BaseCollector):
                 return [
                     _res(
                         "WHOIS / RDAP", "whois", d,
-                        f".{tld} uchun RDAP ham, WHOIS serveri ham topilmadi",
+                        _t("c_dom_whois_no_server", tld=tld),
                         status="error",
                     )
                 ]
@@ -542,7 +546,7 @@ class DomainCollector(BaseCollector):
                 return [
                     _res(
                         "WHOIS / RDAP", "whois", d,
-                        "Domen ro'yxatdan o'tmagan (WHOIS: topilmadi)",
+                        _t("c_dom_unregistered"),
                         status="not_found",
                         raw={"via": via, "server": server},
                     )
@@ -550,13 +554,13 @@ class DomainCollector(BaseCollector):
 
         parts = []
         if info["registrar"]:
-            parts.append(f"Registrator: {info['registrar']}")
+            parts.append(_t("c_dom_registrar", v=info["registrar"]))
         if info["created"]:
-            parts.append(f"Ro'yxatdan o'tgan: {info['created']}")
+            parts.append(_t("c_dom_created", v=info["created"]))
         if info["expires"]:
-            parts.append(f"Tugaydi: {info['expires']}")
+            parts.append(_t("c_dom_expires", v=info["expires"]))
         if info["status"]:
-            parts.append("Holat: " + ", ".join(info["status"][:4]))
+            parts.append(_t("c_dom_status", v=", ".join(info["status"][:4])))
         if info["nameservers"]:
             parts.append("NS: " + ", ".join(info["nameservers"][:4]))
         raw = {
@@ -571,7 +575,7 @@ class DomainCollector(BaseCollector):
         out = [
             _res(
                 "WHOIS / RDAP", "whois", d,
-                " · ".join(parts) or "Ma'lumot topildi",
+                " · ".join(parts) or _t("c_dom_info_found"),
                 confidence=0.95,
                 raw=raw,
             )
@@ -589,16 +593,16 @@ class DomainCollector(BaseCollector):
         resp = await client.get(url, timeout=12.0)
         if resp.status_code != 200:
             return _res(
-                "Subdomenlar (CT)", "subdomain", d,
-                f"crt.sh javob bermadi (HTTP {resp.status_code})",
+                _t("c_dom_subs_src"), "subdomain", d,
+                _t("c_dom_crt_http", status=resp.status_code),
                 status="error", url=link,
             )
         try:
             rows = resp.json()
         except ValueError:
             return _res(
-                "Subdomenlar (CT)", "subdomain", d,
-                "crt.sh javobini o'qib bo'lmadi", status="error", url=link,
+                _t("c_dom_subs_src"), "subdomain", d,
+                _t("c_dom_crt_unreadable"), status="error", url=link,
             )
         names: set[str] = set()
         suffix = "." + d
@@ -612,8 +616,8 @@ class DomainCollector(BaseCollector):
         subs = sorted(names)
         if not subs:
             return _res(
-                "Subdomenlar (CT)", "subdomain", d,
-                "Sertifikat shaffofligi (CT) loglarida subdomen topilmadi",
+                _t("c_dom_subs_src"), "subdomain", d,
+                _t("c_dom_subs_none"),
                 status="not_found", url=link,
             )
         shown: list[str] = []
@@ -627,7 +631,7 @@ class DomainCollector(BaseCollector):
         if len(subs) > len(shown):
             detail += f" ... +{len(subs) - len(shown)}"
         return _res(
-            "Subdomenlar (CT)", "subdomain", f"{len(subs)} ta subdomen",
+            _t("c_dom_subs_src"), "subdomain", _t("c_dom_subs_count", n=len(subs)),
             detail, confidence=0.85, url=link, raw={"subdomains": subs[:200]},
         )
 
@@ -676,14 +680,14 @@ class DomainCollector(BaseCollector):
         if not recs:
             return _res(
                 "Hosting / ASN", "network", d,
-                "A yozuvi yo'q — hosting aniqlab bo'lmadi", status="not_found",
+                _t("c_dom_net_no_a"), status="not_found",
             )
         ip = sorted(r.address for r in recs)[0]
         info = await self._cymru(ip)
         if not info:
             return _res(
                 "Hosting / ASN", "network", d,
-                f"{ip} uchun ASN ma'lumoti topilmadi", status="not_found",
+                _t("c_dom_net_no_asn", ip=ip), status="not_found",
             )
         return _res(
             "Hosting / ASN", "network", d,
@@ -699,24 +703,24 @@ class DomainCollector(BaseCollector):
             (addr.is_loopback, "Loopback"),
             (addr.is_link_local, "Link-local"),
             (addr.is_multicast, "Multicast"),
-            (addr.is_unspecified, "Aniqlanmagan"),
-            (addr.is_private, "Xususiy (ichki) tarmoq"),
-            (addr.is_reserved, "Zaxiralangan"),
-            (not addr.is_global, "Ochiq internetda marshrutlanmaydigan"),
+            (addr.is_unspecified, _t("c_ip_unspecified")),
+            (addr.is_private, _t("c_ip_private")),
+            (addr.is_reserved, _t("c_ip_reserved")),
+            (not addr.is_global, _t("c_ip_nonglobal")),
         ]
         for flag, label in kinds:
             if flag:
                 return [
                     _res(
-                        "IP turi", "network", ip,
-                        f"{label} manzili — ochiq manbalarda ma'lumot yo'q",
+                        _t("c_ip_kind_src"), "network", ip,
+                        _t("c_ip_kind_detail", label=label),
                         status="not_found",
                     )
                 ]
         jobs = [
             (self._ptr(ip), _DNS_TIMEOUT, "Reverse DNS (PTR)", "dns"),
-            (self._ip_asn(ip), _DNS_TIMEOUT, "ASN / tarmoq", "network"),
-            (self._rdap_ip(ip, client), _WHOIS_TIMEOUT, "RDAP tarmoq", "network"),
+            (self._ip_asn(ip), _DNS_TIMEOUT, _t("c_ip_asn_src"), "network"),
+            (self._rdap_ip(ip, client), _WHOIS_TIMEOUT, _t("c_ip_rdap_src"), "network"),
         ]
         groups = await asyncio.gather(
             *(self._guard(c, t, s, ty, ip) for c, t, s, ty in jobs)
@@ -730,24 +734,24 @@ class DomainCollector(BaseCollector):
         if not hosts:
             return _res(
                 "Reverse DNS (PTR)", "dns", ip,
-                "PTR yozuvi yo'q — teskari DNS nomi belgilanmagan", status="not_found",
+                _t("c_ip_ptr_none"), status="not_found",
             )
         return _res("Reverse DNS (PTR)", "dns", ip, ", ".join(hosts), raw={"ptr": hosts})
 
     async def _ip_asn(self, ip: str) -> CollectResult:
         info = await self._cymru(ip)
         if not info:
-            return _res("ASN / tarmoq", "network", ip, "ASN ma'lumoti topilmadi", status="not_found")
-        return _res("ASN / tarmoq", "network", ip, self._asn_detail(info), raw=info)
+            return _res(_t("c_ip_asn_src"), "network", ip, _t("c_ip_asn_none"), status="not_found")
+        return _res(_t("c_ip_asn_src"), "network", ip, self._asn_detail(info), raw=info)
 
     async def _rdap_ip(self, ip: str, client: httpx.AsyncClient) -> CollectResult:
         resp = await client.get(f"https://rdap.org/ip/{ip}")
         if resp.status_code == 404:
-            return _res("RDAP tarmoq", "network", ip, "RDAP'da tarmoq topilmadi", status="not_found")
+            return _res(_t("c_ip_rdap_src"), "network", ip, _t("c_ip_rdap_404"), status="not_found")
         if resp.status_code != 200:
             return _res(
-                "RDAP tarmoq", "network", ip,
-                f"RDAP javob bermadi (HTTP {resp.status_code})", status="error",
+                _t("c_ip_rdap_src"), "network", ip,
+                _t("c_ip_rdap_http", status=resp.status_code), status="error",
             )
         data = resp.json()
         name = data.get("name")
@@ -773,16 +777,16 @@ class DomainCollector(BaseCollector):
 
         parts = []
         if name:
-            parts.append(f"Tarmoq: {name}")
+            parts.append(_t("c_ip_rdap_name", v=name))
         if rng:
-            parts.append(f"Diapazon: {rng}")
+            parts.append(_t("c_ip_rdap_range", v=rng))
         if country:
-            parts.append(f"Davlat: {country}")
+            parts.append(_t("c_ip_rdap_country", v=country))
         if org:
-            parts.append(f"Tashkilot: {org}")
+            parts.append(_t("c_ip_rdap_org", v=org))
         if not parts:
-            return _res("RDAP tarmoq", "network", ip, "RDAP'da foydali ma'lumot yo'q", status="not_found")
+            return _res(_t("c_ip_rdap_src"), "network", ip, _t("c_ip_rdap_empty"), status="not_found")
         return _res(
-            "RDAP tarmoq", "network", ip, " · ".join(parts),
+            _t("c_ip_rdap_src"), "network", ip, " · ".join(parts),
             raw={"name": name, "handle": handle, "range": rng, "country": country, "org": org},
         )

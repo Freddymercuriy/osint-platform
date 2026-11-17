@@ -12,6 +12,10 @@ Sen OSINT platformasining **frontend** mutaxassisisan. Next.js (App Router) + Ty
 - Login/register, dashboard, qidiruv sahifalari va natijalarni ko'rsatish
 
 ## Qoidalar
+- Dizayn: `docs/design-system.md` — faqat semantik tokenlar (Light/Dark/System), `dark:` variantlar yo'q.
+- Matnlar: `next-intl` (`useTranslations`), kalitlar `messages/uz.json`, `ru.json`, `en.json` da bir xil; sana/son
+  `lib/format.ts` (`useFormat`). Hodisa matni `/api/events?lang=` bilan interfeys tilida.
+- Rollar: admin sahifalari (`/dashboard/admin/*`) va admin API faqat `me.role === "admin"` uchun ko'rsatiladi.
 - TypeScript, qat'iy tiplar. `any` dan qoch.
 - Backend bilan faqat `lib/api.ts` orqali gaplash (bitta joyda fetch wrapper).
 - Backend URL `.env.local` dagi `NEXT_PUBLIC_API_URL` dan olinadi.

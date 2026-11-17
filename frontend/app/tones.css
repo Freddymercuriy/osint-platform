@@ -1,0 +1,37 @@
+/* Avtomatik yaratilgan: node scripts/gen-tones.mjs > app/tones.css — qo'lda tahrirlamang */
+.tone-red { --tone-fg: 185 28 28; --tone-bg: 254 242 242; --tone-border: 254 202 202; --tone-solid: 220 38 38; }
+.tone-orange { --tone-fg: 194 65 12; --tone-bg: 255 247 237; --tone-border: 254 215 170; --tone-solid: 234 88 12; }
+.tone-amber { --tone-fg: 180 83 9; --tone-bg: 255 251 235; --tone-border: 253 230 138; --tone-solid: 217 119 6; }
+.tone-yellow { --tone-fg: 161 98 7; --tone-bg: 254 252 232; --tone-border: 254 240 138; --tone-solid: 202 138 4; }
+.tone-lime { --tone-fg: 77 124 15; --tone-bg: 247 254 231; --tone-border: 217 249 157; --tone-solid: 101 163 13; }
+.tone-green { --tone-fg: 21 128 61; --tone-bg: 240 253 244; --tone-border: 187 247 208; --tone-solid: 22 163 74; }
+.tone-emerald { --tone-fg: 4 120 87; --tone-bg: 236 253 245; --tone-border: 167 243 208; --tone-solid: 5 150 105; }
+.tone-teal { --tone-fg: 15 118 110; --tone-bg: 240 253 250; --tone-border: 153 246 228; --tone-solid: 13 148 136; }
+.tone-cyan { --tone-fg: 14 116 144; --tone-bg: 236 254 255; --tone-border: 165 243 252; --tone-solid: 8 145 178; }
+.tone-sky { --tone-fg: 3 105 161; --tone-bg: 240 249 255; --tone-border: 186 230 253; --tone-solid: 2 132 199; }
+.tone-blue { --tone-fg: 29 78 216; --tone-bg: 239 246 255; --tone-border: 191 219 254; --tone-solid: 37 99 235; }
+.tone-indigo { --tone-fg: 67 56 202; --tone-bg: 238 242 255; --tone-border: 199 210 254; --tone-solid: 79 70 229; }
+.tone-violet { --tone-fg: 109 40 217; --tone-bg: 245 243 255; --tone-border: 221 214 254; --tone-solid: 124 58 237; }
+.tone-purple { --tone-fg: 126 34 206; --tone-bg: 250 245 255; --tone-border: 233 213 255; --tone-solid: 147 51 234; }
+.tone-fuchsia { --tone-fg: 162 28 175; --tone-bg: 253 244 255; --tone-border: 245 208 254; --tone-solid: 192 38 211; }
+.tone-pink { --tone-fg: 190 24 93; --tone-bg: 253 242 248; --tone-border: 251 207 232; --tone-solid: 219 39 119; }
+.tone-rose { --tone-fg: 190 18 60; --tone-bg: 255 241 242; --tone-border: 254 205 211; --tone-solid: 225 29 72; }
+.tone-slate { --tone-fg: 51 65 85; --tone-bg: 248 250 252; --tone-border: 226 232 240; --tone-solid: 71 85 105; }
+.dark .tone-red { --tone-fg: 252 165 165; --tone-bg: 69 10 10; --tone-border: 153 27 27; --tone-solid: 248 113 113; }
+.dark .tone-orange { --tone-fg: 253 186 116; --tone-bg: 67 20 7; --tone-border: 154 52 18; --tone-solid: 251 146 60; }
+.dark .tone-amber { --tone-fg: 252 211 77; --tone-bg: 69 26 3; --tone-border: 146 64 14; --tone-solid: 251 191 36; }
+.dark .tone-yellow { --tone-fg: 253 224 71; --tone-bg: 66 32 6; --tone-border: 133 77 14; --tone-solid: 250 204 21; }
+.dark .tone-lime { --tone-fg: 190 242 100; --tone-bg: 26 46 5; --tone-border: 63 98 18; --tone-solid: 163 230 53; }
+.dark .tone-green { --tone-fg: 134 239 172; --tone-bg: 5 46 22; --tone-border: 22 101 52; --tone-solid: 74 222 128; }
+.dark .tone-emerald { --tone-fg: 110 231 183; --tone-bg: 2 44 34; --tone-border: 6 95 70; --tone-solid: 52 211 153; }
+.dark .tone-teal { --tone-fg: 94 234 212; --tone-bg: 4 47 46; --tone-border: 17 94 89; --tone-solid: 45 212 191; }
+.dark .tone-cyan { --tone-fg: 103 232 249; --tone-bg: 8 51 68; --tone-border: 21 94 117; --tone-solid: 34 211 238; }
+.dark .tone-sky { --tone-fg: 125 211 252; --tone-bg: 8 47 73; --tone-border: 7 89 133; --tone-solid: 56 189 248; }
+.dark .tone-blue { --tone-fg: 147 197 253; --tone-bg: 23 37 84; --tone-border: 30 64 175; --tone-solid: 96 165 250; }
+.dark .tone-indigo { --tone-fg: 165 180 252; --tone-bg: 30 27 75; --tone-border: 55 48 163; --tone-solid: 129 140 248; }
+.dark .tone-violet { --tone-fg: 196 181 253; --tone-bg: 46 16 101; --tone-border: 91 33 182; --tone-solid: 167 139 250; }
+.dark .tone-purple { --tone-fg: 216 180 254; --tone-bg: 59 7 100; --tone-border: 107 33 168; --tone-solid: 192 132 252; }
+.dark .tone-fuchsia { --tone-fg: 240 171 252; --tone-bg: 74 4 78; --tone-border: 134 25 143; --tone-solid: 232 121 249; }
+.dark .tone-pink { --tone-fg: 249 168 212; --tone-bg: 80 7 36; --tone-border: 157 23 77; --tone-solid: 244 114 182; }
+.dark .tone-rose { --tone-fg: 253 164 175; --tone-bg: 76 5 25; --tone-border: 159 18 57; --tone-solid: 251 113 133; }
+.dark .tone-slate { --tone-fg: 203 213 225; --tone-bg: 2 6 23; --tone-border: 30 41 59; --tone-solid: 148 163 184; }

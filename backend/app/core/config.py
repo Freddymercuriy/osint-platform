@@ -1,19 +1,34 @@
+import ipaddress
+import os
 from datetime import UTC, datetime, timedelta, timezone
 from functools import lru_cache
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+# CORS_ALLOW_LAN=true: ichki (RFC 1918, localhost, bir so'zli / .local nomli) host'dagi frontend :3000
+LAN_ORIGIN_RE = (
+    r"^https?://(?:localhost|127\.0\.0\.1|10(?:\.\d{1,3}){3}|192\.168(?:\.\d{1,3}){2}"
+    r"|172\.(?:1[6-9]|2\d|3[01])(?:\.\d{1,3}){2}"
+    r"|[A-Za-z0-9-]+(?:\.local)?):3000$"
+)
+
+# .env.example va kod ichidagi standart qiymatlar — production'da ishga tushishga yo'l qo'yilmaydi
+INSECURE_SECRET_KEYS = frozenset({"change-me", "change-me-to-a-long-random-string", "secret", ""})
 
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        # Testlar haqiqiy .env (Telegram, kalitlar) ni o'qimasligi uchun yo'lni almashtirish mumkin
+        env_file=os.getenv("OSINT_ENV_FILE", ".env"),
         env_file_encoding="utf-8",
         extra="ignore",
         env_ignore_empty=True,  # "TG_API_ID=" kabi bo'sh qiymatlar → default (None)
     )
 
     app_name: str = "OSINT Platform"
-    environment: str = "development"
+    environment: str = "development"  # development | production | test
     debug: bool = True
 
     database_url: str = "postgresql+asyncpg://osint:osint@localhost:5432/osint"
@@ -23,7 +38,15 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     algorithm: str = "HS256"
 
+    # Rollar: shu manzillar admin bo'ladi (vergul bilan). Bo'sh bo'lsa — eng eski faol foydalanuvchi.
+    admin_emails: str = ""
+    # Ochiq ro'yxatdan o'tish. Berilmasa: development'da yoqiq, boshqa muhitda o'chiq.
+    registration_open: bool | None = None
+
     cors_origins: str = "http://localhost:3000"
+    # true — ichki tarmoq manzillaridagi frontend (:3000) ham ruxsat oladi: localhost, 192.168.x.x, 10.x.x.x,
+    # 172.16–31.x.x, kompyuter-nomi(.local). LAN'dan istalgan manzil bilan ochish uchun.
+    cors_allow_lan: bool = False
 
     # Telegram user API (my.telegram.org → API development tools)
     tg_api_id: int | None = None
@@ -32,7 +55,12 @@ class Settings(BaseSettings):
     # Qaysi chatlarni o'qish: bo'sh = a'zo bo'lgan barcha kanal/guruhlar,
     # yoki vergul bilan: "kanal_username,-1001234567890"
     tg_chats: str = ""
-    tg_dialog_limit: int = 100  # nechta dialogni ko'rib chiqish
+    tg_dialog_limit: int = 100  # asosiy ro'yxatdan nechta dialogni ko'rib chiqish
+    # true — Telegram "Arxiv" papkasidagi barcha kanal/guruhlar ham kuzatiladi: har biri uchun alohida manba avtomatik
+    # yaratiladi (yangi arxivlanganlari ham, ~soatiga bir tekshiruv). O'chirib qo'yilgan (disabled) manba qayta
+    # yoqilmaydi (services/events/telegram_archive.py).
+    tg_monitor_archived: bool = False
+    tg_archive_limit: int = 500  # arxivdan nechta dialogni ko'rib chiqish
     tg_messages_per_chat: int = 30  # har chatdan nechta so'nggi xabar
     tg_uz_filter: bool = True  # faqat O'zbekistonga oid xabarlar
     tg_extra_keywords: str = ""  # qo'shimcha kalit so'zlar, vergul bilan
@@ -40,7 +68,6 @@ class Settings(BaseSettings):
 
     # Fon yig'uvchi (Events)
     events_poll_enabled: bool = True
-    events_poll_seconds: int = 300  # har necha soniyada yig'ish
     # Ogohlantirish: shu kategoriyalardagi yangi hodisalar saytdagi 🔔 da ko'rsatiladi.
     # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi.
     notify_telegram: bool = False
@@ -52,6 +79,58 @@ class Settings(BaseSettings):
     # Boshlanish sanasi: shundan OLDINGI hodisalar (barcha kategoriyalar) yig'ilmaydi va bazadan o'chiriladi.
     # "2026-11-14" (kun boshi, Toshkent vaqti UTC+5) yoki to'liq ISO vaqt. Bo'sh = chegara yo'q.
     events_since: str = ""
+
+    # Tashqi manbalar kalitlari (bo'sh — manba `auth_missing` holatida o'chiq turadi). Manba yozuvida faqat
+    # o'zgaruvchi NOMI saqlanadi (`sources.api_key_env`), qiymat — shu yerda / muhitda.
+    ransomware_live_api_key: str | None = None
+    abusech_auth_key: str | None = None
+    otx_api_key: str | None = None
+    nvd_api_key: str | None = None
+    cloudflare_api_token: str | None = None
+
+    # Rate limiting (jarayon xotirasida): urinishlar soni / oyna (soniya)
+    rate_limit_enabled: bool = True
+    login_rate_ip: int = 20  # bitta IP dan 15 daqiqada
+    login_rate_email: int = 10  # bitta email uchun 15 daqiqada
+    login_rate_window: int = 900
+    search_rate: int = 30  # tekshiruvlar: foydalanuvchi boshiga daqiqada
+    search_rate_window: int = 60
+    refresh_rate: int = 5  # qo'lda yig'ish: foydalanuvchi boshiga 10 daqiqada
+    refresh_rate_window: int = 600
+    # Ishonchli reverse proxy'lar (IP yoki CIDR, vergul bilan). Faqat so'rov shulardan kelsa `X-Forwarded-For`
+    # o'qiladi (o'ngdan birinchi ishonchsiz manzil = mijoz). Bo'sh — sarlavha e'tiborsiz (to'g'ridan-to'g'ri ulanish).
+    trusted_proxies: str = ""
+
+    # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
+    app_timezone: str = "Asia/Tashkent"
+
+    # Manba shuncha soat davomida down/blocked bo'lsa — adminlarga ogohlantirish
+    source_down_alert_hours: int = 3
+
+    # Tarjima — o'z NLLB servisimiz (facebook/nllb-200, FLORES-200 kodlari, kalitsiz). Bo'sh URL — tarjimalar "pending".
+    translate_api_url: str = "https://translate.deepcore.uz"
+    translate_timeout_seconds: float = 30.0
+    translate_enabled: bool = True
+    # Oylik belgilar chegarasi; 0 — chegarasiz (o'z servisimiz, to'lov yo'q). Hisob statistika uchun baribir yuritiladi.
+    translate_monthly_char_limit: int = 0
+
+    @property
+    def is_development(self) -> bool:
+        return self.environment.lower() in ("development", "dev", "local", "test")
+
+    @property
+    def registration_allowed(self) -> bool:
+        if self.registration_open is not None:
+            return self.registration_open
+        return self.is_development
+
+    @property
+    def admin_emails_list(self) -> list[str]:
+        return [e.strip().lower() for e in self.admin_emails.split(",") if e.strip()]
+
+    @property
+    def secret_key_is_default(self) -> bool:
+        return self.secret_key in INSECURE_SECRET_KEYS or len(self.secret_key) < 32
 
     @property
     def notify_categories_list(self) -> list[str]:
@@ -86,6 +165,19 @@ class Settings(BaseSettings):
     @property
     def tg_extra_keywords_list(self) -> list[str]:
         return [k.strip().lower() for k in self.tg_extra_keywords.split(",") if k.strip()]
+
+    @field_validator("trusted_proxies")
+    @classmethod
+    def _check_trusted_proxies(cls, value: str) -> str:
+        """Noto'g'ri IP/CIDR — ishga tushishdayoq xato (birinchi login so'rovida emas)."""
+        for part in value.split(","):
+            if part.strip():
+                ipaddress.ip_network(part.strip(), strict=False)
+        return value
+
+    @property
+    def cors_origin_regex(self) -> str | None:
+        return LAN_ORIGIN_RE if self.cors_allow_lan else None
 
     @property
     def cors_origins_list(self) -> list[str]:

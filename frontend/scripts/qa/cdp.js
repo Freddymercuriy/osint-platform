@@ -110,6 +110,19 @@ async function run(fn) {
       async viewport(width, height, mobile = false) {
         await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: mobile ? 2 : 1, mobile });
       },
+      /** Tema (next-themes localStorage "theme"): light | dark | system */
+      async theme(value) {
+        if (p._themeScript) await send("Page.removeScriptToEvaluateOnNewDocument", { identifier: p._themeScript });
+        const r = await send("Page.addScriptToEvaluateOnNewDocument", {
+          source: `try{localStorage.setItem('theme', ${JSON.stringify(value)})}catch(e){}`,
+        });
+        p._themeScript = r.identifier;
+      },
+      /** Interfeys tili — next-intl cookie'si (server tomonda o'qiladi) */
+      async locale(value, base) {
+        await send("Network.enable");
+        await send("Network.setCookie", { name: "NEXT_LOCALE", value, url: base });
+      },
       /** JWT'ni har bir sahifa yuklanishidan oldin localStorage'ga qo'yadi */
       async token(tok) {
         await send("Page.addScriptToEvaluateOnNewDocument", {
