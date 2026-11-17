@@ -107,7 +107,11 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   Jonli: 28 ta manba baseline'ni 03:38–04:01 UTC da tugatdi — 541 global (hammasi baseline, 🔔 yo'q) + 4 regional;
   `/api/events/status` → `failing_total=3` (Google News (RU) — 429; 2 ta Telegram chat — "Chat topilmadi yoki akkaunt
   a'zo emas": SecurelyContactingAZRAEL, crackedstatusupdate). The Record RSS'da `pubDate` ertangi (18-noyabr 01:20 GMT) —
-  manbaning o'zi; lenta tepasida turib qoladi (cheklash — `docs/tasks.md` ⬜).
+  manbaning o'zi; lenta tepasida turib qolardi — pastdagi tuzatish bilan hal qilindi. To'liq pytest (3a67b8d) — hammasi o'tdi.
+- **Kelajak sanasi cheklanadi** (foydalanuvchi: *"yes, cap future dates"*): `pipeline.store_items` — `published > now`
+  bo'lsa `published = now` (yig'ish vaqti), asl sana `extra.published_original`. Migratsiya `0015_cap_future_published`
+  mavjudlarini tuzatdi (`published > first_seen` → `first_seen`; jonli bazada 1 ta — The Record "Uber ... 150,000",
+  endi 03:41 UTC); downgrade asl sanani qaytaradi. Test: `test_future_published.py`.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

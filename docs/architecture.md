@@ -73,6 +73,7 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline
   (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi. Global manbaning
   (xalqaro kiber-saytlar — 0014, NewsNow) Markaziy Osiyo belgisi bor elementi `regional` bo'ladi (`filters.region_hits`).
+  Kelajak sanasi (`published > now`) yig'ish vaqti bilan cheklanadi, asl sana — `extra.published_original` (0015).
 - Events holat qatori (`/api/events/status`): `failing` — yoqilgan down/blocked manbalar (nom, sabab, keyingi urinish);
   yig'uvchining o'zi bilan aralashtirilmaydi. HTTP xatolari: `http.http_error_text` (5xx, Cloudflare 52x izohi).
 - Telegram: har kuzatiladigan chat — alohida `telegram_user` manbasi (`{"chat": username yoki -100id}`); dialoglar

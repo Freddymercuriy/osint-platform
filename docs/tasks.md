@@ -97,7 +97,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ NewsNow ulagichi (`newsnow`) + "NewsNow: Cyber Attacks" manbasi (o'chiq, admin yoqadi; scope `global`)
 - ✅ Xalqaro kiber-saytlar → Global (migratsiya `0014`, hudud filtrisiz; Markaziy Osiyo haqidagisi baribir regional)
 - ✅ Ishlamayotgan manbalar Events'da nomi va sababi bilan (`failing`, HTTP 5xx / Cloudflare 52x izohlari)
-- ⬜ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` ni `now` bilan cheklash (qaror kutilmoqda)
+- ✅ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` yig'ish vaqti bilan cheklanadi (`0015`)
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish

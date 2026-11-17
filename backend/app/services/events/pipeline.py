@@ -144,6 +144,11 @@ async def store_items(
             continue
         slug, classified = categorize(item, fixed.slug if fixed else None, compiled, known)
         when = aware(item.published, now)
+        if when > now:
+            # Kelajak sanasi (masalan, The Record RSS'da ertangi pubDate) — yig'ish vaqti bilan cheklanadi,
+            # aks holda yozuv sanasi kelguncha lenta tepasida turib qoladi. Asl sana extra'da qoladi.
+            item.extra = {**item.extra, "published_original": when.isoformat()}
+            item.published = when = now
         if since and when < since:
             stats.expired += 1
             continue
