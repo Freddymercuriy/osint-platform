@@ -112,6 +112,13 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   bo'lsa `published = now` (yig'ish vaqti), asl sana `extra.published_original`. Migratsiya `0015_cap_future_published`
   mavjudlarini tuzatdi (`published > first_seen` → `first_seen`; jonli bazada 1 ta — The Record "Uber ... 150,000",
   endi 03:41 UTC); downgrade asl sanani qaytaradi. Test: `test_future_published.py`.
+- **Telegram: chegaradan tashqaridagi chatlar** — foydalanuvchi SecurelyContactingAZRAEL va crackedstatusupdate ga qo'shildi,
+  lekin xato qolaverdi: akkauntda 698 dialog, bu ikkisi 117- va 138-o'rinda (Telegram tartibi — oxirgi xabar sanasi;
+  kam yoziladigan kanal pastda), yig'uvchi esa birinchi `TG_DIALOG_LIMIT=100` tasini ko'radi. Tuzatish:
+  `telegram_user._resolve_joined_chat` — dialoglarda topilmasa username / ID bo'yicha aniqlanadi (avval sessiya keshi,
+  so'ng `get_entity`), faqat a'zo bo'lingan kanal/guruh (`left`/bot/shaxsiy — rad), natija `_dialog_cache` ga.
+  Jonli: ikkala manba `ok` (AZRAEL — 1 ta mos xabar). Test: `test_telegram_resolve.py`.
+  ⚠️ Admin chat tanlash ro'yxati (`/api/telegram/chats`) hali ham faqat birinchi 100 dialogni ko'rsatadi.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

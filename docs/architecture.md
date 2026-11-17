@@ -78,6 +78,8 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   yig'uvchining o'zi bilan aralashtirilmaydi. HTTP xatolari: `http.http_error_text` (5xx, Cloudflare 52x izohi).
 - Telegram: har kuzatiladigan chat — alohida `telegram_user` manbasi (`{"chat": username yoki -100id}`); dialoglar
   asosiy ro'yxat (`TG_DIALOG_LIMIT`) va "Arxiv" papkasidan (folder 1, `TG_ARCHIVE_LIMIT`) o'qiladi.
+  Shu chegaradan tashqaridagi chat (ro'yxat oxirgi xabar sanasi bo'yicha — kam yoziladigan kanal pastda) username / ID
+  bo'yicha to'g'ridan-to'g'ri aniqlanadi (`_resolve_joined_chat`), faqat akkaunt a'zo bo'lsa.
   `TG_MONITOR_ARCHIVED=true` — `services/events/telegram_archive.py` arxivdagi har kanal/guruh uchun manba yaratadi
   (housekeeping'da, soatiga bir; mavjud yoki o'chirib qo'yilgan manbaga tegmaydi; `state.origin = "archive"`).
 - NewsNow: `connectors/newsnow.py` — mavzu sahifasi (`config.url`, faqat newsnow.com / newsnow.co.uk, so'rov

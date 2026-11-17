@@ -105,14 +105,20 @@ class TgMessage:
         return f"https://t.me/c/{internal}/{self.msg_id}"
 
 
+def _entity_kind(ent) -> str | None:
+    """"channel" | "group"; shaxsiy suhbatlar (user/bot) — None (o'qilmaydi)."""
+    if isinstance(ent, Channel):
+        return "group" if ent.megagroup else "channel"
+    if isinstance(ent, Chat):
+        return "group"
+    return None
+
+
 def _chat_info(dialog, archived: bool = False) -> ChatInfo | None:
     ent = dialog.entity
-    if isinstance(ent, Channel):
-        kind = "group" if ent.megagroup else "channel"
-    elif isinstance(ent, Chat):
-        kind = "group"
-    else:
-        return None  # shaxsiy suhbatlar (user/bot) o'qilmaydi
+    kind = _entity_kind(ent)
+    if kind is None:
+        return None
     return ChatInfo(
         id=dialog.id,
         title=dialog.name or "?",
@@ -200,6 +206,26 @@ async def _dialog_map(force: bool = False) -> dict[str, tuple[object, ChatInfo]]
     return out
 
 
+async def _resolve_joined_chat(key: str) -> tuple[object, ChatInfo] | None:
+    """Dialoglar ro'yxatining birinchi `TG_DIALOG_LIMIT` tasida yo'q chat. Telegram ro'yxatni oxirgi xabar sanasi
+    bo'yicha tartiblaydi — kam yoziladigan kanal (yangi qo'shilgan bo'lsa ham) pastda qoladi. Username / ID bo'yicha
+    to'g'ridan-to'g'ri aniqlanadi (avval sessiya keshidan); akkaunt a'zo bo'lmasa yoki bu shaxsiy suhbat / bot
+    bo'lsa — None."""
+    from telethon import errors, utils
+
+    client = await get_client()
+    try:
+        peer = await client.get_input_entity(int(key) if key.lstrip("-").isdigit() else key)
+        ent = await client.get_entity(peer)
+    except (ValueError, errors.UsernameInvalidError, errors.UsernameNotOccupiedError, errors.ChannelPrivateError):
+        return None
+    kind = _entity_kind(ent)
+    if kind is None or getattr(ent, "left", False) or getattr(ent, "deactivated", False):
+        return None
+    return ent, ChatInfo(id=utils.get_peer_id(ent), title=utils.get_display_name(ent) or "?",
+                         username=getattr(ent, "username", None), kind=kind)
+
+
 async def fetch_chat_messages(chat: str, limit: int, min_id: int = 0) -> list[TgMessage]:
     """Bitta kanal/guruhdan so'nggi xabarlar (`min_id` dan keyingilari). `chat` — username yoki ID (-100...).
 
@@ -209,6 +235,8 @@ async def fetch_chat_messages(chat: str, limit: int, min_id: int = 0) -> list[Tg
     found = (await _dialog_map()).get(key)
     if found is None:
         found = (await _dialog_map(force=True)).get(key)
+    if found is None and (found := await _resolve_joined_chat(key)) is not None:
+        _dialog_cache[key] = _dialog_cache[str(found[1].id)] = found  # keyingi yig'ishlar keshdan (TTL gacha)
     if found is None:
         raise ValueError(f"Chat topilmadi yoki akkaunt a'zo emas: {chat}")
     entity, info = found

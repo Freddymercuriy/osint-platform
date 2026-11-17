@@ -98,6 +98,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Xalqaro kiber-saytlar → Global (migratsiya `0014`, hudud filtrisiz; Markaziy Osiyo haqidagisi baribir regional)
 - ✅ Ishlamayotgan manbalar Events'da nomi va sababi bilan (`failing`, HTTP 5xx / Cloudflare 52x izohlari)
 - ✅ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` yig'ish vaqti bilan cheklanadi (`0015`)
+- ✅ Telegram: dialoglar chegarasidan (`TG_DIALOG_LIMIT`) tashqaridagi a'zo bo'lingan chatlar ham o'qiladi
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish
