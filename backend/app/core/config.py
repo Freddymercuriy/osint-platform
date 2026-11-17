@@ -69,7 +69,8 @@ class Settings(BaseSettings):
     # Fon yig'uvchi (Events)
     events_poll_enabled: bool = True
     # Ogohlantirish: shu kategoriyalardagi yangi hodisalar saytdagi 🔔 da ko'rsatiladi.
-    # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi.
+    # notify_telegram=True bo'lsa, qo'shimcha ravishda Telegram "Saved Messages" ga ham yuboriladi (ESKI yo'l —
+    # yig'uvchi Telethon akkaunti orqali; rahbariyat kanali uchun pastdagi bot / publisher ishlatiladi).
     notify_telegram: bool = False
     notify_categories: str = "leak,ransomware"
     # Retention: shu kundan eski hodisalar bazadan o'chiriladi (0 = o'chirilmaydi).
@@ -100,6 +101,14 @@ class Settings(BaseSettings):
     # Ishonchli reverse proxy'lar (IP yoki CIDR, vergul bilan). Faqat so'rov shulardan kelsa `X-Forwarded-For`
     # o'qiladi (o'ngdan birinchi ishonchsiz manzil = mijoz). Bo'sh — sarlavha e'tiborsiz (to'g'ridan-to'g'ri ulanish).
     trusted_proxies: str = ""
+
+    # Rahbariyat Telegram kanali (alohida bot, Bot API). Token MAXFIY: logga, bazaga, API javoblariga tushmaydi.
+    # Bo'sh — barcha kanallar faqat dry-run (postlar tayyorlanadi, Telegram'ga yuborilmaydi).
+    tg_bot_token: str | None = None
+    publisher_enabled: bool = True  # false — publisher (rejalashtiruvchi, yuboruvchi, poller) butunlay o'chiq
+    publisher_translation_wait_minutes: int = 10  # kanal tilidagi tarjimani kutish, keyin asl matn izoh bilan
+    # Platformaning tashqi manzili (https://...). Bo'sh — postlarda "Platformada ochish" tugmasi yo'q (LAN'da ishlaydi).
+    public_app_url: str = ""
 
     # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
     app_timezone: str = "Asia/Tashkent"

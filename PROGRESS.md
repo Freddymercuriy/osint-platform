@@ -18,6 +18,18 @@ GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi ta
 - Sxema endi **Alembic** bilan: konteyner ishga tushganda `scripts/start.sh` → `scripts/migrate.py` (`upgrade head`).
   Qo'lda: `docker-compose exec backend python scripts/migrate.py [downgrade -1]`.
 
+### Rahbariyat Telegram kanali — davom ettirish nuqtasi (2026-11-17 dan)
+- Ish **`feat/telegram-channel`** tarmog'ida (`feat/v2-upgrade` dan; merge qilinmaydi, force-push yo'q — egasi kanalni
+  ko'rgandan keyin o'zi merge qiladi). Spetsifikatsiya: [`docs/telegram-channel-spec.md`](docs/telegram-channel-spec.md)
+  — har bosqich boshida qayta o'qing; bosqichlar ro'yxati — `docs/tasks.md` ("Rahbariyat Telegram kanali").
+- Baza nusxasi (birinchi migratsiyadan oldin): `~/osint-backups/osint-pre-channel-20261117-164127.sql` (to'liq `pg_dump`).
+- Qoidalar: post faqat **alohida bot** bilan (Bot API, `TG_BOT_TOKEN` — faqat `backend/.env`; Telethon akkaunti bilan
+  hech qachon); token log / baza / API javobi / xato matniga tushmaydi (`publisher/bot.py::redact`); har yangi kanal
+  `dry_run` da boshlanadi; egasi o'zi o'zgartirmaguncha haqiqiy xabar faqat `is_test` kanalga.
+- Orqaga qaytish (`feat/v2-upgrade` ga): avval `docker-compose exec backend python scripts/migrate.py downgrade
+  0017_leak_rules`, keyin `git checkout feat/v2-upgrade` (start.sh topgan head'gacha ko'taradi, v2 kodi yangi
+  reviziyalarni bilmaydi).
+
 ### Ishga tushirish (shu kompyuterda)
 ```bash
 docker-compose up -d                      # db + backend + frontend (production build); restart: unless-stopped —
@@ -46,6 +58,25 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 # frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### Rahbariyat kanali — Bosqich 0: poydevor (2026-11-17)
+- Tarmoq `feat/telegram-channel`, baza nusxasi (yuqorida), spetsifikatsiya `docs/telegram-channel-spec.md` (o'zgarishsiz).
+- Sozlamalar (`core/config.py`, `.env.example`): `TG_BOT_TOKEN` (bo'sh — faqat dry-run), `PUBLISHER_ENABLED=true`,
+  `PUBLISHER_TRANSLATION_WAIT_MINUTES=10`, `PUBLIC_APP_URL` (bo'sh — "Platformada ochish" tugmasi yo'q).
+  `NOTIFY_TELEGRAM` hujjatlarda "eski (legacy)" deb belgilandi (o'zgarmadi).
+- `services/publisher/bot.py` — httpx ustida Bot API mijozi (getMe, getWebhookInfo, getUpdates, getChat, getChatMember,
+  sendMessage, sendPhoto (multipart), editMessageText, editMessageReplyMarkup, deleteMessage, answerCallbackQuery).
+  `raise_for_status` yo'q — javob JSON'idan `ok/error_code/description/parameters`. Xato turlari: `BotRateLimited`
+  (`retry_after`), `BotUnauthorized` (401/404), `BotForbidden` (403), `BotBadRequest` (`is_parse_error`,
+  `chat_not_found`, `too_long`, `not_modified`, `message_gone`), `BotConflict` (409), `BotNetworkError` (tarmoq,
+  timeout, 5xx, JSON emas), `BotTokenMissing`. Token: `redact()` har xato matnida, httpx istisnosi zanjirsiz
+  (`from None`), `httpx` / `httpcore` / `osint.publisher` loggerlariga yashiruvchi filtr (httpx INFO satri URL'ni token
+  bilan yozadi).
+- Bot API hujjati 2026-11-17 da o'qildi: versiya **10.4** (2026-11-09; spetsifikatsiyada 10.3). Farqlar: `my_chat_member`
+  standart keladi; 409 Conflict hujjatda yozilmagan (himoyaviy ishlov); `sendRichMessage` bor — ishlatilmaydi.
+- **Tekshirildi:** `test_publisher_bot.py` (13 test: so'rov shakli, multipart, 8 xato turi + 2 tarmoq xatosi — token
+  xato matni, repr, traceback va loglarda yo'q); to'liq pytest; backend qayta ishga tushdi.
+  **Tekshirilmadi:** haqiqiy Telegram (token yo'q).
 
 ### 2026-11-14, 2-sessiya davomi (Bosqich 12: Markaziy Osiyo + kiber/leak filtri, "bugundan boshlab")
 Foydalanuvchi talabi: *"yangiliklar bugundan boshlab ko'rsatilsin, eskilari kerak emas; mazmuni kiberxavfsizlik yoki data leak

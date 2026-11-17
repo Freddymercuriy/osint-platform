@@ -106,6 +106,19 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ⬜ Telegram Global oqimini kuzatish: shovqinli kanallar (BugAlerts ~300/kun) — kerak bo'lsa admin'da o'chirish yoki regional'ga qaytarish
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
+## Rahbariyat Telegram kanali (`feat/telegram-channel`, spetsifikatsiya: `docs/telegram-channel-spec.md`)
+- ✅ Bosqich 0 — Poydevor: tarmoq, baza nusxasi, sozlamalar (`TG_BOT_TOKEN`, `PUBLISHER_*`, `PUBLIC_APP_URL`),
+  Bot API mijozi (`services/publisher/bot.py`) — xato turlari, tokenni yashirish
+- ⬜ Bosqich 1 — Ustuvorlik: ball / band / sabablar, manba ishonchliligi, kuzatuv ro'yxati (watchlist), energetika va
+  transport sohalari, qayta hisoblash, Events'da belgi va filtr
+- ⬜ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state`
+- ⬜ Bosqich 3 — Post ko'rinishi: tezkor xabar, guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, 4 til
+- ⬜ Bosqich 4 — Rejalashtiruvchi, yuboruvchi, tasdiqlash (review chat), bot yangilanishlari (long polling)
+- ⬜ Bosqich 5 — Admin: "Kanal" bo'limi (umumiy holat, manzillar, navbat / tarix, kuzatuv ro'yxati, ball + simulyatsiya,
+  ko'rinish), Events'da "Kanalga yuborish"
+- ⬜ Bosqich 6 — Kalibrlash (14 kun dry-run), test kanalida barcha post turlari, `docs/telegram-channel.md`
+- ⬜ Bosqich 7 — Mustahkamlash, hujjatlar, orqaga qaytarish (rollback) yo'riqnomasi
+
 ## Keyingi — Kengaytirish
 - ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash
 - ✅ Events eksporti — CSV / JSON, joriy filtrlar bilan (`GET /api/events/export`, ≤5000, formula himoyasi)
