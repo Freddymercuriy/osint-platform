@@ -39,6 +39,21 @@ async def compiled(db):
     ("Kazakhstan-Linked Hackers Use AI Agents to Steal Tajikistan Government Documents", "", "espionage"),
     ("2,000 documents related to Tajikistan's security stolen: Who is behind the cyberattack?", "", "leak"),
     ("Mirobod tumanida xalqaro kiberjinoiy guruhlar foş etildi – 72 kişi qölga olindi", "", "law-enforcement"),
+    # 0017: Dark Web Intelligence / yangiliklar — avval "other" da qolib, 🔔 bermagan
+    ('🇬🇳 🚨 GUINEA — CENTRAL BANK HACKER POSTS "ACT 2": 2.8GB SYRIF DATABASE, 8.3M RECORDS', "", "leak"),
+    ("Infoblox confirms a third-party vendor breach.", "", "leak"),
+    ("🇦🇺 🚨 AUSTRALIA: SELLER CLAIMS 11M OPTUS CUSTOMER RECORDS FOR $46,000", "", "leak"),
+    ('🇺🇸 🚨 USA: SELLER CLAIMS 40M-RECORD "DME USA WIRELESS" CONSUMER DATABASE', "", "leak"),
+    ("🇫🇷 🚨 FRANCE: 44,080-MEMBER DATABASE OF SCOUTING GROUP EEDF CLAIMED ON CYBERCRIME FORUM", "", "leak"),
+    ("Amadeus breach compromises 116,000 Finnair bookings", "", "leak"),
+    ("Vendor incident update", "The Register reports that stolen SharePoint data included config snapshots.", "leak"),
+    # ...lekin ransomware o'z kategoriyasida qoladi, "breach" so'zi bo'lmagan matnlar sizish emas
+    ("Vanderbilt University Takes Systems Offline After Cyber Incident",
+     "The BYOD ransomware group has claimed to have locked the university's databases and stolen sensitive data", "ransomware"),
+    ("🇮🇳 🚨 CLIMAX RANSOMWARE GROUP CLAIMS PEERLESS HOSPITAL IN KOLKATA, INDIA",
+     "The Climax ransomware group has added Peerless Hospital to its data-leak site", "ransomware"),
+    ("Military-linked Chinese university bought Nvidia H200 chips despite US blacklist, records show", "", "other"),
+    ("Hey there Mario, and welcome to Breachforums Databases v2! How are you?", "", "other"),
 ])
 async def test_classifier_examples(compiled, title, summary, expected):
     assert classify(title, summary, compiled).slug == expected
@@ -239,3 +254,23 @@ async def test_reclassify_keeps_connector_severity_floor(client, admin_headers, 
     assert r.json()["severity_changed"] == 0
     await db.refresh(e)
     assert e.severity == "high"
+
+
+def test_0017_rule_merge_keeps_admin_edits_and_is_reversible():
+    import importlib.util
+    from pathlib import Path
+
+    path = Path(__file__).resolve().parent.parent / "migrations" / "versions" / "0017_leak_rules.py"
+    spec = importlib.util.spec_from_file_location("m0017", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    admin = {"stems": {"en": ["leaked", "breach "], "ru": ["слив"]}, "patterns": ["admin-rx"], "weight": 1.1}
+    add = mod.ADDITIONS["leak"]
+    merged = mod._merge(admin, add, remove=False)
+    assert merged["stems"]["en"][:2] == ["leaked", "breach "] and merged["stems"]["en"].count("breach ") == 1
+    assert merged["stems"]["ru"] == ["слив"] and merged["weight"] == 1.1
+    assert merged["patterns"][0] == "admin-rx" and set(add["patterns"]) <= set(merged["patterns"])
+    assert mod._merge(merged, add, remove=False) == merged  # takroriy upgrade — o'zgarishsiz
+    back = mod._merge(merged, add, remove=True)
+    assert back["stems"]["en"] == ["leaked"] and back["patterns"] == ["admin-rx"]  # admin bandlari qoladi
+    validate_rules(merged)

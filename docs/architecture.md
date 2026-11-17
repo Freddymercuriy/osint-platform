@@ -101,6 +101,8 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - Kalit so'zlar va regexlar kodda: `services/events/feeds.py` (hudud, mavzu, chet el belgilari), `dedup.py`, `geo.py`.
 - Kategoriyalar: `categories` (15 ta, en/ru/uz, jiddiylik, rang, ikon, notify, saqlash muddati, `rules`) —
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).
+  Qoidalar bazada (admin tahrirlaydi); migratsiya ularni ustidan yozmaydi — faqat yo'q band qo'shadi (masalan
+  `0017`: leak — yolg'iz "breach", yozuvlar soni / hajm, dark web / forum).
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
   navbat (`worker.py`: kesh, oylik chegara — 0 = chegarasiz, qayta urinish; 422 / noma'lum til — darhol `failed`).
   Provayder — o'z NLLB servisimiz (`translator.py`, `TRANSLATE_API_URL`, kalitsiz): ISO kod → FLORES-200

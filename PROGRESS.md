@@ -154,6 +154,20 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   `sources`, `global_sources` (yoqilgan `telegram_user` manbalari); belgi: "43 ta chat · Global: 43"; admin →
   Tizim → Telegram kartasida ham ikki yangi qator. Test: `test_telegram_resolve.py`.
   ⚠️ Ma'lum: manba xato matni (`last_error`) bazada o'zbek lotinida — kirill/rus interfeysda lotin ko'rinadi.
+- **Sizish (leak) qoidalari kengaytirildi** (`0017_leak_rules`; foydalanuvchi: *"yes fix the leak rules"*).
+  Sabab: `@dailydarkweb` ("TG: Dark Web Intelligence") va yangiliklardagi sizishlar "other" da qolib, 🔔 bermagan —
+  "Infoblox confirms a third-party vendor breach", "GUINEA ... 2.8GB DATABASE, 8.3M RECORDS" (ball 0). Bo'shliqlar:
+  yolg'iz "breach" (faqat "breached" / "data breach" bor edi), yozuvlar soni / hajm ("8.3M records", "40M-record",
+  "2.8GB database"), "stolen ... data" (eski pattern "stole " dan keyin bo'shliq kutardi), "customer / member /
+  consumer database", "citizen data", "data dump / theft / exposure", "data ... on dark web / cybercrime forum".
+  Ransomware: "ransomware group/gang/operators" pattern — "ransomware group ... stolen data" maqolasi leak'ka o'tmaydi.
+  Qoidalar ustidan yozilmaydi (admin tahrirlari saqlanadi) — faqat yo'q stem / pattern qo'shiladi; downgrade aynan
+  shularni olib tashlaydi. Hodisalar: faqat shu o'zgarish ta'sir qilganlari (eski qoidalar saqlangan kategoriyani
+  bergan) ko'chiriladi, oldingisi `extra.category_before_0017` da. Jonli: **42 ta → leak** (other 30, credentials 4,
+  vulnerability 3, fraud 2, malware 2, darkweb-sale 1; ransomware'dan 0); 34 tasi baseline (🔔 yo'q), 8 tasi 🔔
+  ro'yxatida, yangi o'qilmagan 0. Muhim topilma: #1262 "Qozog'iston Oliy sudi ma'lumotlari darknetda $50 000" —
+  regional, avval "other". Chegaraviy (~6): "exploit X to breach Y" — vulnerability/malware edi; mavjud "breached"
+  stem bilan izchil. Test: `test_categories.py` (11 yangi misol + qo'shish/olib tashlash).
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

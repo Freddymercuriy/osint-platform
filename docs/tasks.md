@@ -102,6 +102,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Admin: Telegram chat tanlash — butun ro'yxat (chegarasiz, 5 daq. kesh), qidiruv, "kuzatilmoqda" belgisi
 - ✅ Telegram manbalari → Global + kiber filtri (`0016`); Markaziy Osiyo kalit so'zi bo'lsa — asosiy lentaga
 - ✅ Global manbalarda "chet el" qoidasi o'chirildi (NewsNow 85 tadan 26 kiber yangilikni yo'qotardi)
+- ✅ Sizish (leak) qoidalari: yolg'iz "breach", yozuvlar soni / hajm, "stolen ... data", dark web / forum (`0017`; 42 hodisa → leak)
 - ⬜ Telegram Global oqimini kuzatish: shovqinli kanallar (BugAlerts ~300/kun) — kerak bo'lsa admin'da o'chirish yoki regional'ga qaytarish
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
