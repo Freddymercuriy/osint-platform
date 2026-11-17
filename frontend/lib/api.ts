@@ -456,6 +456,34 @@ export async function getEvents(
   return handle<EventsResponse>(res);
 }
 
+/**
+ * Hodisalarni joriy filtrlar bilan faylga yuklab olish (server: eng yangi 5000 tasi; CSV — formula himoyasi bilan).
+ * `lang` — sarlavha/matn shu tilda (asl sarlavha alohida ustunda). Qaytaradi: yuklangan va jami son.
+ */
+export async function downloadEvents(opts: {
+  filters: EventFilters;
+  format: "csv" | "json";
+  lang?: string;
+}): Promise<{ count: number; total: number }> {
+  const params = eventFiltersToParams(opts.filters);
+  params.set("format", opts.format);
+  if (opts.lang) params.set("lang", opts.lang);
+  const res = await apiFetch(`${API_URL}/api/events/export?${params.toString()}`, {
+    headers: { Authorization: `Bearer ${getToken()}` },
+  });
+  if (!res.ok) await handle<unknown>(res); // xato matni bilan istisno
+  const blob = await res.blob();
+  const name =
+    /filename="([^"]+)"/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? `osint-events.${opts.format}`;
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  return { count: Number(res.headers.get("X-Export-Count") ?? 0), total: Number(res.headers.get("X-Export-Total") ?? 0) };
+}
+
 export type AuthConfig = { registration_open: boolean };
 
 export async function getAuthConfig(): Promise<AuthConfig> {

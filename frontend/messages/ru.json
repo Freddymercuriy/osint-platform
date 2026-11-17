@@ -952,6 +952,13 @@
       "rate_limited": "лимит запросов",
       "siteAsked": "сайт попросил ждать {min} мин",
       "retry": "повтор {when}"
+    },
+    "export": {
+      "label": "Экспорт",
+      "csv": "Скачать в CSV",
+      "json": "Скачать в JSON",
+      "done": "{count, plural, one {Выгружено # событие} few {Выгружено # события} many {Выгружено # событий} other {Выгружено # события}}",
+      "truncated": "Выгружены {count, number} самых новых из {total, number} (лимит)"
     }
   },
   "history": {

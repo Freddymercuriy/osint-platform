@@ -50,6 +50,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Fayl yuklashda frontend (boshqa port) fayl nomi va eksport sonini o'qiy olsin
+    expose_headers=["Content-Disposition", "X-Export-Total", "X-Export-Count"],
 )
 
 app.add_middleware(LangMiddleware)  # Accept-Language → current_lang()

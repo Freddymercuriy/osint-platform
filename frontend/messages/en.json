@@ -952,6 +952,13 @@
       "rate_limited": "rate limited",
       "siteAsked": "site asked to wait {min} min",
       "retry": "retry {when}"
+    },
+    "export": {
+      "label": "Export",
+      "csv": "Download as CSV",
+      "json": "Download as JSON",
+      "done": "{count, plural, one {# event exported} other {# events exported}}",
+      "truncated": "Newest {count, number} of {total, number} exported (limit)"
     }
   },
   "history": {

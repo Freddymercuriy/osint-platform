@@ -74,6 +74,9 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi. Global manbaning
   (xalqaro kiber-saytlar — 0014, NewsNow) Markaziy Osiyo belgisi bor elementi `regional` bo'ladi (`filters.region_hits`).
   Kelajak sanasi (`published > now`) yig'ish vaqti bilan cheklanadi, asl sana — `extra.published_original` (0015).
+- Events eksporti: `GET /api/events/export?format=csv|json` — `/api/events` bilan bir xil filtrlar va `lang`,
+  eng yangi `export.MAX_ROWS` (5000); CSV — UTF-8 BOM, formula injection himoyasi (`=`,`+`,`-`,`@` → `'`),
+  sarlavhalar `X-Export-Total` / `X-Export-Count` (CORS `expose_headers`). Rate limit: `refresh_rate × 2`.
 - Events holat qatori (`/api/events/status`): `failing` — yoqilgan down/blocked manbalar (nom, sabab, keyingi urinish);
   yig'uvchining o'zi bilan aralashtirilmaydi. HTTP xatolari: `http.http_error_text` (5xx, Cloudflare 52x izohi).
 - Telegram: har kuzatiladigan chat — alohida `telegram_user` manbasi (`{"chat": username yoki -100id}`); dialoglar

@@ -952,6 +952,13 @@
       "rate_limited": "so'rovlar cheklangan",
       "siteAsked": "sayt {min} daq kutishni so'radi",
       "retry": "qayta urinish {when}"
+    },
+    "export": {
+      "label": "Eksport",
+      "csv": "CSV formatida yuklab olish",
+      "json": "JSON formatida yuklab olish",
+      "done": "{count, number} ta hodisa yuklandi",
+      "truncated": "Eng yangi {count, number} ta hodisa yuklandi (jami {total, number} ta; chegara)"
     }
   },
   "history": {

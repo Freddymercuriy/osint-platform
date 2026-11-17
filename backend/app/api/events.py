@@ -1,7 +1,8 @@
+import json
 from datetime import UTC, date, datetime, time, timedelta
 from typing import Literal
 
-from fastapi import APIRouter, Query, status
+from fastapi import APIRouter, Query, Response, status
 from pydantic import BaseModel
 from sqlalchemy import func, or_, select
 
@@ -12,7 +13,7 @@ from app.core.config import settings
 from app.core.i18n import UZ_CYRL
 from app.models import Category, EventRecord, EventTranslation, Source
 from app.schemas import EventItemOut, EventsResponse
-from app.services.events import scheduler
+from app.services.events import export, scheduler
 from app.services.events.categories import effective_severity
 from app.services.i18n.text import uz_to_cyrillic
 
@@ -139,6 +140,54 @@ async def list_events(
     )).all()
     total = await db.scalar(select(func.count(EventRecord.id)).where(*filters)) or 0
     return EventsResponse(count=total, items=await localize(db, rows, lang))
+
+
+@router.get("/export", responses={200: {"content": {"text/csv": {}, "application/json": {}}}})
+async def export_events(
+    current_user: CurrentUser,
+    db: DbSession,
+    format: Literal["csv", "json"] = Query("csv"),  # noqa: A002
+    q: str | None = Query(None, max_length=200),
+    category: list[str] | None = Query(None),
+    severity: list[str] | None = Query(None),
+    country: list[str] | None = Query(None),
+    channel: list[str] | None = Query(None),
+    source: list[str] | None = Query(None),
+    scope: str | None = Query(None, pattern="^(regional|global|all)$"),
+    source_lang: list[str] | None = Query(None),
+    date_from: date | None = Query(None),
+    date_to: date | None = Query(None),
+    range: RangeKey | None = Query(None),  # noqa: A002
+    lang: str | None = Query(None, pattern="^(en|ru|uz|uz-Cyrl)$"),
+) -> Response:
+    """Events ro'yxati bilan bir xil filtrlar — eng yangi `export.MAX_ROWS` ta hodisa CSV yoki JSON faylda."""
+    ratelimit.check("events-export", str(current_user.id), settings.refresh_rate * 2, settings.refresh_rate_window)
+    now = datetime.now(UTC)
+    since = now - RANGES[range] if range and not (date_from or date_to) else None
+    filters = event_filters(
+        categories=_csv(category), severity=_csv(severity), countries=_csv(country), channel=_csv(channel),
+        sources=_csv(source), scope=scope, lang=_csv(source_lang), date_from=date_from, date_to=date_to, q=q,
+        since=since,
+    )
+    order = func.coalesce(EventRecord.published, EventRecord.first_seen).desc()
+    rows = (await db.scalars(
+        select(EventRecord).where(*filters).order_by(order, EventRecord.id.desc()).limit(export.MAX_ROWS)
+    )).all()
+    total = await db.scalar(select(func.count(EventRecord.id)).where(*filters)) or 0
+    items = await localize(db, rows, lang)
+    stamp = now.strftime("%Y%m%d-%H%M")
+    headers = {"Content-Disposition": f'attachment; filename="osint-events-{stamp}.{format}"',
+               "X-Export-Total": str(total), "X-Export-Count": str(len(items))}
+    if format == "json":
+        applied = {k: v for k, v in {
+            "q": q, "category": _csv(category), "severity": _csv(severity), "country": _csv(country),
+            "channel": _csv(channel), "source": _csv(source), "scope": scope or "regional",
+            "source_lang": _csv(source_lang), "date_from": date_from and date_from.isoformat(),
+            "date_to": date_to and date_to.isoformat(), "range": range, "lang": lang,
+        }.items() if v}
+        body = json.dumps(export.to_json(items, filters=applied, total=total, exported_at=now), ensure_ascii=False)
+        return Response(body, media_type="application/json", headers=headers)
+    return Response(export.to_csv(items), media_type="text/csv; charset=utf-8", headers=headers)
 
 
 async def localize(db, rows, lang: str | None) -> list[EventItemOut]:

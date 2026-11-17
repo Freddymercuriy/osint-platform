@@ -141,6 +141,14 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
     100 tasi), regional Telegram 7 → 8. Testlar: `test_telegram_sources.py`, `test_connector_newsnow.py`.
   - ⚠️ Kuzatish kerak: BugAlerts (~300/kun, asosan `vulnerability` — 🔔 yo'q) Global lentani bosadi; kerak bo'lsa
     admin'da o'chirish yoki `scope=regional` ga qaytarish.
+- **Events eksporti (CSV / JSON)** — backlog'dagi ⬜. `GET /api/events/export` (`services/events/export.py`):
+  Events ro'yxati bilan bir xil filtrlar (`event_filters`, scope, `range`) va ko'rsatish tili (`localize`), eng yangi
+  5000 ta; CSV — BOM + formula injection himoyasi (tashqi matn: Telegram, RSS), ustunlar: id, sanalar, scope,
+  kategoriya, daraja, sarlavha/matn, havola, manba, kanal, davlatlar, soha, guruh, kalit so'zlar, also_reported_by,
+  til, asl sarlavha; JSON — `filters`, `total`, `truncated`. CORS `expose_headers` (fayl nomi, son). Frontend:
+  Events'da "Eksport: CSV · JSON" tugmalari (son yonida), natija matni ("N ta hodisa yuklandi" / chegara), 4 til.
+  `statsApi.downloadCsv` ga ham formula himoyasi. Jonli: regional 92, global 959, 7 kun 1023 — fayllar brauzerda
+  yuklandi (desktop + 360px). Test: `test_events_export.py`.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

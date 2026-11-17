@@ -83,7 +83,9 @@ export async function getSourceHealth(): Promise<SourceHealth> {
 /** Jadval → CSV (Excel uchun BOM bilan) va yuklab olish. */
 export function downloadCsv(filename: string, header: string[], rows: (string | number | null | undefined)[][]) {
   const esc = (v: string | number | null | undefined) => {
-    const s = v === null || v === undefined ? "" : String(v);
+    let s = v === null || v === undefined ? "" : String(v);
+    // CSV formula injection: manba nomi kabi tashqi matn "=", "+", "-", "@" bilan boshlansa Excel uni bajaradi
+    if (typeof v === "string" && /^[=+\-@\t\r]/.test(s)) s = "'" + s;
     return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
   };
   const csv = "﻿" + [header, ...rows].map((r) => r.map(esc).join(",")).join("\n");

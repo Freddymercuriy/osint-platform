@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, ChevronDown, Radar, RefreshCw, Search, X } from "lucide-react";
+import { CalendarDays, ChevronDown, Download, Radar, RefreshCw, Search, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -10,6 +10,7 @@ import { EventFilterBar, SCOPES, type Scope } from "@/components/events/EventFil
 import { StatusStrip } from "@/components/events/StatusStrip";
 import {
   EVENT_RANGES,
+  downloadEvents,
   eventFiltersToParams,
   getCollectorStatus,
   getEvents,
@@ -108,6 +109,8 @@ function EventsView() {
   const [statusLoading, setStatusLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [lastNew, setLastNew] = useState<number | null>(null);
+  const [exporting, setExporting] = useState<"csv" | "json" | null>(null);
+  const [exportNote, setExportNote] = useState<string | null>(null);
   const reqId = useRef(0);
   const lastQ = useRef(filters.q ?? "");
   const spRef = useRef(spKey);
@@ -277,6 +280,22 @@ function EventsView() {
     setItems((prev) => prev.map((x) => (x.id !== undefined && x.id === next.id ? next : x)));
   }, []);
 
+  // Eksport — ro'yxat bilan aynan bir xil filtrlar (scope ham) va ko'rsatish tili
+  const onExport = async (format: "csv" | "json") => {
+    setExporting(format);
+    setExportNote(null);
+    try {
+      const r = await downloadEvents({ filters: effective, format, lang: locale });
+      setExportNote(
+        r.total > r.count ? t("export.truncated", { count: r.count, total: r.total }) : t("export.done", { count: r.count }),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : tc("error"));
+    } finally {
+      setExporting(null);
+    }
+  };
+
   const hasMore = items.length < total;
   const filtered = Object.keys(filters).length > 0 || scope !== "regional";
 
@@ -309,8 +328,33 @@ function EventsView() {
           facets={facets}
         />
 
-        <div className="text-sm text-fg-muted" aria-live="polite">
-          {loading ? <Skeleton className="h-4 w-36" /> : <span className="font-medium text-fg">{t("eventsCount", { count: total })}</span>}
+        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 text-sm text-fg-muted">
+          <div aria-live="polite">
+            {loading ? <Skeleton className="h-4 w-36" /> : <span className="font-medium text-fg">{t("eventsCount", { count: total })}</span>}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {exportNote && (
+              <span role="status" className="text-xs">
+                {exportNote}
+              </span>
+            )}
+            <span className="text-xs">{t("export.label")}:</span>
+            {(["csv", "json"] as const).map((fmt) => (
+              <Button
+                key={fmt}
+                variant="secondary"
+                size="sm"
+                icon={Download}
+                loading={exporting === fmt}
+                disabled={exporting !== null || loading || total === 0}
+                aria-label={t(`export.${fmt}`)}
+                title={t(`export.${fmt}`)}
+                onClick={() => onExport(fmt)}
+              >
+                {fmt.toUpperCase()}
+              </Button>
+            ))}
+          </div>
         </div>
 
         {error && (
