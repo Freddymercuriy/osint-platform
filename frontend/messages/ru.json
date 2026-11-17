@@ -362,7 +362,13 @@
       "channel": "канал",
       "group": "группа",
       "none": "В вашем аккаунте Telegram чаты не найдены.",
-      "manualHint": "Чат можно по-прежнему ввести вручную."
+      "manualHint": "Чат можно по-прежнему ввести вручную.",
+      "search": "Поиск",
+      "searchPlaceholder": "Название, @username или ID",
+      "refresh": "Обновить",
+      "count": "Показано: {shown, number} из {total, number}",
+      "monitored": "уже отслеживается",
+      "noMatch": "Подходящих чатов нет."
     },
     "langs": {
       "en": "Английский",

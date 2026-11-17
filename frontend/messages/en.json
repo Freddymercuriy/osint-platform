@@ -362,7 +362,13 @@
       "channel": "channel",
       "group": "group",
       "none": "No chats found in your Telegram account.",
-      "manualHint": "You can still type the chat manually."
+      "manualHint": "You can still type the chat manually.",
+      "search": "Search",
+      "searchPlaceholder": "Name, @username or ID",
+      "refresh": "Refresh",
+      "count": "Showing {shown, number} of {total, number}",
+      "monitored": "already monitored",
+      "noMatch": "No matching chats."
     },
     "langs": {
       "en": "English",

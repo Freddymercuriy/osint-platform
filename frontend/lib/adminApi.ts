@@ -261,8 +261,15 @@ export const retryFailedTranslations = () =>
 export const runTranslations = () => request<Record<string, unknown>>("POST", "/api/admin/translations/run");
 
 /* ------------------------------------------------------------------ Telegram */
-export type TgChat = { id: number; title: string; username: string | null; kind: string };
-export const getTgChats = () => request<TgChat[]>("GET", "/api/telegram/chats");
+export type TgChat = {
+  id: number; title: string; username: string | null; kind: string;
+  archived: boolean;
+  /** bu chat uchun telegram_user manbasi allaqachon bor */
+  monitored: boolean;
+};
+/** Akkauntdagi barcha kanal/guruhlar (5 daq. keshlanadi; `refresh` — qayta o'qish) */
+export const getTgChats = (refresh = false) =>
+  request<TgChat[]>("GET", `/api/telegram/chats${refresh ? "?refresh=true" : ""}`);
 
 /* ------------------------------------------------------------------ hodisalar */
 export const setEventCategory = (id: number, category: string) =>

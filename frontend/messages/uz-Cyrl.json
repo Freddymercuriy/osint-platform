@@ -362,7 +362,13 @@
       "channel": "канал",
       "group": "гуруҳ",
       "none": "Телеграм аккаунтингизда чат топилмади.",
-      "manualHint": "Чатни қўлда ҳам киритишингиз мумкин."
+      "manualHint": "Чатни қўлда ҳам киритишингиз мумкин.",
+      "search": "Қидириш",
+      "searchPlaceholder": "Номи, @username ёки ID",
+      "refresh": "Янгилаш",
+      "count": "Кўрсатилган: {shown, number} / {total, number}",
+      "monitored": "кузатилмоқда",
+      "noMatch": "Мос чат топилмади."
     },
     "langs": {
       "en": "Инглизча",

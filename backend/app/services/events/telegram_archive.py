@@ -39,6 +39,17 @@ def _source_name(title: str, key: str) -> str:
     return f"Telegram: {title.strip()[:room]}{suffix}"
 
 
+def is_monitored(chat, known: set[str]) -> bool:
+    """Chat (ChatInfo) uchun `telegram_user` manbasi bormi — username yoki -100id bo'yicha."""
+    return bool({_norm(chat.username or str(chat.id)), str(chat.id), _norm(chat.username)} & known)
+
+
+async def monitored_keys(db) -> set[str]:
+    """Mavjud `telegram_user` manbalarining normallashgan chat kalitlari."""
+    rows = (await db.scalars(select(Source.config).where(Source.kind == "telegram_user"))).all()
+    return {_norm((cfg or {}).get("chat")) for cfg in rows} - {""}
+
+
 async def sync_archived_sources(db, chats, now: datetime | None = None) -> list[Source]:
     """`chats` (arxivdagi ChatInfo'lar) dan hali manbasi yo'qlari uchun manba yaratadi; yangilarini qaytaradi."""
     from app.services.events.scheduler import initial_offset
@@ -50,7 +61,7 @@ async def sync_archived_sources(db, chats, now: datetime | None = None) -> list[
     created: list[Source] = []
     for c in chats:
         key = c.username or str(c.id)
-        if {_norm(key), str(c.id), _norm(c.username)} & known:
+        if is_monitored(c, known):
             continue
         name = _source_name(c.title, key)
         if name in names:

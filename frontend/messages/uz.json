@@ -362,7 +362,13 @@
       "channel": "kanal",
       "group": "guruh",
       "none": "Telegram akkauntingizda chat topilmadi.",
-      "manualHint": "Chatni qo'lda ham kiritishingiz mumkin."
+      "manualHint": "Chatni qo'lda ham kiritishingiz mumkin.",
+      "search": "Qidirish",
+      "searchPlaceholder": "Nomi, @username yoki ID",
+      "refresh": "Yangilash",
+      "count": "Ko'rsatilgan: {shown, number} / {total, number}",
+      "monitored": "kuzatilmoqda",
+      "noMatch": "Mos chat topilmadi."
     },
     "langs": {
       "en": "Inglizcha",

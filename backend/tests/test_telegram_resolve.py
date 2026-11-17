@@ -45,7 +45,7 @@ class _Client:
 
 
 @pytest.fixture
-def client(monkeypatch):
+def tgc(monkeypatch):
     monkeypatch.setattr(tg, "Channel", _Channel)
     monkeypatch.setattr(tg, "_dialog_cache", {})
     monkeypatch.setattr(tg, "_dialog_cache_at", 0.0)
@@ -66,21 +66,74 @@ def client(monkeypatch):
     return c
 
 
-async def test_chat_beyond_dialog_limit_is_resolved_and_cached(client):
+async def test_chat_beyond_dialog_limit_is_resolved_and_cached(tgc):
     msgs = await tg.fetch_chat_messages("@CrackedStatusUpdate", limit=10, min_id=1)
     assert [(m.msg_id, m.text) for m in msgs] == [(3, "crackedstatusupdate 3"), (2, "crackedstatusupdate 2")]
     assert msgs[0].chat.id == -1000000000138 and msgs[0].chat.kind == "channel"
     assert msgs[0].url == "https://t.me/crackedstatusupdate/3"
     await tg.fetch_chat_messages("crackedstatusupdate", limit=10)
-    assert client.resolved == ["crackedstatusupdate"]  # ikkinchi yig'ish — keshdan
+    assert tgc.resolved == ["crackedstatusupdate"]  # ikkinchi yig'ish — keshdan
 
 
-async def test_chat_in_dialog_list_is_not_resolved(client):
+async def test_chat_in_dialog_list_is_not_resolved(tgc):
     assert len(await tg.fetch_chat_messages("top2", limit=10)) == 3
-    assert client.resolved == []
+    assert tgc.resolved == []
 
 
 @pytest.mark.parametrize("chat", ["leftchan", "somebot", "no_such_chat"])
-async def test_not_member_or_not_a_chat_still_fails(client, chat):
+async def test_not_member_or_not_a_chat_still_fails(tgc, chat):
     with pytest.raises(ValueError, match="Chat topilmadi yoki akkaunt a'zo emas"):
         await tg.fetch_chat_messages(chat, limit=10)
+
+
+class _ListClient:
+    def __init__(self, folders):
+        self.folders, self.calls = folders, []
+
+    async def iter_dialogs(self, limit=None, folder=None):
+        self.calls.append((folder, limit))
+        for d in self.folders.get(folder, [])[:limit]:
+            yield d
+
+
+async def test_picker_list_is_full_and_cached(monkeypatch):
+    """Admin chat tanlash ro'yxati — `TG_DIALOG_LIMIT` chegarasisiz, 5 daqiqa keshlanadi, `refresh` qayta o'qiydi."""
+    monkeypatch.setattr(tg, "Channel", _Channel)
+    monkeypatch.setattr(tg, "_all_chats", [])
+    monkeypatch.setattr(settings, "tg_dialog_limit", 2)
+    main = [SimpleNamespace(id=-1000000000000 - n, name=f"Chan {n}", entity=_Channel(n, f"chan{n}")) for n in range(5)]
+    c = _ListClient({0: main, 1: []})
+
+    async def _get_client():
+        return c
+
+    monkeypatch.setattr(tg, "get_client", _get_client)
+    assert len(await tg.list_chats()) == 2  # yig'uvchi chegarasi o'zgarmagan
+    assert len(await tg.list_chats(full=True)) == 5
+    assert c.calls[-2:] == [(0, None), (1, None)]
+    n = len(c.calls)
+    await tg.list_chats(full=True)
+    assert len(c.calls) == n  # keshdan
+    await tg.list_chats(full=True, refresh=True)
+    assert len(c.calls) == n + 2
+
+
+async def test_chats_endpoint_marks_monitored(db, client, admin_headers, monkeypatch):
+    from app.models import Source
+
+    db.add_all([
+        Source(name="Telegram: chan1", kind="telegram_user", config={"chat": "@Chan1"}),
+        Source(name="Telegram: -100777", kind="telegram_user", config={"chat": "-100777"}, enabled=False),
+    ])
+    await db.commit()
+
+    async def fake_list(*, full=False, refresh=False):
+        assert full
+        return [tg.ChatInfo(-1001, "Chan 1", "chan1", "channel"), tg.ChatInfo(-100777, "Closed", None, "group"),
+                tg.ChatInfo(-1002, "New", "newchan", "channel", archived=True)]
+
+    monkeypatch.setattr(tg, "list_chats", fake_list)
+    r = await client.get("/api/telegram/chats", headers=admin_headers)
+    assert r.status_code == 200
+    assert [(x["username"], x["monitored"], x["archived"]) for x in r.json()] == [
+        ("chan1", True, False), (None, True, False), ("newchan", False, True)]

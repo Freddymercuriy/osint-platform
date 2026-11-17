@@ -131,12 +131,13 @@ def _chat_info(dialog, archived: bool = False) -> ChatInfo | None:
 ARCHIVE_FOLDER = 1  # Telegram arxivni har doim folder 1 ga qo'yadi; 0 — asosiy ro'yxat
 
 
-async def iter_chat_dialogs(client, *, main: bool = True, archive: bool = True):
+async def iter_chat_dialogs(client, *, main: bool = True, archive: bool = True, full: bool = False):
     """(dialog, ChatInfo) — kanal va guruhlar: asosiy ro'yxat (`TG_DIALOG_LIMIT`) va Arxiv papkasi
-    (`TG_ARCHIVE_LIMIT`), takrorsiz. Shaxsiy suhbatlar va botlar o'tkazib yuboriladi."""
+    (`TG_ARCHIVE_LIMIT`), takrorsiz. Shaxsiy suhbatlar va botlar o'tkazib yuboriladi.
+    `full` — chegarasiz (admin chat tanlash ro'yxati uchun; ~100 dialog / so'rov)."""
     seen: set[int] = set()
-    folders = ([(0, settings.tg_dialog_limit)] if main else []) + \
-        ([(ARCHIVE_FOLDER, settings.tg_archive_limit)] if archive else [])
+    main_limit, archive_limit = (None, None) if full else (settings.tg_dialog_limit, settings.tg_archive_limit)
+    folders = ([(0, main_limit)] if main else []) + ([(ARCHIVE_FOLDER, archive_limit)] if archive else [])
     for folder, limit in folders:
         async for d in client.iter_dialogs(limit=limit, folder=folder):
             info = _chat_info(d, archived=folder == ARCHIVE_FOLDER)
@@ -146,9 +147,23 @@ async def iter_chat_dialogs(client, *, main: bool = True, archive: bool = True):
             yield d, info
 
 
-async def list_chats() -> list[ChatInfo]:
+_all_chats: list[ChatInfo] = []
+_all_chats_at: float = 0.0
+_ALL_CHATS_TTL = 300  # forma qayta ochilganda Telegram'ga yana bir necha GetDialogs yuborilmasin
+
+
+async def list_chats(*, full: bool = False, refresh: bool = False) -> list[ChatInfo]:
+    """Kanal va guruhlar. `full` — butun ro'yxat (yig'uvchi chegarasi `TG_DIALOG_LIMIT` emas), 5 daqiqa keshlanadi."""
+    global _all_chats, _all_chats_at
+    import time
+
     client = await get_client()
-    return [info async for _, info in iter_chat_dialogs(client)]
+    if not full:
+        return [info async for _, info in iter_chat_dialogs(client)]
+    if refresh or not _all_chats or time.monotonic() - _all_chats_at >= _ALL_CHATS_TTL:
+        _all_chats = [info async for _, info in iter_chat_dialogs(client, full=True)]
+        _all_chats_at = time.monotonic()
+    return _all_chats
 
 
 async def list_archived_chats() -> list[ChatInfo]:

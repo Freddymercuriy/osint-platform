@@ -118,7 +118,10 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   `telegram_user._resolve_joined_chat` — dialoglarda topilmasa username / ID bo'yicha aniqlanadi (avval sessiya keshi,
   so'ng `get_entity`), faqat a'zo bo'lingan kanal/guruh (`left`/bot/shaxsiy — rad), natija `_dialog_cache` ga.
   Jonli: ikkala manba `ok` (AZRAEL — 1 ta mos xabar). Test: `test_telegram_resolve.py`.
-  ⚠️ Admin chat tanlash ro'yxati (`/api/telegram/chats`) hali ham faqat birinchi 100 dialogni ko'rsatadi.
+- **Admin chat tanlash — butun ro'yxat:** `/api/telegram/chats` endi `list_chats(full=True)` (chegarasiz, 5 daq. kesh;
+  `?refresh=true` — `refresh_rate` limiti bilan), har chatda `monitored` va `archived`. `SourceForm` → `TelegramPicker`:
+  qidiruv (nomi / @username / ID), "Yangilash", "Ko'rsatilgan: N / M", "✓ kuzatilmoqda" belgisi (4 til).
+  Jonli: 227 chat (avval 105), birinchi so'rov 3.2 s, keshdan 0.1 s; 43 tasi kuzatilmoqda.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

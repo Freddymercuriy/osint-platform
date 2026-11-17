@@ -1,11 +1,13 @@
 from fastapi import APIRouter, status
 from pydantic import BaseModel
 
-from app.api.deps import AdminUser
+from app.api.deps import AdminUser, DbSession
+from app.core import ratelimit
 from app.core.config import settings
 from app.core.errors import api_error
 from app.core.i18n import current_lang, t
 from app.services import telegram_user as tg
+from app.services.events.telegram_archive import is_monitored, monitored_keys
 
 router = APIRouter(prefix="/api/telegram", tags=["telegram"])
 
@@ -26,6 +28,7 @@ class TgChat(BaseModel):
     username: str | None
     kind: str
     archived: bool = False  # Telegram "Arxiv" papkasida
+    monitored: bool = False  # bu chat uchun `telegram_user` manbasi allaqachon bor
 
 
 @router.get("/status", response_model=TgStatus)
@@ -53,9 +56,15 @@ async def tg_status(current_user: AdminUser) -> TgStatus:
 
 
 @router.get("/chats", response_model=list[TgChat])
-async def tg_chats(current_user: AdminUser) -> list[TgChat]:
+async def tg_chats(current_user: AdminUser, db: DbSession, refresh: bool = False) -> list[TgChat]:
+    """Admin chat tanlash ro'yxati: akkauntdagi BARCHA kanal/guruhlar (yig'uvchining `TG_DIALOG_LIMIT` chegarasi emas),
+    5 daqiqa keshlanadi (`refresh=true` — qayta o'qish)."""
+    if refresh:  # to'liq qayta o'qish — bir necha GetDialogs so'rovi
+        ratelimit.check("tg-chats", str(current_user.id), settings.refresh_rate, settings.refresh_rate_window)
     try:
-        chats = await tg.list_chats()
+        chats = await tg.list_chats(full=True, refresh=refresh)
     except tg.TelegramNotConfigured as exc:
         raise api_error(status.HTTP_409_CONFLICT, "telegram_not_configured", message=str(exc)) from exc
-    return [TgChat(id=c.id, title=c.title, username=c.username, kind=c.kind, archived=c.archived) for c in chats]
+    known = await monitored_keys(db)
+    return [TgChat(id=c.id, title=c.title, username=c.username, kind=c.kind, archived=c.archived,
+                   monitored=is_monitored(c, known)) for c in chats]

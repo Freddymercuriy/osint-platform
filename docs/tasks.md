@@ -99,9 +99,10 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Ishlamayotgan manbalar Events'da nomi va sababi bilan (`failing`, HTTP 5xx / Cloudflare 52x izohlari)
 - ✅ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` yig'ish vaqti bilan cheklanadi (`0015`)
 - ✅ Telegram: dialoglar chegarasidan (`TG_DIALOG_LIMIT`) tashqaridagi a'zo bo'lingan chatlar ham o'qiladi
+- ✅ Admin: Telegram chat tanlash — butun ro'yxat (chegarasiz, 5 daq. kesh), qidiruv, "kuzatilmoqda" belgisi
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish
 - ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash; Events eksporti
-- ⬜ Testlar (pytest), Alembic migratsiyalar
+- ✅ Testlar (pytest), Alembic migratsiyalar (v2 Bosqich 0 / 9)

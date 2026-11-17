@@ -1,6 +1,6 @@
 "use client";
 
-import { FlaskConical, MessageCircle } from "lucide-react";
+import { FlaskConical, MessageCircle, RefreshCw } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useId, useMemo, useState } from "react";
 import { Button, ErrorBanner, Input, Label, Select } from "@/components/ui";
@@ -68,15 +68,16 @@ function Check({
 function TelegramPicker({ onPick }: { onPick: (v: string) => void }) {
   const t = useTranslations("adminSources");
   const [chats, setChats] = useState<TgChat[] | null>(null);
+  const [q, setQ] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const id = useId();
 
-  const load = async () => {
+  const load = async (refresh = false) => {
     setLoading(true);
     setErr(null);
     try {
-      setChats(await getTgChats());
+      setChats(await getTgChats(refresh));
     } catch (e) {
       setErr((e as Error).message);
     } finally {
@@ -84,33 +85,64 @@ function TelegramPicker({ onPick }: { onPick: (v: string) => void }) {
     }
   };
 
+  // Akkauntda yuzlab chat bo'lishi mumkin — nomi, @username yoki ID bo'yicha qidirish
+  const shown = useMemo(() => {
+    const needle = q.trim().replace(/^@/, "").toLowerCase();
+    if (!chats || !needle) return chats ?? [];
+    return chats.filter((c) =>
+      c.title.toLowerCase().includes(needle) || (c.username ?? "").toLowerCase().includes(needle) ||
+      String(c.id).includes(needle));
+  }, [chats, q]);
+
   return (
     <div className="rounded-lg border border-border bg-surface-2 p-3">
       {chats === null ? (
-        <Button variant="secondary" size="sm" icon={MessageCircle} loading={loading} onClick={load}>
+        <Button variant="secondary" size="sm" icon={MessageCircle} loading={loading} onClick={() => load()}>
           {loading ? t("tg.loading") : t("tg.pick")}
         </Button>
       ) : chats.length === 0 ? (
         <p className="text-sm text-fg-muted">{t("tg.none")}</p>
       ) : (
-        <div>
-          <Label htmlFor={id}>{t("tg.pick")}</Label>
-          <Select
-            id={id}
-            defaultValue=""
-            onChange={(e) => {
-              const c = chats.find((x) => String(x.id) === e.target.value);
-              if (c) onPick(c.username ? c.username : String(c.id));
-            }}
-          >
-            <option value="" disabled>{t("tg.choose")}</option>
-            {chats.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.title}
-                {c.username ? ` (@${c.username})` : ""} · {c.kind === "channel" ? t("tg.channel") : t("tg.group")}
-              </option>
-            ))}
-          </Select>
+        <div className="space-y-2">
+          <div className="flex items-end gap-2">
+            <div className="min-w-0 flex-1">
+              <Label htmlFor={`${id}-q`}>{t("tg.search")}</Label>
+              <Input id={`${id}-q`} type="search" value={q} placeholder={t("tg.searchPlaceholder")}
+                onChange={(e) => setQ(e.target.value)} />
+            </div>
+            <Button variant="secondary" size="sm" icon={RefreshCw} loading={loading} onClick={() => load(true)}>
+              {t("tg.refresh")}
+            </Button>
+          </div>
+          <div>
+            <Label htmlFor={id}>{t("tg.pick")}</Label>
+            {shown.length === 0 ? (
+              <p className="text-sm text-fg-muted">{t("tg.noMatch")}</p>
+            ) : (
+              <Select
+                key={q}
+                id={id}
+                defaultValue=""
+                aria-describedby={`${id}-n`}
+                onChange={(e) => {
+                  const c = shown.find((x) => String(x.id) === e.target.value);
+                  if (c) onPick(c.username ? c.username : String(c.id));
+                }}
+              >
+                <option value="" disabled>{t("tg.choose")}</option>
+                {shown.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.title}
+                    {c.username ? ` (@${c.username})` : ""} · {c.kind === "channel" ? t("tg.channel") : t("tg.group")}
+                    {c.monitored ? ` · ✓ ${t("tg.monitored")}` : ""}
+                  </option>
+                ))}
+              </Select>
+            )}
+            <p id={`${id}-n`} className="mt-1 text-xs text-fg-muted">
+              {t("tg.count", { shown: shown.length, total: chats.length })}
+            </p>
+          </div>
         </div>
       )}
       {err && (
