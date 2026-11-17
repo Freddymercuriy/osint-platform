@@ -479,7 +479,9 @@
       "chatsCount": "Chats in filter",
       "chats": "Chats filter list",
       "noChats": "No filter: all chats the account can read are used.",
-      "message": "Status message"
+      "message": "Status message",
+      "sources": "Monitored sources",
+      "globalSources": "Global (cyber filter)"
     },
     "users": {
       "title": "Users",
@@ -893,7 +895,8 @@
       "chats": "{count, plural, one {# chat} other {# chats}}",
       "allChats": "all chats",
       "regionFilter": "region filter",
-      "notConnected": "Telegram not connected"
+      "notConnected": "Telegram not connected",
+      "global": "Global: {count, number}"
     },
     "eventsCount": "{count, plural, one {# event} other {# events}}",
     "emptyFilteredTitle": "No events match these filters",

@@ -137,3 +137,21 @@ async def test_chats_endpoint_marks_monitored(db, client, admin_headers, monkeyp
     assert r.status_code == 200
     assert [(x["username"], x["monitored"], x["archived"]) for x in r.json()] == [
         ("chan1", True, False), (None, True, False), ("newchan", False, True)]
+
+
+async def test_status_reports_monitored_source_counts(db, client, admin_headers, monkeypatch):
+    """Events'dagi Telegram belgisi .env TG_CHATS emas, haqiqiy manbalar sonini ko'rsatadi."""
+    from app.models import Source
+
+    monkeypatch.setattr(tg, "is_configured", lambda: False)
+    before = (await client.get("/api/telegram/status", headers=admin_headers)).json()  # migratsiya seed'lari
+    db.add_all([
+        Source(name="Telegram: a", kind="telegram_user", config={"chat": "a"}, scope="global", cyber_filter=True),
+        Source(name="Telegram: b", kind="telegram_user", config={"chat": "b"}, scope="regional"),
+        Source(name="Telegram: c", kind="telegram_user", config={"chat": "c"}, scope="global", enabled=False),
+        Source(name="Some RSS", kind="rss", config={"url": "https://x.example/f"}, scope="global"),
+    ])
+    await db.commit()
+    body = (await client.get("/api/telegram/status", headers=admin_headers)).json()
+    assert body["sources"] - before["sources"] == 2 and body["global_sources"] - before["global_sources"] == 1
+    assert body["authorized"] is False

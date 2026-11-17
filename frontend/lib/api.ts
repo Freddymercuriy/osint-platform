@@ -268,6 +268,9 @@ export type TgStatus = {
   chats_filter: string[];
   uz_filter: boolean;
   message: string;
+  /** yoqilgan telegram_user manbalari (haqiqatda kuzatilayotgan chatlar) va ulardan Global bo'lganlari */
+  sources?: number;
+  global_sources?: number;
 };
 
 export async function getTgStatus(): Promise<TgStatus> {

@@ -128,8 +128,12 @@ export function StatusStrip({
                 {tg.authorized ? (
                   <span>
                     Telegram: <span className="font-mono">{tg.account}</span> ·{" "}
-                    {tg.chats_filter.length ? t("tg.chats", { count: tg.chats_filter.length }) : t("tg.allChats")}
-                    {tg.uz_filter ? ` · ${t("tg.regionFilter")}` : ""}
+                    {tg.sources
+                      ? t("tg.chats", { count: tg.sources })
+                      : tg.chats_filter.length ? t("tg.chats", { count: tg.chats_filter.length }) : t("tg.allChats")}
+                    {tg.global_sources
+                      ? ` · ${t("tg.global", { count: tg.global_sources })}`
+                      : tg.uz_filter ? ` · ${t("tg.regionFilter")}` : ""}
                   </span>
                 ) : (
                   t("tg.notConnected")

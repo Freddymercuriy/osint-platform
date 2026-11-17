@@ -479,7 +479,9 @@
       "chatsCount": "Фильтрдаги чатлар",
       "chats": "Фильтрдаги чатлар рўйхати",
       "noChats": "Фильтр йўқ: аккаунт ўқий оладиган барча чатлар ишлатилади.",
-      "message": "Ҳолат хабари"
+      "message": "Ҳолат хабари",
+      "sources": "Кузатилаётган манбалар",
+      "globalSources": "Глобал (кибер фильтри)"
     },
     "users": {
       "title": "Фойдаланувчилар",
@@ -893,7 +895,8 @@
       "chats": "{count} та чат",
       "allChats": "барча чатлар",
       "regionFilter": "ҳудуд фильтри",
-      "notConnected": "Телеграм уланмаган"
+      "notConnected": "Телеграм уланмаган",
+      "global": "Глобал: {count, number}"
     },
     "eventsCount": "{count, plural, one {# та воқеа} other {# та воқеа}}",
     "emptyFilteredTitle": "Бу фильтрларга мос воқеа йўқ",

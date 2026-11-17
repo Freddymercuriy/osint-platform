@@ -479,7 +479,9 @@
       "chatsCount": "Filtrdagi chatlar",
       "chats": "Filtrdagi chatlar ro'yxati",
       "noChats": "Filtr yo'q: akkaunt o'qiy oladigan barcha chatlar ishlatiladi.",
-      "message": "Holat xabari"
+      "message": "Holat xabari",
+      "sources": "Kuzatilayotgan manbalar",
+      "globalSources": "Global (kiber filtri)"
     },
     "users": {
       "title": "Foydalanuvchilar",
@@ -893,7 +895,8 @@
       "chats": "{count} ta chat",
       "allChats": "barcha chatlar",
       "regionFilter": "hudud filtri",
-      "notConnected": "Telegram ulanmagan"
+      "notConnected": "Telegram ulanmagan",
+      "global": "Global: {count, number}"
     },
     "eventsCount": "{count, plural, one {# ta voqea} other {# ta voqea}}",
     "emptyFilteredTitle": "Bu filtrlarga mos voqea yo'q",

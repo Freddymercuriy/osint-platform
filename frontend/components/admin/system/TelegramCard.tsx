@@ -68,6 +68,8 @@ export default function TelegramCard() {
 
           <dl className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             <Fact label={t("telegram.account")}>{data.account ?? "—"}</Fact>
+            <Fact label={t("telegram.sources")}>{data.sources ?? "—"}</Fact>
+            <Fact label={t("telegram.globalSources")}>{data.global_sources ?? "—"}</Fact>
             <Fact label={t("telegram.regionFilter")}>{yn(data.uz_filter)}</Fact>
             <Fact label={t("telegram.chatsCount")}>{data.chats_filter.length}</Fact>
           </dl>

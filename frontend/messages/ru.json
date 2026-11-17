@@ -479,7 +479,9 @@
       "chatsCount": "Чатов в фильтре",
       "chats": "Список чатов в фильтре",
       "noChats": "Фильтра нет: используются все чаты, доступные аккаунту.",
-      "message": "Сообщение о статусе"
+      "message": "Сообщение о статусе",
+      "sources": "Отслеживаемые источники",
+      "globalSources": "Глобал (кибер-фильтр)"
     },
     "users": {
       "title": "Пользователи",
@@ -893,7 +895,8 @@
       "chats": "{count, plural, one {# чат} few {# чата} many {# чатов} other {# чата}}",
       "allChats": "все чаты",
       "regionFilter": "фильтр региона",
-      "notConnected": "Telegram не подключён"
+      "notConnected": "Telegram не подключён",
+      "global": "Глобал: {count, number}"
     },
     "eventsCount": "{count, plural, one {# событие} few {# события} many {# событий} other {# события}}",
     "emptyFilteredTitle": "Нет событий по этим фильтрам",

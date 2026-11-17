@@ -109,4 +109,5 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Rate limiting (v2 Bosqich 9); ⬜ natijalarni keshlash
 - ✅ Events eksporti — CSV / JSON, joriy filtrlar bilan (`GET /api/events/export`, ≤5000, formula himoyasi)
 - ⬜ Bir nechta qidiruvni bitta hisobotga jamlash
+- ⬜ Manba xato matnlari (`last_error`) interfeys tilida (hozir bazada o'zbek lotinida saqlanadi)
 - ✅ Testlar (pytest), Alembic migratsiyalar (v2 Bosqich 0 / 9)

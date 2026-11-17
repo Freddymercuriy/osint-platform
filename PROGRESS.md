@@ -149,6 +149,11 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   Events'da "Eksport: CSV · JSON" tugmalari (son yonida), natija matni ("N ta hodisa yuklandi" / chegara), 4 til.
   `statsApi.downloadCsv` ga ham formula himoyasi. Jonli: regional 92, global 959, 7 kun 1023 — fayllar brauzerda
   yuklandi (desktop + 360px). Test: `test_events_export.py`.
+- **Telegram belgisi haqiqiy sonni ko'rsatadi:** Events'da "22 ta chat · hudud filtri" (`.env` `TG_CHATS` va
+  `TG_UZ_FILTER`) eskirgan edi — kuzatilayotgani 43 ta manba, hammasi Global (0016). `/api/telegram/status` →
+  `sources`, `global_sources` (yoqilgan `telegram_user` manbalari); belgi: "43 ta chat · Global: 43"; admin →
+  Tizim → Telegram kartasida ham ikki yangi qator. Test: `test_telegram_resolve.py`.
+  ⚠️ Ma'lum: manba xato matni (`last_error`) bazada o'zbek lotinida — kirill/rus interfeysda lotin ko'rinadi.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

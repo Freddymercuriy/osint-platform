@@ -1,11 +1,13 @@
 from fastapi import APIRouter, status
 from pydantic import BaseModel
+from sqlalchemy import func, select
 
 from app.api.deps import AdminUser, DbSession
 from app.core import ratelimit
 from app.core.config import settings
 from app.core.errors import api_error
 from app.core.i18n import current_lang, t
+from app.models import Source
 from app.services import telegram_user as tg
 from app.services.events.telegram_archive import is_monitored, monitored_keys
 
@@ -17,9 +19,12 @@ class TgStatus(BaseModel):
     session: bool  # session fayli bormi
     authorized: bool  # login qilinganmi
     account: str | None = None
-    chats_filter: list[str]
+    chats_filter: list[str]  # .env TG_CHATS (boshlang'ich seed) — kuzatilayotganlar emas
     uz_filter: bool
     message: str
+    # Haqiqatda kuzatilayotganlar: yoqilgan `telegram_user` manbalari va ulardan global (kiber filtri) bo'lganlari
+    sources: int = 0
+    global_sources: int = 0
 
 
 class TgChat(BaseModel):
@@ -32,12 +37,18 @@ class TgChat(BaseModel):
 
 
 @router.get("/status", response_model=TgStatus)
-async def tg_status(current_user: AdminUser) -> TgStatus:
+async def tg_status(current_user: AdminUser, db: DbSession) -> TgStatus:
+    enabled_tg = (Source.kind == "telegram_user") & Source.enabled
+    counts = (await db.execute(select(
+        func.count(Source.id), func.count(Source.id).filter(Source.scope == "global")
+    ).where(enabled_tg))).one()
     base = dict(
         configured=tg.is_configured(),
         session=tg.session_exists(),
         chats_filter=settings.tg_chats_list,
         uz_filter=settings.tg_uz_filter,
+        sources=counts[0],
+        global_sources=counts[1],
     )
     if not base["configured"]:
         return TgStatus(**base, authorized=False,
