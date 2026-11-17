@@ -82,6 +82,13 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   bo'yicha to'g'ridan-to'g'ri aniqlanadi (`_resolve_joined_chat`), faqat akkaunt a'zo bo'lsa.
   Admin chat tanlash (`GET /api/telegram/chats`) — butun ro'yxat (`list_chats(full=True)`, 5 daq. kesh,
   `?refresh=true` — rate limit bilan), har chatda `monitored` (manbasi bor — `telegram_archive.is_monitored`).
+  Filtr (0016 dan, barcha Telegram manbalari `scope=global` + `cyber_filter`): Markaziy Osiyo kalit so'zi
+  (`TG_UZ_FILTER`, `TG_EXTRA_KEYWORDS`) topilgan xabar `regional` (mavzusiz ham o'tadi), qolgani — kiber mavzusi bo'lsa
+  `global`. Regional Telegram manbasida — avvalgidek faqat kalit so'z.
+- `filters.apply_filters` global manbada: "chet el" qoidasi qo'llanmaydi (u mahalliy saytlar uchun); `cyber_filter`
+  mavzusiz elementni mintaqaga oid bo'lsa (`item.scope == regional` yoki mintaqa so'zi) o'tkazadi.
+- `RawItem.ignore_source_category` — manbaning qat'iy kategoriyasi (`sources.category_id`) shu elementga qo'llanmaydi,
+  klassifikator hal qiladi (`extra.category_free`; `reclassify` ham). Telegram: "leak" chatining global suhbati.
   `TG_MONITOR_ARCHIVED=true` — `services/events/telegram_archive.py` arxivdagi har kanal/guruh uchun manba yaratadi
   (housekeeping'da, soatiga bir; mavjud yoki o'chirib qo'yilgan manbaga tegmaydi; `state.origin = "archive"`).
 - NewsNow: `connectors/newsnow.py` — mavzu sahifasi (`config.url`, faqat newsnow.com / newsnow.co.uk, so'rov

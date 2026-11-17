@@ -34,6 +34,9 @@ class RawItem:
     matched_keywords: list[str] = field(default_factory=list)
     extra: dict[str, Any] = field(default_factory=dict)
     dedup_key: str | None = None  # manbalararo bir xil obyekt (masalan ransomware qurboni) uchun kalit
+    # Manbaning qat'iy kategoriyasi (sources.category_id) bu elementga qo'llanmaydi — klassifikator hal qiladi
+    # (masalan "leak" Telegram chatining mintaqaga oid bo'lmagan global xabari: har gap "leak" 🔔 bo'lmasin)
+    ignore_source_category: bool = False
 
 
 @dataclass

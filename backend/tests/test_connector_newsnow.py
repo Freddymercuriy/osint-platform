@@ -175,7 +175,7 @@ async def test_seeded_source_end_to_end_dedups_by_article_id(db, monkeypatch):
     r = await scheduler.run_source(s.id)
     assert r.ok and r.outcome == "ok"
     expected = apply_filters(parse_page(page["body"], URL), SimpleNamespace(
-        kind="newsnow", config=s.config, region_filter=False, cyber_filter=True))
+        kind="newsnow", config=s.config, scope="global", region_filter=False, cyber_filter=True))
     titles = set((await db.scalars(select(EventRecord.title))).all())
     assert titles == {i.title for i in expected} and titles
     rows = (await db.scalars(select(EventRecord))).all()
@@ -188,3 +188,18 @@ async def test_seeded_source_end_to_end_dedups_by_article_id(db, monkeypatch):
     assert r.ok and r.new == 0
     assert await db.scalar(select(func.count(EventRecord.id))) == len(titles)
     assert {str(q.url) for q in seen} == {URL}
+
+
+def test_foreign_rule_only_for_regional_sources():
+    """"Chet el belgisi bor, mintaqa so'zi yo'q" qoidasi mahalliy saytlar uchun; global manbada jahon yangiligi qoladi."""
+    from app.services.connectors.base import RawItem
+
+    def items():
+        return [RawItem(title="FBI warns of AI pentesting tool used in cyberattacks worldwide", url="https://x.example/1"),
+                RawItem(title="Hackers breach Kazakhstan telecom, FBI says", url="https://x.example/2")]
+
+    flags = dict(kind="rss", config={}, region_filter=False, cyber_filter=True)
+    local = apply_filters(items(), SimpleNamespace(scope="regional", **flags))
+    assert [i.url[-1] for i in local] == ["2"]
+    glob = apply_filters(items(), SimpleNamespace(scope="global", **flags))
+    assert [i.url[-1] for i in glob] == ["1", "2"] and all(i.matched_keywords for i in glob)

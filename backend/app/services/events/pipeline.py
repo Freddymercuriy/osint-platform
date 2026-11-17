@@ -142,7 +142,8 @@ async def store_items(
         if not item.title or not valid_url(item.url):
             stats.invalid += 1
             continue
-        slug, classified = categorize(item, fixed.slug if fixed else None, compiled, known)
+        source_fixed = None if item.ignore_source_category or not fixed else fixed.slug
+        slug, classified = categorize(item, source_fixed, compiled, known)
         when = aware(item.published, now)
         if when > now:
             # Kelajak sanasi (masalan, The Record RSS'da ertangi pubDate) — yig'ish vaqti bilan cheklanadi,
@@ -229,6 +230,8 @@ async def store_items(
                 extra["fixed_category"] = p.slug
             elif p.classified is not None:
                 extra["classifier"] = {"score": p.classified.score, "hits": p.classified.hits}
+            if it.ignore_source_category:
+                extra["category_free"] = True  # qayta tasniflashda ham manba kategoriyasi qo'llanmaydi
             if it.severity:
                 extra["severity_floor"] = it.severity
             scope = it.scope or source.scope

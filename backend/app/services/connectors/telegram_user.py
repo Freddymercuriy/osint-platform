@@ -2,6 +2,8 @@
 
 config: {} — `TG_CHATS` dagi barcha chatlar (v1 xatti-harakati), yoki {"chat": "username yoki -100id"} — bitta chat.
 Filtr: `TG_UZ_FILTER=true` bo'lsa Markaziy Osiyo kalit so'zlari, qo'shimcha `TG_EXTRA_KEYWORDS`.
+Manba `scope = global` bo'lsa kalit so'z talab qilinmaydi (mavzu — manbaning `cyber_filter` bayrog'ida), kalit so'z
+topilgan xabar esa `regional` (asosiy lenta) bo'ladi.
 Guruhlardagi yuboruvchi ismi/telefoni o'qilmaydi va saqlanmaydi — faqat xabar matni parchasi va havola.
 """
 
@@ -30,7 +32,9 @@ def keyword_patterns():
     return (_UZ_PATTERNS + extra) if settings.tg_uz_filter else extra
 
 
-def messages_to_items(messages, leak_keys: list[str], patterns) -> list[RawItem]:
+def messages_to_items(messages, leak_keys: list[str], patterns, *, global_scope: bool = False) -> list[RawItem]:
+    """`global_scope` — kalit so'z topilmagan xabar ham qoladi (mavzu filtri manba bayroqlarida), topilgani esa
+    `regional` deb belgilanadi (asosiy lentaga; `apply_filters` uni kiber mavzusisiz ham o'tkazadi)."""
     from app.services import telegram_user as tg
 
     items: list[RawItem] = []
@@ -38,7 +42,7 @@ def messages_to_items(messages, leak_keys: list[str], patterns) -> list[RawItem]
     # Yangilari birinchi — takrorlarda eng yangisi qoladi
     for m in sorted(messages, key=lambda x: x.date or datetime.min.replace(tzinfo=UTC), reverse=True):
         hits, snippet = _match_snippet(m.text, patterns)
-        if patterns and not hits:
+        if patterns and not hits and not global_scope:
             continue
         fingerprint = re.sub(r"\W+", "", m.text.lower())[:200]
         if fingerprint in seen:
@@ -53,6 +57,9 @@ def messages_to_items(messages, leak_keys: list[str], patterns) -> list[RawItem]
             category="leak" if is_leak else None,
             channel="telegram_group" if m.chat.kind == "group" else "telegram_channel",
             matched_keywords=hits,
+            scope="regional" if global_scope and hits else None,
+            # "leak" chatidagi mintaqaga oid bo'lmagan suhbat — kategoriyani klassifikator beradi (🔔 oqimi bo'lmasin)
+            ignore_source_category=global_scope and not hits,
             extra={"chat_id": m.chat.id},
         ))
     return items
@@ -88,7 +95,9 @@ class TelegramUserConnector(Connector):
             raise ConnectorError(f"Telegram: {type(exc).__name__}: {exc}") from exc
         # Bitta chat manbasida "leak" kategoriyasi manbaning o'zida (sources.category_id)
         leak_keys = [] if chat else settings.tg_leak_chats_list
-        items = messages_to_items(messages, leak_keys, keyword_patterns())
+        # Global manba: Markaziy Osiyo kalit so'zlari talab qilinmaydi (mavzu filtri — manbaning `cyber_filter`
+        # bayrog'ida); kalit so'z topilgan xabar `regional` bo'ladi — asosiy lenta avvalgidek to'liq
+        items = messages_to_items(messages, leak_keys, keyword_patterns(), global_scope=ctx.source.scope == "global")
         state = None
         if chat and messages and not ctx.dry_run:
             state = {**(ctx.source.state or {}), "last_id": max(m.msg_id for m in messages)}

@@ -122,6 +122,25 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   `?refresh=true` — `refresh_rate` limiti bilan), har chatda `monitored` va `archived`. `SourceForm` → `TelegramPicker`:
   qidiruv (nomi / @username / ID), "Yangilash", "Ko'rsatilgan: N / M", "✓ kuzatilmoqda" belgisi (4 til).
   Jonli: 227 chat (avval 105), birinchi so'rov 3.2 s, keshdan 0.1 s; 43 tasi kuzatilmoqda.
+- **Telegram → Global** (foydalanuvchi tanlovi: *"All 43 channels"* + 🔔 *"Keep all"*). Tahlil (sessiya nusxasi bilan,
+  faqat o'qish): 43 manbaning so'nggi 2728 xabaridan eski filtr (Markaziy Osiyo + `TG_EXTRA_KEYWORDS`) 31 tasini (~1%)
+  o'tkazardi, kiber mavzusi — 460. O'zgarishlar:
+  - Telegram ulagichi `scope=global` manbada kalit so'zni talab qilmaydi; kalit so'z topilgan xabar `regional`
+    (`RawItem.scope`), `apply_filters` global manbada mintaqaga oid elementni kiber mavzusisiz ham o'tkazadi —
+    asosiy lenta kamaymaydi. Regional Telegram manbasi — avvalgidek.
+  - "Chet el" qoidasi faqat regional manbalarga (NewsNow 85 kiber yangilikdan 26 tasini — "FBI warns ..." —
+    tashlardi). `FilterSource.scope` (yo'q bo'lsa regional).
+  - Migratsiya `0016_telegram_global`: barcha `telegram_user` → global + `cyber_filter`, kursor (`state.last_id`)
+    olib tashlandi, `baseline_done=false`. Arxivdan avtomatik yaratiladigan manbalar ham global + kiber filtri.
+  - `RawItem.ignore_source_category`: "leak" kategoriyali chatning mintaqaga oid bo'lmagan global xabari
+    klassifikator bilan (`extra.category_free`, `reclassify` ham hurmat qiladi). Sabab: baseline'da "Hi",
+    "yo mb super hacker bro" kabi suhbat "leak" bo'lib qolgan — jonli oqimda Breachforums Databases v2 chati
+    (~2300 xabar/kun) yolg'iz ~115 🔔/kun berardi. Mavjud 13 qator belgilandi, `reclassify` 9 tasini o'zgartirdi
+    (leak → other 7, credentials 1, ddos-outage 1).
+  - Jonli: 43 manba baseline'ni tugatdi, xato 0; 238 global (hammasi baseline, 🔔 yo'q, 21 manbadan; BugAlerts —
+    100 tasi), regional Telegram 7 → 8. Testlar: `test_telegram_sources.py`, `test_connector_newsnow.py`.
+  - ⚠️ Kuzatish kerak: BugAlerts (~300/kun, asosan `vulnerability` — 🔔 yo'q) Global lentani bosadi; kerak bo'lsa
+    admin'da o'chirish yoki `scope=regional` ga qaytarish.
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

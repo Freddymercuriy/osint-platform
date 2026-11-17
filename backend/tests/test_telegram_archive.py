@@ -78,6 +78,7 @@ async def test_sync_archived_sources_creates_once(db, monkeypatch):
     priv, pub = rows["-100777"], rows["open_chan"]
     assert priv.translate is False and pub.translate is True  # yopiq guruh matni tarjimaga yuborilmaydi
     assert priv.enabled and priv.status == "never_run" and priv.state == {"origin": "archive"}
+    assert all(x.scope == "global" and x.cyber_filter for x in (priv, pub))  # 0016 qarori — yangi arxiv chatlari ham
     assert priv.interval_seconds == 600 and priv.next_run_at > now
     assert rows["-100555"].enabled is False
 

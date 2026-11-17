@@ -63,7 +63,8 @@ async def reclassify(db: AsyncSession, *, dry_run: bool = True, sample: int = 20
         fixed = extra.get("fixed_category")
         if fixed in by_slug:
             target = by_slug[fixed]
-        elif r.source_id in source_fixed and source_fixed[r.source_id] in by_id:
+        elif (r.source_id in source_fixed and source_fixed[r.source_id] in by_id
+              and not extra.get("category_free")):
             target = by_id[source_fixed[r.source_id]]
         else:
             c = classify(r.title, r.summary, compiled)

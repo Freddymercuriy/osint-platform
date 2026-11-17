@@ -29,6 +29,7 @@ class FilterSource(Protocol):
     config: dict
     region_filter: bool
     cyber_filter: bool
+    # scope: "regional" | "global" — ixtiyoriy (yo'q bo'lsa regional)
 
 
 # ---------------------------------------------------------------- yordamchilar
@@ -159,6 +160,7 @@ def _strip_own(text: str, source: FilterSource) -> str:
 
 def apply_filters(items: list[RawItem], source: FilterSource) -> list[RawItem]:
     """Manba bayroqlari bo'yicha filtr (title + summary). Mos kelgan kalit so'zlar `matched_keywords` ga."""
+    is_global = getattr(source, "scope", "regional") == "global"
     out: list[RawItem] = []
     for i in items:
         text = f"{i.title} {i.summary}"
@@ -166,9 +168,16 @@ def apply_filters(items: list[RawItem], source: FilterSource) -> list[RawItem]:
         if source.cyber_filter:
             h = _topic_hits(text)
             if not h:
-                continue
-            # Mahalliy sayt qayta bosgan jahon yangiligi: chet el belgisi bor, mintaqa so'zi yo'q
-            if not source.region_filter and _is_foreign(text) and not _is_region(_strip_own(text, source)):
+                # Global manba: kiber mavzusi bo'lmasa ham Markaziy Osiyo haqidagisi qoladi (asosiy lenta uchun) —
+                # ulagich mintaqaviy deb belgilagan (masalan, Telegram TG_EXTRA_KEYWORDS) yoki matnda mintaqa so'zi
+                rh = _region_hits(text) if is_global else []
+                if not (is_global and (i.scope == "regional" or rh)):
+                    continue
+                h = rh
+            # Mahalliy sayt qayta bosgan jahon yangiligi: chet el belgisi bor, mintaqa so'zi yo'q. Global manbaga
+            # (NewsNow, xalqaro kiber-kanallar) qo'llanmaydi — u yerda jahon yangiligi aynan kerakli narsa.
+            elif (not source.region_filter and not is_global
+                    and _is_foreign(text) and not _is_region(_strip_own(text, source))):
                 continue
             hits += h
         if source.region_filter:

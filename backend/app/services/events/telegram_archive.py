@@ -67,7 +67,8 @@ async def sync_archived_sources(db, chats, now: datetime | None = None) -> list[
         if name in names:
             continue
         src = Source(
-            name=name, kind="telegram_user", config={"chat": key}, lang="uz", scope="regional",
+            # Global + kiber filtri (0016 dagi qaror): Markaziy Osiyo haqidagisi baribir asosiy lentaga tushadi
+            name=name, kind="telegram_user", config={"chat": key}, lang="uz", scope="global", cyber_filter=True,
             translate=bool(c.username), enabled=True, interval_seconds=INTERVAL, jitter_pct=20, backfill_days=14,
             notes=f"Telegram arxividan avtomatik ({'kanal' if c.kind == 'channel' else 'guruh'})",
             state={"origin": "archive"}, status="never_run",

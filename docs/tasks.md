@@ -100,6 +100,9 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` yig'ish vaqti bilan cheklanadi (`0015`)
 - ✅ Telegram: dialoglar chegarasidan (`TG_DIALOG_LIMIT`) tashqaridagi a'zo bo'lingan chatlar ham o'qiladi
 - ✅ Admin: Telegram chat tanlash — butun ro'yxat (chegarasiz, 5 daq. kesh), qidiruv, "kuzatilmoqda" belgisi
+- ✅ Telegram manbalari → Global + kiber filtri (`0016`); Markaziy Osiyo kalit so'zi bo'lsa — asosiy lentaga
+- ✅ Global manbalarda "chet el" qoidasi o'chirildi (NewsNow 85 tadan 26 kiber yangilikni yo'qotardi)
+- ⬜ Telegram Global oqimini kuzatish: shovqinli kanallar (BugAlerts ~300/kun) — kerak bo'lsa admin'da o'chirish yoki regional'ga qaytarish
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish
