@@ -118,21 +118,57 @@ def scratch_db_name(prefix: str) -> str:
 
 
 # ---------------------------------------------------------------- per-test
+_CLEANUP: list[str] | None = None
+
+
+async def _cleanup_sql(conn) -> list[str]:
+    """Jadvallarni bo'shatish: TRUNCATE emas, DELETE (bolalari oldin) + ketma-ketliklarni 1 ga qaytarish.
+
+    TRUNCATE har jadval uchun yangi fayl yaratib, uni diskka sinxronlaydi (`DataFileImmediateSync`) — sekin diskda
+    har test 3–5 s kutardi. Kichik jadvallarda DELETE faqat WAL yozadi (tranzaksiyaga bitta fsync).
+    """
+    from sqlalchemy import text
+
+    tables = list((await conn.execute(text(
+        "select tablename from pg_tables where schemaname = 'public' and tablename <> 'alembic_version'"
+    ))).scalars().all())
+    edges = (await conn.execute(text(
+        "select conrelid::regclass::text, confrelid::regclass::text from pg_constraint "
+        "where contype = 'f' and connamespace = 'public'::regnamespace and conrelid <> confrelid"
+    ))).all()
+    children: dict[str, set[str]] = {t: set() for t in tables}
+    for child, parent in edges:
+        if parent in children and child in children:
+            children[parent].add(child)
+    ordered: list[str] = []
+    left = set(tables)
+    while left:
+        # boshqa qolgan jadval unga ishora qilmaydigan jadval (bolasi qolmagan) — o'chirishga tayyor
+        ready = sorted(t for t in left if not (children[t] & left))
+        if not ready:  # sikl — TRUNCATE ga qaytamiz
+            return ["truncate " + ", ".join(f'"{t}"' for t in tables) + " restart identity cascade"]
+        ordered += ready
+        left -= set(ready)
+    seqs = (await conn.execute(text(
+        "select c.relname from pg_class c join pg_namespace n on n.oid = c.relnamespace "
+        "where c.relkind = 'S' and n.nspname = 'public'"
+    ))).scalars().all()
+    return [f'delete from "{t}"' for t in ordered] + [f"select setval('public.\"{s}\"', 1, false)" for s in seqs]
+
+
 @pytest.fixture(autouse=True)
 async def _clean_tables():
     """Har test toza bazada (jadvallar bo'shatiladi, sxema qoladi)."""
+    global _CLEANUP
     from sqlalchemy import text
 
     from app.core.db import engine
 
     async with engine.begin() as conn:
-        tables = (await conn.execute(text(
-            "select tablename from pg_tables where schemaname = 'public' and tablename <> 'alembic_version'"
-        ))).scalars().all()
-        if tables:
-            await conn.execute(text(
-                "truncate " + ", ".join(f'"{t}"' for t in tables) + " restart identity cascade"
-            ))
+        if _CLEANUP is None:
+            _CLEANUP = await _cleanup_sql(conn)
+        for stmt in _CLEANUP:
+            await conn.execute(text(stmt))
         for t in SEED_TABLES:
             await conn.execute(text(f"insert into public.{t} select * from seed.{t}"))
             await conn.execute(text(
