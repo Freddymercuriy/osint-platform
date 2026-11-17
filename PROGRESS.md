@@ -59,6 +59,51 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### Rahbariyat kanali — Bosqich 1: ustuvorlik (2026-11-17)
+- **Migratsiya `0018_priority`**: `events.priority` (smallint, indeks), `priority_band` (low/medium/high/critical, check),
+  `priority_reasons` (JSONB `[{code, points, arg?}]`); `sources.reliability` (official / tracker / media / community /
+  underground) — turi va nomidan seed: official 7 (CISA KEV, NVD, UZCERT, KZ-CERT, CERT.TJ, KG-CERT, sts.kz), tracker 9,
+  underground 9 (TG_LEAK_CHATS / leak qat'iy kategoriyali chatlar), community 34, media 62; `watchlist` jadvali —
+  `TG_EXTRA_KEYWORDS` dan 20 ta tashkilot / brend (joy nomlari olinmadi; umumiy so'zlar "soliq", "mehnat", "ipoteka"
+  yolg'iz alias emas — aniq nom bilan); `publisher_settings` (id = 1) — og'irliklar va band chegaralari (spetsifikatsiya
+  jadvali). Downgrade bor.
+- **Sof funksiya** `services/publisher/priority.py::compute` — ball 0–100, band, sabablar (planner, Events va
+  simulyatsiya bir xil natija oladi). `record_count` — `pwn_count` yoki matndan ("8.3M records", "40M-record",
+  "44,080-member", "1,2 млн записей"). Manba identifikatori — "X (Google News)" = "X" (nusxa qayta sanalmaydi).
+  Global + kuzatuvsiz → ball 39 gacha, band low (`global_cap` sababi manfiy ball bilan — ball va band mos).
+  Hodisa `severity` si ishlatiladi (kategoriya jiddiyligi + ulagich ko'targan daraja, masalan KEV) — spetsifikatsiyadagi
+  "category severity" bilan bir xil manba.
+- **Kuzatuv ro'yxati** (`publisher/watchlist.py`): butun so'z, apostrof variantlari (`filters._kw_regex`), o'zbekcha
+  lotin ↔ kirill avtomatik (jaybi); sarlavha, matn, tarjimalar, `matched_keywords`, `extra.victim/domain`.
+- **Sohalar**: `dedup._SECTORS` + `geo.SECTOR_NAMES` ga ENERGY / TRANSPORT ("airways", "pipeline", "power" — ataylab
+  yo'q: "PowerShell", CI "pipeline" shovqini).
+- **Qayta hisoblash** (`publisher/scoring.py`): `store_items` (yangi + boshqa manba qo'shilgan — `touched_ids`),
+  tarjima tugaganda (`ProcessStats.done_event_ids`), admin kategoriyani o'zgartirsa, qayta tasniflash, kategoriya
+  jiddiyligi / o'chirish, manba ishonchliligi (shu manba, 14 kun), kuzatuv ro'yxati va og'irliklar (14 kun),
+  housekeeping — `priority is null` (migratsiyadan keyin 1193 ta hodisa shu yo'l bilan hisoblandi).
+- **API**: `GET /api/events?band=...` (va eksport), `EventItemOut.priority/priority_band/priority_reasons`; CSV/JSON
+  eksportga `priority`, `priority_band` ustunlari; admin: `/api/admin/publisher/watchlist` (CRUD, `/{id}/test`,
+  `POST /watchlist/test` — saqlanmagan yozuvni sinash, 30 kun), `/api/admin/publisher/settings` (GET/PUT, band
+  tartibi tekshiriladi); manba formasi / import / eksport / arxiv — `reliability`.
+- **Frontend**: Events kartasida `PriorityBadge` ("Yuqori · 65"; bosilganda / ustiga kelganda sabablar ro'yxati —
+  telefonda ham), filtr panelida "Ustuvorlik" (band) guruhi va chip; admin manba formasida "Ishonchlilik" tanlovi.
+  Tarjimalar uz/ru/en + uz-Cyrl (963 kalit × 4).
+- **Jonli tekshiruvda topilgan va tuzatilgan (`0019`)**:
+  1. ransomware qoidasidagi `qilin` stem o'zbekcha "jalb **qilin**adi" ga mos kelardi — Kun.uz "Kiberfiribgarlikka
+     qarshi tezkor markaz ochiladi" ransomware / critical bo'lib 🔔 bergan. Endi butun so'z; faqat shu stem bilan
+     tasniflanganlar qayta tasniflandi (1 ta → other; 3 ta haqiqiy Qilin hodisasi ransomware'da qoldi).
+  2. kuzatuvdagi IIV va DXX — 5 ta moslikning 5 tasi ular hodisani **xabar qilgan** yangiliklar edi (pora, markaz
+     ochilishi) → o'chirib qo'yildi (izoh bilan; admin yoqa oladi).
+- **Jonli taqsimot** (1200 hodisa): regional — critical 3, high 10, medium 21, low 68; global — medium 1, qolgani low.
+  Kalibrlash (kunlik tezkor xabarlar soni) — Bosqich 6 da.
+- **Tekshirildi:** `test_publisher_priority.py` (30 test: og'irliklar, bandlar, global chegara, yozuvlar soni,
+  kuzatuv — lotin/kirill/apostrof/butun so'z/domen, store_items + birlashish, kategoriya o'zgarishi, housekeeping,
+  kuzatuv CRUD + qayta hisoblash, sozlamalar PUT + validatsiya, ishonchlilik seed / API, band filtri);
+  `test_categories.py` (+3 Qilin misoli); to'liq pytest (5 m 29 s, migratsiyalar up/down/up); typecheck, i18n,
+  frontend qayta qurildi, smoke (14 sahifa × 2) toza; CDP: Events `?band=critical,high` — 10 karta, sabablar oynasi
+  (desktop va 360 px, gorizontal skroll yo'q).
+  **Tekshirilmadi:** kuzatuv / sozlamalar admin UI (Bosqich 5 da).
+
 ### Rahbariyat kanali — Bosqich 0: poydevor (2026-11-17)
 - Tarmoq `feat/telegram-channel`, baza nusxasi (yuqorida), spetsifikatsiya `docs/telegram-channel-spec.md` (o'zgarishsiz).
 - Sozlamalar (`core/config.py`, `.env.example`): `TG_BOT_TOKEN` (bo'sh — faqat dry-run), `PUBLISHER_ENABLED=true`,

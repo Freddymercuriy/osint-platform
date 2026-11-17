@@ -24,7 +24,7 @@ def detect_countries(*texts: str | None) -> list[str]:
 
 # Soha (sector) — sarlavha/matndagi so'z boshlanishlari bo'yicha (dedup._SECTORS bilan bir xil lug'at)
 SECTOR_NAMES = {"GOV": "government", "BANK": "finance", "HEALTH": "healthcare", "TELECOM": "telecom",
-                "EDU": "education"}
+                "EDU": "education", "ENERGY": "energy", "TRANSPORT": "transport"}
 
 
 def detect_sector(*texts: str | None) -> str | None:

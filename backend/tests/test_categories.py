@@ -54,6 +54,11 @@ async def compiled(db):
      "The Climax ransomware group has added Peerless Hospital to its data-leak site", "ransomware"),
     ("Military-linked Chinese university bought Nvidia H200 chips despite US blacklist, records show", "", "other"),
     ("Hey there Mario, and welcome to Breachforums Databases v2! How are you?", "", "other"),
+    # 0019: "qilin" (Qilin guruhi) — butun so'z; o'zbekcha "jalb qilinadi" ransomware emas
+    ("Kiberfiribgarlikka qarshi tezkor markaz ochiladi",
+     "Unga Ichki ishlar vazirligi va banklar jalb qilinadi.", "other"),  # e'lon — hodisa emas
+    ("Who Runs the Ransomware Group Qilin?", "", "ransomware"),
+    ("Qilin claims attack on a hospital", "", "ransomware"),
 ])
 async def test_classifier_examples(compiled, title, summary, expected):
     assert classify(title, summary, compiled).slug == expected

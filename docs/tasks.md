@@ -109,8 +109,9 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 ## Rahbariyat Telegram kanali (`feat/telegram-channel`, spetsifikatsiya: `docs/telegram-channel-spec.md`)
 - ✅ Bosqich 0 — Poydevor: tarmoq, baza nusxasi, sozlamalar (`TG_BOT_TOKEN`, `PUBLISHER_*`, `PUBLIC_APP_URL`),
   Bot API mijozi (`services/publisher/bot.py`) — xato turlari, tokenni yashirish
-- ⬜ Bosqich 1 — Ustuvorlik: ball / band / sabablar, manba ishonchliligi, kuzatuv ro'yxati (watchlist), energetika va
-  transport sohalari, qayta hisoblash, Events'da belgi va filtr
+- ✅ Bosqich 1 — Ustuvorlik: ball / band / sabablar, manba ishonchliligi, kuzatuv ro'yxati (watchlist), energetika va
+  transport sohalari, qayta hisoblash, Events'da belgi va filtr (`0018`; jonli tuzatishlar `0019`: "qilin" stem,
+  IIV / DXX kuzatuvi o'chiq)
 - ⬜ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state`
 - ⬜ Bosqich 3 — Post ko'rinishi: tezkor xabar, guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, 4 til
 - ⬜ Bosqich 4 — Rejalashtiruvchi, yuboruvchi, tasdiqlash (review chat), bot yangilanishlari (long polling)

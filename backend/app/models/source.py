@@ -60,6 +60,8 @@ class Source(Base):
     backfill_days: Mapped[int] = mapped_column(Integer, default=14, server_default="14", nullable=False)
     api_key_env: Mapped[str | None] = mapped_column(String(64), nullable=True)
     notes: Mapped[str] = mapped_column(Text, default="", server_default="", nullable=False)
+    # Ishonchlilik (ustuvorlik va postdagi "Ishonchlilik" satri): official | tracker | media | community | underground
+    reliability: Mapped[str] = mapped_column(String(12), default="media", server_default="media", nullable=False)
 
     # HTTP kesh va jadval
     etag: Mapped[str | None] = mapped_column(String(256), nullable=True)

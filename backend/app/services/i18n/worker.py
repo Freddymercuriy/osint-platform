@@ -139,6 +139,7 @@ class ProcessStats:
     failed: int = 0
     stopped: str | None = None
     errors: list[str] = field(default_factory=list)
+    done_event_ids: set[int] = field(default_factory=set)  # tarjimasi tugagan hodisalar (ustuvorlik qayta hisoblanadi)
 
 
 async def usage_row(db: AsyncSession, now: datetime | None = None) -> TranslationUsage:
@@ -279,6 +280,7 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
         if tr.status == "pending" and tr.title is not None and tr.summary is not None:
             tr.status, tr.translated_at, tr.error = "done", now, None
             stats.done += 1
+            stats.done_event_ids.add(tr.event_id)
     state.translated_total += stats.done
     state.last_run = now
     await db.commit()

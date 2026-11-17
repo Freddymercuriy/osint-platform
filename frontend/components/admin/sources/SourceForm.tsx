@@ -5,8 +5,8 @@ import { useTranslations } from "next-intl";
 import { useId, useMemo, useState } from "react";
 import { Button, ErrorBanner, Input, Label, Select } from "@/components/ui";
 import {
-  createSource, getTgChats, testSourceDraft, updateSource,
-  type ConnectorInfo, type Source, type SourceInput, type SourceTest, type TgChat,
+  createSource, getTgChats, RELIABILITY, testSourceDraft, updateSource,
+  type ConnectorInfo, type Reliability, type Source, type SourceInput, type SourceTest, type TgChat,
 } from "@/lib/adminApi";
 import { useCategories } from "@/lib/useCategories";
 import Overlay from "./Overlay";
@@ -190,6 +190,7 @@ export default function SourceForm({
   const [backfill, setBackfill] = useState(String(source?.backfill_days ?? 14));
   const [keyEnv, setKeyEnv] = useState(source?.api_key_env ?? "");
   const [notes, setNotes] = useState(source?.notes ?? "");
+  const [reliability, setReliability] = useState<Reliability | "">(source?.reliability ?? "");
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [serverErr, setServerErr] = useState<string | null>(null);
@@ -272,6 +273,7 @@ export default function SourceForm({
       backfill_days: Math.round(bf),
       api_key_env: keyEnv.trim() || null,
       notes,
+      reliability: reliability || null,
     };
   };
 
@@ -434,6 +436,20 @@ export default function SourceForm({
             {category && !cats.some((c) => c.slug === category) && <option value={category}>{category}</option>}
           </Select>
           <Help id={`${uid}-cat-h`}>{t("form.categoryHelp")}</Help>
+        </div>
+
+        <div>
+          <Label htmlFor={`${uid}-rel`}>{t("form.reliability")}</Label>
+          <Select
+            id={`${uid}-rel`}
+            value={reliability}
+            onChange={(e) => setReliability(e.target.value as Reliability | "")}
+            aria-describedby={`${uid}-rel-h`}
+          >
+            {!source && <option value="">{t("form.reliabilityAuto")}</option>}
+            {RELIABILITY.map((r) => <option key={r} value={r}>{t(`reliability.${r}`)}</option>)}
+          </Select>
+          <Help id={`${uid}-rel-h`}>{t("form.reliabilityHelp")}</Help>
         </div>
 
         <div className="space-y-3 rounded-lg border border-border p-3">

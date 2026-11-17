@@ -555,5 +555,15 @@ MESSAGES: dict[str, dict[str, str]] = {
         "uz": "Ogohlantirish topilmadi",
         "ru": "Уведомление не найдено",
         "en": "Alert not found"},
+
+    # ------------------------------------------------------------ rahbariyat Telegram kanali (publisher)
+    "pub_watch_not_found": {
+        "uz": "Kuzatuv ro'yxati yozuvi topilmadi",
+        "ru": "Запись списка наблюдения не найдена",
+        "en": "Watchlist entry not found"},
+    "pub_watch_name_taken": {
+        "uz": "Bu nom shu turda allaqachon bor",
+        "ru": "Такое имя этого типа уже есть",
+        "en": "An entry of this kind with this name already exists"},
 }
 # fmt: on

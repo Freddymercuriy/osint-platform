@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { Button, Input } from "@/components/ui";
 import { MultiSelect, type Option } from "@/components/events/MultiSelect";
-import type { EventFilters } from "@/lib/api";
+import { PRIORITY_BANDS, type EventFilters } from "@/lib/api";
 import type { EventFacets } from "@/lib/adminApi";
 import { useCategories } from "@/lib/useCategories";
 import { useFormat } from "@/lib/format";
@@ -24,7 +24,7 @@ const PRESETS = [
   { key: "d90", range: "90d" },
 ] as const;
 
-type ChipKey = "category" | "severity" | "country" | "channel" | "source" | "source_lang";
+type ChipKey = "category" | "severity" | "band" | "country" | "channel" | "source" | "source_lang";
 
 export function EventFilterBar({
   filters,
@@ -47,6 +47,7 @@ export function EventFilterBar({
   const tf = useTranslations("events.filters");
   const ts = useTranslations("scope");
   const tsev = useTranslations("severity");
+  const tband = useTranslations("events.priority.band");
   const tch = useTranslations("channel");
   const tco = useTranslations("country");
   const locale = useLocale();
@@ -80,6 +81,7 @@ export function EventFilterBar({
       label: tsev(v),
       count: facets ? count(facets.severities, v) : undefined,
     }));
+    const bandOpts: Option[] = PRIORITY_BANDS.map((v) => ({ value: v, label: tband(v) }));
     const coOpts: Option[] = COUNTRIES.map((v) => ({
       value: v,
       label: tco(v),
@@ -100,13 +102,14 @@ export function EventFilterBar({
       label: langName(s.value),
       count: s.count,
     }));
-    return { catOpts, sevOpts, coOpts, chOpts, srcOpts, langOpts };
+    return { catOpts, sevOpts, bandOpts, coOpts, chOpts, srcOpts, langOpts };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categories, facets, tsev, tco, tch, langName]);
+  }, [categories, facets, tsev, tband, tco, tch, langName]);
 
   const groups: { key: ChipKey; label: string; options: Option[]; searchable?: boolean }[] = [
     { key: "category", label: tf("category"), options: opts.catOpts },
     { key: "severity", label: tf("severity"), options: opts.sevOpts },
+    { key: "band", label: tf("band"), options: opts.bandOpts },
     { key: "country", label: tf("country"), options: opts.coOpts },
     { key: "channel", label: tf("channel"), options: opts.chOpts },
     { key: "source", label: tf("source"), options: opts.srcOpts, searchable: true },

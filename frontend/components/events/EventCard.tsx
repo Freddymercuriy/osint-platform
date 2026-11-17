@@ -9,6 +9,7 @@ import { useCategories, type CategoryView } from "@/lib/useCategories";
 import { CHANNEL_META, type Tone } from "@/lib/categories";
 import { useFormat } from "@/lib/format";
 import type { EventItem } from "@/lib/api";
+import { PriorityBadge } from "@/components/events/PriorityBadge";
 
 export function eventTime(e: EventItem): string | null {
   return e.published || e.first_seen || null;
@@ -137,6 +138,7 @@ export function EventCard({
               <SeverityBadge severity={e.severity} />
             </FilterChip>
           )}
+          <PriorityBadge e={e} />
           {e.channel && chMeta && ChIcon && (
             <FilterChip label={tch.has(e.channel) ? tch(e.channel) : e.channel} onClick={onFilter && (() => onFilter("channel", e.channel!))}>
               <Badge tone={chMeta.tone as Tone} icon={ChIcon}>

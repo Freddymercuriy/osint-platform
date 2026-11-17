@@ -46,6 +46,11 @@ _SECTORS: dict[str, tuple[str, ...]] = {
                "medical", "shifoxona", "tibbiy"),
     "TELECOM": ("телеком", "провайдер", "telecom", "provayder"),
     "EDU": ("университет", "школ", "universit", "school", "maktab"),
+    # Muhim infratuzilma (rahbariyat kanali ustuvorligi): energetika va transport
+    "ENERGY": ("энергет", "энергосист", "электроэнерг", "электростанц", "электросет", "нефтегаз", "нефтян",
+               "energy", "electricity", "energetika", "elektroenerg", "elektrostans", "neftgaz", "энергия"),
+    "TRANSPORT": ("транспорт", "аэропорт", "авиакомпан", "железнодорож", "авиаперевоз", "airport", "airline",
+                  "railroad", "transport", "aeroport", "aviakompan", "temiryo"),
 }
 
 _TOPICS: dict[str, tuple[str, ...]] = {

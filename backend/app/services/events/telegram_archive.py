@@ -21,6 +21,7 @@ from sqlalchemy import select
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal
 from app.models import Source
+from app.services.publisher.reliability import default_reliability
 
 log = logging.getLogger("osint.telegram")
 
@@ -72,6 +73,7 @@ async def sync_archived_sources(db, chats, now: datetime | None = None) -> list[
             translate=bool(c.username), enabled=True, interval_seconds=INTERVAL, jitter_pct=20, backfill_days=14,
             notes=f"Telegram arxividan avtomatik ({'kanal' if c.kind == 'channel' else 'guruh'})",
             state={"origin": "archive"}, status="never_run",
+            reliability=default_reliability("telegram_user", name, chat=key),
             next_run_at=now + timedelta(seconds=initial_offset(INTERVAL)),
         )
         db.add(src)

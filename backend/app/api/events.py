@@ -58,9 +58,12 @@ def event_filters(
     date_to: date | None,
     q: str | None,
     since: datetime | None = None,
+    bands: list[str] | None = None,
 ) -> list:
     """Barcha filtrlar birlashadi (AND), har biri ichida — YOKI."""
     f = []
+    if bands:  # ustuvorlik bandi (low | medium | high | critical)
+        f.append(EventRecord.priority_band.in_([b for b in bands if b in ("low", "medium", "high", "critical")]))
     cats = [c for c in categories if c not in LEGACY_CHANNEL]
     legacy = [LEGACY_CHANNEL[c] for c in categories if c in LEGACY_CHANNEL]
     if cats:
@@ -116,6 +119,7 @@ async def list_events(
     q: str | None = Query(None, max_length=200, description="Sarlavha / matn / manba / guruh bo'yicha qidiruv"),
     category: list[str] | None = Query(None, description="Kategoriya slug'lari (vergul yoki takror). v1: news|telegram|tg_group — kanal"),
     severity: list[str] | None = Query(None),
+    band: list[str] | None = Query(None, description="Ustuvorlik bandi: low | medium | high | critical"),
     country: list[str] | None = Query(None, description="UZ, KZ, KG, TJ, TM"),
     channel: list[str] | None = Query(None, description="news | telegram_channel | telegram_group | api"),
     source: list[str] | None = Query(None, description="Manba ID yoki nomi"),
@@ -132,7 +136,7 @@ async def list_events(
     filters = event_filters(
         categories=_csv(category), severity=_csv(severity), countries=_csv(country), channel=_csv(channel),
         sources=_csv(source), scope=scope, lang=_csv(source_lang), date_from=date_from, date_to=date_to, q=q,
-        since=since,
+        since=since, bands=_csv(band),
     )
     order = func.coalesce(EventRecord.published, EventRecord.first_seen).desc()
     rows = (await db.scalars(
@@ -150,6 +154,7 @@ async def export_events(
     q: str | None = Query(None, max_length=200),
     category: list[str] | None = Query(None),
     severity: list[str] | None = Query(None),
+    band: list[str] | None = Query(None),
     country: list[str] | None = Query(None),
     channel: list[str] | None = Query(None),
     source: list[str] | None = Query(None),
@@ -167,7 +172,7 @@ async def export_events(
     filters = event_filters(
         categories=_csv(category), severity=_csv(severity), countries=_csv(country), channel=_csv(channel),
         sources=_csv(source), scope=scope, lang=_csv(source_lang), date_from=date_from, date_to=date_to, q=q,
-        since=since,
+        since=since, bands=_csv(band),
     )
     order = func.coalesce(EventRecord.published, EventRecord.first_seen).desc()
     rows = (await db.scalars(
@@ -180,7 +185,8 @@ async def export_events(
                "X-Export-Total": str(total), "X-Export-Count": str(len(items))}
     if format == "json":
         applied = {k: v for k, v in {
-            "q": q, "category": _csv(category), "severity": _csv(severity), "country": _csv(country),
+            "q": q, "category": _csv(category), "severity": _csv(severity), "band": _csv(band),
+            "country": _csv(country),
             "channel": _csv(channel), "source": _csv(source), "scope": scope or "regional",
             "source_lang": _csv(source_lang), "date_from": date_from and date_from.isoformat(),
             "date_to": date_to and date_to.isoformat(), "range": range, "lang": lang,
@@ -289,6 +295,9 @@ async def update_event(event_id: int, data: EventUpdate, _: AdminUser, db: DbSes
     ev.category, ev.category_id, ev.category_locked = cat.slug, cat.id, True
     ev.severity = effective_severity(cat.severity, (ev.extra or {}).get("severity_floor"))
     await db.commit()
+    from app.services.publisher.scoring import recompute
+
+    await recompute(db, [ev.id])
     await db.refresh(ev)
     return ev
 

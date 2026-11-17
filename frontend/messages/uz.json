@@ -336,7 +336,10 @@
       "kindRequired": "Turni tanlang.",
       "intervalMin": "Oraliq kamida 60 soniya bo'lishi kerak.",
       "numberInvalid": "Son kiriting.",
-      "fixErrors": "Avval belgilangan maydonlarni tuzating."
+      "fixErrors": "Avval belgilangan maydonlarni tuzating.",
+      "reliability": "Ishonchlilik",
+      "reliabilityAuto": "Avtomatik (turi va nomidan)",
+      "reliabilityHelp": "Manba xabariga qanchalik ishonish mumkin. Rasmiy manba hodisa ustuvorligini oshiradi, yolg'iz yashirin manba — pasaytiradi. Kanal postlarida \"Ishonchlilik\" satri sifatida ko'rinadi."
     },
     "fields": {
       "url": "URL",
@@ -393,6 +396,13 @@
       "retryIn": "Qayta urinish {d} dan keyin",
       "retryAt": "Qayta urinish vaqti: {time}",
       "retryNow": "Hozir qayta urinilmoqda…"
+    },
+    "reliability": {
+      "official": "Rasmiy (CERT, CISA, NVD)",
+      "tracker": "Kuzatuvchi (ransomware.live, HIBP, abuse.ch …)",
+      "media": "OAV (yangilik saytlari, Google News)",
+      "community": "Hamjamiyat (Telegram kanallar)",
+      "underground": "Yashirin (leak / darkweb chatlari)"
     }
   },
   "adminSystem": {
@@ -769,7 +779,7 @@
     },
     "sectors": {
       "title": "Nishondagi sohalar",
-      "help": "Hodisa matnidan aniqlangan soha (davlat, moliya, sog'liqni saqlash, telekom, ta'lim).",
+      "help": "Matndan aniqlangan soha (davlat, moliya, sog'liqni saqlash, telekom, ta'lim, energetika, transport).",
       "column": "Soha",
       "empty": "Soha aniqlangan hodisa yo'q."
     },
@@ -845,7 +855,9 @@
       "finance": "Moliya",
       "healthcare": "Sog'liqni saqlash",
       "telecom": "Telekom",
-      "education": "Ta'lim"
+      "education": "Ta'lim",
+      "energy": "Energetika",
+      "transport": "Transport"
     }
   },
   "events": {
@@ -936,7 +948,8 @@
       "from_chip": "{date} dan",
       "to_chip": "{date} gacha",
       "q_chip": "Matn: {q}",
-      "lang_chip": "Til: {lang}"
+      "lang_chip": "Til: {lang}",
+      "band": "Ustuvorlik"
     },
     "card": {
       "addFilter": "Filtr: {label}",
@@ -962,6 +975,33 @@
       "json": "JSON formatida yuklab olish",
       "done": "{count, number} ta hodisa yuklandi",
       "truncated": "Eng yangi {count, number} ta hodisa yuklandi (jami {total, number} ta; chegara)"
+    },
+    "priority": {
+      "aria": "Ustuvorlik: {label}. Sabablarni ko'rsatish",
+      "reasonsTitle": "Nega bunday ustuvorlik",
+      "total": "Jami",
+      "band": {
+        "critical": "Kritik",
+        "high": "Yuqori",
+        "medium": "O'rta",
+        "low": "Past"
+      },
+      "reasons": {
+        "sev": "Kategoriya jiddiyligi: {level}",
+        "country_uz": "O'zbekistonga oid",
+        "country_ca": "Markaziy Osiyo: {country}",
+        "sector": "Muhim soha: {sector}",
+        "watch_org": "Kuzatuv ro'yxati: {name}",
+        "watch_product": "Kuzatiladigan mahsulot: {name}",
+        "watch_person": "Ro'yxatdagi shaxs tilga olingan: {name}",
+        "official_source": "Rasmiy manba",
+        "multi_source": "{count} ta manba xabar qilgan",
+        "records_100k": "{count} ta yozuv (100 000 dan ortiq)",
+        "records_1m": "{count} ta yozuv (1 milliondan ortiq)",
+        "stale": "Yig'ishdan {hours} soat oldin e'lon qilingan",
+        "underground_only": "Faqat yashirin kanal xabar qilgan",
+        "global_cap": "Mintaqadan tashqarida va kuzatuv ro'yxatida yo'q"
+      }
     }
   },
   "history": {

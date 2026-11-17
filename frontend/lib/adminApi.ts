@@ -44,7 +44,12 @@ export type SourceInput = {
   backfill_days: number;
   api_key_env: string | null;
   notes: string;
+  /** Ishonchlilik (ustuvorlik va kanal postidagi "Ishonchlilik" satri); null — turi va nomidan avtomatik. */
+  reliability?: Reliability | null;
 };
+
+export const RELIABILITY = ["official", "tracker", "media", "community", "underground"] as const;
+export type Reliability = (typeof RELIABILITY)[number];
 
 export type Source = SourceInput & {
   id: number;

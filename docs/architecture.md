@@ -103,6 +103,11 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   `services/events/classifier.py` (manba → ulagich → qoidalar → `other`), `categories.py` (qayta tasniflash).
   Qoidalar bazada (admin tahrirlaydi); migratsiya ularni ustidan yozmaydi — faqat yo'q band qo'shadi (masalan
   `0017`: leak — yolg'iz "breach", yozuvlar soni / hajm, dark web / forum).
+- Ustuvorlik (rahbariyat kanali): `events.priority` / `priority_band` / `priority_reasons` —
+  `services/publisher/priority.py::compute` (sof funksiya: kategoriya jiddiyligi, davlat, soha, kuzatuv ro'yxati,
+  manba ishonchliligi `sources.reliability`, manbalar soni, yozuvlar soni, eskirganlik, yolg'iz yashirin manba;
+  global + kuzatuvsiz → low). Og'irliklar — `publisher_settings` (admin). Qayta hisoblash — `publisher/scoring.py`
+  (yig'ish, birlashish, tarjima, kategoriya, kuzatuv / og'irlik o'zgarishi — 14 kun, housekeeping — bali yo'qlar).
 - Tarjima: `event_translations` (en/ru/uz), `services/i18n/` — til aniqlash, o'zbek kirill→lotin, shablon sarlavhalar,
   navbat (`worker.py`: kesh, oylik chegara — 0 = chegarasiz, qayta urinish; 422 / noma'lum til — darhol `failed`).
   Provayder — o'z NLLB servisimiz (`translator.py`, `TRANSLATE_API_URL`, kalitsiz): ISO kod → FLORES-200

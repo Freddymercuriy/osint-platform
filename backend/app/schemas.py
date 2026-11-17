@@ -128,6 +128,10 @@ class EventItemOut(BaseModel):
     extra: dict = {}
     also_reported_by: list = []
     is_baseline: bool = False
+    # Ustuvorlik (rahbariyat kanali): 0–100, band va sabablar [{code, points, arg?}]
+    priority: int | None = None
+    priority_band: str | None = None
+    priority_reasons: list = []
     # Tarjima (?lang=en|ru|uz berilganda title/summary shu tilda, zanjir: so'ralgan → en → asl)
     source_lang: str | None = None
     display_lang: str | None = None

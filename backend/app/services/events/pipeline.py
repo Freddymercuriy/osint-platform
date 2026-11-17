@@ -108,6 +108,7 @@ class StoreStats:
     merged: int = 0
     new: int = 0
     records: list[EventRecord] = field(default_factory=list)
+    touched_ids: set[int] = field(default_factory=set)  # boshqa manba qo'shilgan mavjud hodisalar
 
 
 @dataclass
@@ -206,7 +207,8 @@ async def store_items(
             it = p.item
             entry = _report(p.display, it.url, p.when)
             if it.dedup_key and it.dedup_key in by_key:
-                _add_report(by_key[it.dedup_key], entry)
+                if _add_report(by_key[it.dedup_key], entry) and by_key[it.dedup_key].id:
+                    stats.touched_ids.add(by_key[it.dedup_key].id)
                 stats.merged += 1
                 continue
             if it.channel in DEDUP_CHANNELS:
@@ -214,7 +216,8 @@ async def store_items(
                 match = next((r for s, w, r in known_news
                               if abs(p.when - w) <= DEDUP_WINDOW and same_story(sig, s)), None)
                 if match is not None:
-                    _add_report(match, entry)
+                    if _add_report(match, entry) and match.id:
+                        stats.touched_ids.add(match.id)
                     stats.merged += 1
                     continue
             cat = cats.get(p.slug)
@@ -259,6 +262,10 @@ async def store_items(
                 by_key[it.dedup_key] = rec
         await db.commit()
     stats.new = len(stats.records)
+    # Ustuvorlik: yangi hodisalar va boshqa manba qo'shilganlar (xato yig'ishni to'xtatmaydi)
+    from app.services.publisher.scoring import recompute_safe
+
+    await recompute_safe(db, [r.id for r in stats.records] + list(stats.touched_ids))
     return stats
 
 

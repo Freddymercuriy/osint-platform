@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, Index, String, Text, func, text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Index, SmallInteger, String, Text, func, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -64,6 +64,10 @@ class EventRecord(Base):
     extra: Mapped[dict] = mapped_column(JSONB, default=dict, server_default="{}", nullable=False)
     also_reported_by: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]", nullable=False)
     is_baseline: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
+    # Ustuvorlik (rahbariyat kanali): 0–100, band va sabablar [{code, points, arg?}] — `publisher/priority.py`
+    priority: Mapped[int | None] = mapped_column(SmallInteger, nullable=True, index=True)
+    priority_band: Mapped[str | None] = mapped_column(String(8), nullable=True, index=True)
+    priority_reasons: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]", nullable=False)
 
     @property
     def event_time(self) -> datetime:

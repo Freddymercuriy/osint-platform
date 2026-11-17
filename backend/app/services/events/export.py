@@ -17,7 +17,8 @@ MAX_ROWS = 5000  # bitta eksportdagi eng ko'p hodisa (eng yangilari)
 _FORMULA_START = ("=", "+", "-", "@", "\t", "\r")
 
 COLUMNS = (
-    "id", "published", "first_seen", "scope", "category", "severity", "title", "summary", "url", "source",
+    "id", "published", "first_seen", "scope", "category", "severity", "priority", "priority_band", "title",
+    "summary", "url", "source",
     "channel", "countries", "sector", "actor", "matched_keywords", "also_reported_by", "lang", "display_lang",
     "original_title",
 )
@@ -42,7 +43,8 @@ def _reported_by(item: EventItemOut) -> list[str]:
 def row_of(item: EventItemOut) -> dict[str, Any]:
     return {
         "id": item.id, "published": item.published, "first_seen": item.first_seen, "scope": item.scope,
-        "category": item.category, "severity": item.severity, "title": item.title, "summary": item.summary,
+        "category": item.category, "severity": item.severity, "priority": item.priority,
+        "priority_band": item.priority_band, "title": item.title, "summary": item.summary,
         "url": item.url, "source": item.source, "channel": item.channel, "countries": item.countries,
         "sector": item.sector, "actor": item.actor, "matched_keywords": item.matched_keywords,
         "also_reported_by": _reported_by(item), "lang": item.source_lang or item.lang,

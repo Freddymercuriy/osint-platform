@@ -378,6 +378,10 @@ async def translation_tick() -> dict:
     if settings.translate_enabled:
         async with AsyncSessionLocal() as db:
             stats = await worker.process_pending(db, translator())
+            if stats.done_event_ids:
+                from app.services.publisher.scoring import recompute_safe
+
+                await recompute_safe(db, stats.done_event_ids)
     return {"planned": planned, "stats": stats}
 
 
@@ -418,6 +422,13 @@ async def housekeeping() -> None:
         purged = await pipeline.purge_expired(db, datetime.now(UTC))
     if purged:
         log.info("Retention: %d ta eski hodisa o'chirildi", purged)
+    from app.services.publisher import scoring
+
+    async with AsyncSessionLocal() as db:
+        # Bali yo'q hodisalar (migratsiyadan keyin yoki biror yo'l o'tkazib yuborgan bo'lsa)
+        filled = await scoring.recompute(db, only_missing=True)
+    if filled:
+        log.info("Ustuvorlik: %d ta hodisa uchun hisoblandi", filled)
     from app.services.events import telegram_archive
 
     try:

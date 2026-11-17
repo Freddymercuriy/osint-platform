@@ -304,6 +304,10 @@ export type EventItem = {
   extra?: Record<string, unknown>;
   also_reported_by?: { source: string; url: string; at: string }[];
   is_baseline?: boolean;
+  // ustuvorlik (rahbariyat kanali): 0–100, band va sabablar
+  priority?: number | null;
+  priority_band?: PriorityBand | null;
+  priority_reasons?: PriorityReason[];
   // tarjima (?lang=)
   source_lang?: string | null;
   display_lang?: string | null;
@@ -406,11 +410,17 @@ export async function refreshEvents(): Promise<{ new: number }> {
   return handle<{ new: number }>(res);
 }
 
+export const PRIORITY_BANDS = ["critical", "high", "medium", "low"] as const;
+export type PriorityBand = (typeof PRIORITY_BANDS)[number];
+/** Ustuvorlik sababi: kod (tarjima `events.priority.reasons.<kod>`), ball va ixtiyoriy parametr. */
+export type PriorityReason = { code: string; points: number; arg?: string | number };
+
 /** Hodisalar filtrlari (hammasi birlashadi; ro'yxatlar — YOKI). URL query bilan bir xil nomlar. */
 export type EventFilters = {
   q?: string;
   category?: string[];
   severity?: string[];
+  band?: string[];
   country?: string[];
   channel?: string[];
   source?: string[];

@@ -28,7 +28,7 @@ import { useCategories } from "@/lib/useCategories";
 import { useFormat } from "@/lib/format";
 
 const PAGE_SIZE = 40;
-const LIST_KEYS = ["category", "severity", "country", "channel", "source", "source_lang"] as const;
+const LIST_KEYS = ["category", "severity", "band", "country", "channel", "source", "source_lang"] as const;
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** URL query -> filtrlar (API bilan bir xil nomlar, ro'yxatlar vergul bilan). */

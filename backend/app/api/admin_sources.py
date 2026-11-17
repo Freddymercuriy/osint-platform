@@ -20,6 +20,7 @@ from app.services.connectors import CONNECTORS, get_connector
 from app.services.connectors.base import ConfigError, ConnectorError
 from app.services.connectors.http import assert_public_url
 from app.services.events import scheduler
+from app.services.publisher.reliability import default_reliability
 
 router = APIRouter(prefix="/api/admin", tags=["admin"])
 
@@ -27,6 +28,7 @@ _KEY_ENV_RE = re.compile(r"^[A-Z][A-Z0-9_]*_(API_KEY|KEY|TOKEN|AUTH_KEY)$")
 _FORBIDDEN_ENV = {"SECRET_KEY", "TG_API_HASH", "TG_API_ID", "DATABASE_URL"}
 
 Scope = Literal["regional", "global"]
+Reliability = Literal["official", "tracker", "media", "community", "underground"]
 
 
 def _check_key_env(v: str | None) -> str | None:
@@ -51,6 +53,8 @@ class SourceBase(BaseModel):
     backfill_days: int = Field(14, ge=0, le=365)
     api_key_env: str | None = None
     notes: str = Field("", max_length=2000)
+    # Ishonchlilik (ustuvorlik va postdagi "Ishonchlilik"); berilmasa — turi va nomidan
+    reliability: Reliability | None = None
 
     @field_validator("api_key_env")
     @classmethod
@@ -78,6 +82,7 @@ class SourceUpdate(BaseModel):
     backfill_days: int | None = Field(None, ge=0, le=365)
     api_key_env: str | None = None
     notes: str | None = Field(None, max_length=2000)
+    reliability: Reliability | None = None
 
     @field_validator("api_key_env")
     @classmethod
@@ -288,7 +293,7 @@ async def export_sources(_: AdminUser, db: DbSession, response: Response) -> dic
                      scope=s.scope, region_filter=s.region_filter, cyber_filter=s.cyber_filter,
                      translate=s.translate, enabled=s.enabled, interval_seconds=s.interval_seconds,
                      jitter_pct=s.jitter_pct, backfill_days=s.backfill_days, api_key_env=s.api_key_env,
-                     notes=s.notes).model_dump()
+                     notes=s.notes, reliability=s.reliability).model_dump()
             for s in rows
         ],
     }
@@ -309,6 +314,11 @@ async def import_sources(data: ImportIn, _: AdminUser, db: DbSession) -> dict[st
         cid = await _category_id(db, item.category)
         fields = item.model_dump(exclude={"category"})
         existing = await db.scalar(select(Source).where(Source.name == item.name))
+        if fields.get("reliability") is None:  # eski eksport faylida yo'q — yangisiga standart, mavjudiga tegilmaydi
+            fields.pop("reliability", None)
+            if existing is None:
+                fields["reliability"] = default_reliability(item.kind, item.name, category=item.category,
+                                                            chat=str((item.config or {}).get("chat") or ""))
         if existing is None:
             db.add(Source(**fields, category_id=cid, status="never_run" if item.enabled else "disabled"))
             created += 1
@@ -331,8 +341,10 @@ async def create_source(data: SourceIn, _: AdminUser, db: DbSession) -> SourceOu
     if await db.scalar(select(Source.id).where(Source.name == data.name)):
         raise api_error(status.HTTP_409_CONFLICT, "source_name_taken")
     await _validate(data.kind, data.config)
-    s = Source(**data.model_dump(exclude={"category"}), category_id=await _category_id(db, data.category),
-               status="never_run" if data.enabled else "disabled")
+    s = Source(**data.model_dump(exclude={"category", "reliability"}), category_id=await _category_id(db, data.category),
+               status="never_run" if data.enabled else "disabled",
+               reliability=data.reliability or default_reliability(
+                   data.kind, data.name, category=data.category, chat=str((data.config or {}).get("chat") or "")))
     if data.enabled:
         s.next_run_at = datetime.now(UTC) + timedelta(seconds=random.uniform(5, 60))
     db.add(s)
@@ -360,6 +372,9 @@ async def update_source(source_id: int, data: SourceUpdate, _: AdminUser, db: Db
         s.baseline_done = False  # yangi manzil — qayta baseline (eski elementlar ogohlantirish bermaydi)
     if "category" in changes:
         s.category_id = await _category_id(db, changes.pop("category"))
+    if "reliability" in changes and changes["reliability"] is None:
+        changes.pop("reliability")
+    reliability_changed = "reliability" in changes and changes["reliability"] != s.reliability
     enabled_before, interval_before = s.enabled, s.interval_seconds
     for k, v in changes.items():
         if k != "category":
@@ -377,6 +392,13 @@ async def update_source(source_id: int, data: SourceUpdate, _: AdminUser, db: Db
             sooner = max(sooner, s.last_check_at + timedelta(seconds=s.retry_after_seconds))
         s.next_run_at = min(s.next_run_at, sooner)
     await db.commit()
+    if reliability_changed:  # shu manba hodisalarining ustuvorligi (oxirgi 14 kun)
+        from app.services.publisher import scoring
+
+        ids = (await db.scalars(select(EventRecord.id).where(
+            EventRecord.source_id == s.id,
+            EventRecord.first_seen >= datetime.now(UTC) - timedelta(days=scoring.RECENT_DAYS)))).all()
+        await scoring.recompute(db, ids)
     await db.refresh(s)
     return (await _out(db, [s]))[0]
 

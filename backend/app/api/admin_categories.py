@@ -196,6 +196,10 @@ async def admin_update(category_id: int, data: CategoryUpdate, _: AdminUser, db:
     if "severity" in changes:
         await apply_category_severity(db, c)
     await db.commit()
+    if "severity" in changes:  # hodisa jiddiyligi o'zgardi → ustuvorlik (oxirgi 14 kun)
+        from app.services.publisher.scoring import recompute_recent
+
+        await recompute_recent(db)
     await db.refresh(c)
     return CategoryAdminOut.model_validate(c).model_copy(update={"event_count": (await _counts(db)).get(c.id, 0)})
 
@@ -209,6 +213,10 @@ async def admin_delete(category_id: int, _: AdminUser, db: DbSession) -> dict[st
     moved = await move_events_to_other(db, c)
     await db.delete(c)
     await db.commit()
+    if moved:
+        from app.services.publisher.scoring import recompute_recent
+
+        await recompute_recent(db)
     return {"moved_to_other": moved}
 
 
@@ -244,6 +252,10 @@ class ReclassifyOut(BaseModel):
 async def admin_reclassify(_: AdminUser, db: DbSession, dry_run: bool = Query(True)) -> ReclassifyOut:
     """Qoidalarni saqlangan hodisalarga qo'llash. Avval `dry_run=true` (standart) — nechtasi o'zgarishini ko'rsatadi."""
     r = await reclassify(db, dry_run=dry_run)
+    if not dry_run and (r.changed or r.severity_changed):
+        from app.services.publisher.scoring import recompute_recent
+
+        await recompute_recent(db)
     return ReclassifyOut(dry_run=dry_run, considered=r.considered, changed=r.changed,
                          severity_changed=r.severity_changed, locked_skipped=r.locked_skipped,
                          transitions=dict(r.transitions.most_common()), samples=r.samples)

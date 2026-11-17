@@ -336,7 +336,10 @@
       "kindRequired": "Choose a kind.",
       "intervalMin": "The interval must be at least 60 seconds.",
       "numberInvalid": "Enter a number.",
-      "fixErrors": "Fix the highlighted fields first."
+      "fixErrors": "Fix the highlighted fields first.",
+      "reliability": "Reliability",
+      "reliabilityAuto": "Automatic (from type and name)",
+      "reliabilityHelp": "How sure we are about what this source reports. Official sources raise an event's priority; a lone underground source lowers it. Shown as the confidence line in channel posts."
     },
     "fields": {
       "url": "URL",
@@ -393,6 +396,13 @@
       "retryIn": "Retry in {d}",
       "retryAt": "Retry at {time}",
       "retryNow": "Retrying now…"
+    },
+    "reliability": {
+      "official": "Official (CERT, CISA, NVD)",
+      "tracker": "Tracker (ransomware.live, HIBP, abuse.ch …)",
+      "media": "Media (news sites, Google News)",
+      "community": "Community (Telegram channels)",
+      "underground": "Underground (leak / dark-web chats)"
     }
   },
   "adminSystem": {
@@ -769,7 +779,7 @@
     },
     "sectors": {
       "title": "Targeted sectors",
-      "help": "Sector detected from the text (government, finance, healthcare, telecom, education).",
+      "help": "Sector detected from the text (government, finance, healthcare, telecom, education, energy, transport).",
       "column": "Sector",
       "empty": "No events with a detected sector."
     },
@@ -845,7 +855,9 @@
       "finance": "Finance",
       "healthcare": "Healthcare",
       "telecom": "Telecom",
-      "education": "Education"
+      "education": "Education",
+      "energy": "Energy",
+      "transport": "Transport"
     }
   },
   "events": {
@@ -936,7 +948,8 @@
       "from_chip": "from {date}",
       "to_chip": "until {date}",
       "q_chip": "Text: {q}",
-      "lang_chip": "Language: {lang}"
+      "lang_chip": "Language: {lang}",
+      "band": "Priority"
     },
     "card": {
       "addFilter": "Filter by: {label}",
@@ -962,6 +975,33 @@
       "json": "Download as JSON",
       "done": "{count, plural, one {# event exported} other {# events exported}}",
       "truncated": "Newest {count, number} of {total, number} exported (limit)"
+    },
+    "priority": {
+      "aria": "Priority: {label}. Show reasons",
+      "reasonsTitle": "Why this priority",
+      "total": "Total",
+      "band": {
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "reasons": {
+        "sev": "Category severity: {level}",
+        "country_uz": "Concerns Uzbekistan",
+        "country_ca": "Central Asia: {country}",
+        "sector": "Important sector: {sector}",
+        "watch_org": "Watchlist: {name}",
+        "watch_product": "Watched product: {name}",
+        "watch_person": "Watched person mentioned: {name}",
+        "official_source": "Official source",
+        "multi_source": "Reported by {count} sources",
+        "records_100k": "{count} records (over 100,000)",
+        "records_1m": "{count} records (over 1 million)",
+        "stale": "Published {hours} h before it was collected",
+        "underground_only": "Only an underground channel reports it",
+        "global_cap": "Outside the region and not on the watchlist"
+      }
     }
   },
   "history": {
