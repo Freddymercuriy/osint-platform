@@ -114,6 +114,11 @@ def _region_hits(text: str) -> list[str]:
     return [k for k, p in _REGION_PATTERNS if p.search(flat)]
 
 
+def region_hits(text: str) -> list[str]:
+    """Matndagi Markaziy Osiyo belgilari (hudud filtri bilan bir xil qoida)."""
+    return _region_hits(text)
+
+
 def _topic_hits(text: str) -> list[str]:
     """Kiber/leak mavzu belgilari (takrorsiz, tartib saqlangan). Shovqin iboralari olib tashlanadi."""
     flat = _flat(text)

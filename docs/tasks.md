@@ -95,6 +95,9 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ `translit_uz` → jaybi dvigateli; interfeysda "Ўзбекча" (`uz-Cyrl`) tili — xabarlar `uz.json` dan generatsiya
 - ✅ Telegram "Arxiv" papkasidagi barcha kanal/guruhlar kuzatiladi (`TG_MONITOR_ARCHIVED`, avtomatik manbalar)
 - ✅ NewsNow ulagichi (`newsnow`) + "NewsNow: Cyber Attacks" manbasi (o'chiq, admin yoqadi; scope `global`)
+- ✅ Xalqaro kiber-saytlar → Global (migratsiya `0014`, hudud filtrisiz; Markaziy Osiyo haqidagisi baribir regional)
+- ✅ Ishlamayotgan manbalar Events'da nomi va sababi bilan (`failing`, HTTP 5xx / Cloudflare 52x izohlari)
+- ⬜ Kelajak sanali yozuvlar (masalan, The Record RSS `pubDate` ertangi kun) — `published` ni `now` bilan cheklash (qaror kutilmoqda)
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
 ## Keyingi — Kengaytirish

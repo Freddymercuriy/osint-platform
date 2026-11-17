@@ -29,6 +29,7 @@ from app.services.connectors.base import RawItem
 from app.services.connectors.google_news import GOOGLE_NEWS_TAG
 from app.services.events.classifier import Classification, CompiledCategory, classify, compile_categories
 from app.services.events.dedup import TitleSig, same_story, signature
+from app.services.events.filters import region_hits
 from app.services.events.geo import detect_countries, detect_sector
 
 log = logging.getLogger("osint.events")
@@ -225,12 +226,17 @@ async def store_items(
                 extra["classifier"] = {"score": p.classified.score, "hits": p.classified.hits}
             if it.severity:
                 extra["severity_floor"] = it.severity
+            scope = it.scope or source.scope
+            if scope == "global" and not it.scope and (hits := region_hits(f"{it.title} {it.summary}")):
+                # Global manba (xalqaro kiber-sayt, NewsNow) Markaziy Osiyo haqida yozgan — mintaqaviy lentaga
+                scope = "regional"
+                it.matched_keywords = list(dict.fromkeys(it.matched_keywords + hits))
             rec = EventRecord(
                 uid=p.uid, source=p.display, source_id=source.id, category=p.slug,
                 category_id=cat.id if cat else None,
                 title=it.title[:512], url=it.url[:1024], summary=it.summary or "",
                 lang=(it.lang or source.lang or "en")[:8], published=it.published,
-                channel=it.channel, scope=it.scope or source.scope,
+                channel=it.channel, scope=scope,
                 severity=higher_severity(cat.severity if cat else "info", it.severity),
                 countries=countries[:5], sector=((it.sector or detect_sector(it.title, it.summary)) or None),
                 actor=(it.actor or None) and it.actor[:128], matched_keywords=it.matched_keywords[:12],

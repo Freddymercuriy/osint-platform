@@ -860,7 +860,6 @@
     "feedEnd": "Lenta oxiri",
     "newEvents": "{count} ta yangi hodisa",
     "noNew": "Yangi hodisa yo'q",
-    "collectorError": "Yig'uvchi xatosi: {error}",
     "collectNow": "Hozir yig'ish",
     "emptyTitle": "Hozircha hodisalar yo'q",
     "emptyWhat": "Bu yerda ulangan ochiq manbalardan Markaziy Osiyoga oid kiberxavfsizlik hodisalari chiqadi.",
@@ -938,6 +937,15 @@
       "lockedHint": "Tanlangan kategoriya qotiriladi: avtomatik qayta tasniflash uni boshqa o'zgartirmaydi.",
       "saved": "Kategoriya o'zgartirildi va qotirildi",
       "original": "Asl til: {lang}"
+    },
+    "sourcesDown": "{count} ta manba ishlamayapti — yig'uvchining o'zi ishlayapti va ularni avtomatik qayta tekshiradi",
+    "sourcesDownMore": "yana {count} ta — Admin → Manbalar",
+    "failing": {
+      "down": "ishlamayapti",
+      "blocked": "bloklangan",
+      "rate_limited": "so'rovlar cheklangan",
+      "siteAsked": "sayt {min} daq kutishni so'radi",
+      "retry": "qayta urinish {when}"
     }
   },
   "history": {

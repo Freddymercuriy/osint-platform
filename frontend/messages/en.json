@@ -860,7 +860,6 @@
     "feedEnd": "End of feed",
     "newEvents": "{count, plural, one {# new event} other {# new events}}",
     "noNew": "No new events",
-    "collectorError": "Collector error: {error}",
     "collectNow": "Collect now",
     "emptyTitle": "No events yet",
     "emptyWhat": "This feed shows Central Asia cyber-security events from the connected public sources.",
@@ -938,6 +937,15 @@
       "lockedHint": "The category you choose is locked: automatic re-classification will not change it again.",
       "saved": "Category changed and locked",
       "original": "Original language: {lang}"
+    },
+    "sourcesDown": "{count, plural, one {# source is down} other {# sources are down}} — the collector itself is running and will retry them automatically",
+    "sourcesDownMore": "{count} more — Admin → Sources",
+    "failing": {
+      "down": "down",
+      "blocked": "blocked",
+      "rate_limited": "rate limited",
+      "siteAsked": "site asked to wait {min} min",
+      "retry": "retry {when}"
     }
   },
   "history": {

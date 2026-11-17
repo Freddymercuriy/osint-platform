@@ -244,6 +244,20 @@ async def update_event(event_id: int, data: EventUpdate, _: AdminUser, db: DbSes
     return ev
 
 
+class FailingSourceOut(BaseModel):
+    """Ishlamayotgan (down / blocked) yoqilgan manba — Events sahifasida nomi va sababi bilan."""
+
+    id: int
+    name: str
+    status: str
+    outcome: str | None
+    http_status: int | None
+    error: str | None
+    since: datetime | None
+    next_run_at: datetime | None
+    retry_after_seconds: int | None
+
+
 class CollectorStatus(BaseModel):
     enabled: bool
     running: bool
@@ -263,6 +277,9 @@ class CollectorStatus(BaseModel):
     retention_keep: list[str]  # muddatidan qat'i nazar saqlanadigan kategoriyalar
     last_purged: int
     purged_total: int
+    # Yig'uvchining o'zi emas — alohida manbalar (eng yangi tekshirilganlari, ≤ 5) va jami soni
+    failing: list[FailingSourceOut] = []
+    failing_total: int = 0
 
 
 @router.get("/status", response_model=CollectorStatus)
@@ -272,10 +289,18 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
         select(EventRecord.category, func.count(EventRecord.id)).group_by(EventRecord.category)
     )).all())
     last_check = await db.scalar(select(func.max(Source.last_check_at)))
-    last_error = await db.scalar(
-        select(Source.last_error).where(Source.enabled, Source.status == "down")
-        .order_by(Source.last_check_at.desc()).limit(1)
-    )
+    failing_q = Source.enabled & Source.status.in_(("down", "blocked"))
+    failing_rows = (await db.scalars(
+        select(Source).where(failing_q).order_by(Source.last_check_at.desc().nulls_last()).limit(5)
+    )).all()
+    failing_total = await db.scalar(select(func.count(Source.id)).where(failing_q)) or 0
+    failing = [FailingSourceOut(
+        id=r.id, name=r.name, status=r.status, outcome=r.last_outcome, http_status=r.last_http_status,
+        error=(r.last_error or "")[:300] or None, since=r.down_since, next_run_at=r.next_run_at,
+        retry_after_seconds=r.retry_after_seconds,
+    ) for r in failing_rows]
+    # v1 maydoni: endi manba nomi bilan (eski mijozlar uchun)
+    last_error = next((f"{x.name}: {x.error}" for x in failing if x.status == "down" and x.error), None)
     cats = (await db.execute(select(Category.slug, Category.notify, Category.retention_days))).all()
     s = scheduler.state
     return CollectorStatus(
@@ -286,6 +311,8 @@ async def collector_status(current_user: CurrentUser, db: DbSession) -> Collecto
         last_duration=None,
         last_new=s.last_new,
         last_error=last_error,
+        failing=failing,
+        failing_total=failing_total,
         runs=s.runs,
         total_events=sum(by_cat.values()),
         by_category=by_cat,

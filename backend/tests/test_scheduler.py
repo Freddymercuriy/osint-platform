@@ -316,3 +316,25 @@ async def test_advisory_lock_single_holder():
     finally:
         await c1.close()
         await c2.close()
+
+
+async def test_cloudflare_522_named_in_events_status(db, monkeypatch, client, analyst_headers):
+    """Bitta manbaning 522 xatosi "yig'uvchi xatosi" emas: Events holatida manba nomi, sabab va qayta urinish vaqti."""
+    s = await _source(db, name="CF site")
+    await _source(db, name="Off site", enabled=False, status="down", last_error="HTTP 500")  # o'chiq — ko'rsatilmaydi
+    await _source(db, name="Limited site", status="blocked", last_outcome="rate_limited", last_error="So'rovlar cheklandi",
+                  retry_after_seconds=300, last_check_at=datetime.now(UTC) - timedelta(hours=1))
+    use_transport(monkeypatch, lambda req: httpx.Response(522, text="origin timeout"))
+    for _ in range(scheduler.DOWN_AFTER):
+        r = await scheduler.run_source(s.id)
+    s = await _reload(db, s)
+    assert s.status == "down" and s.last_http_status == 522
+    assert s.last_error == "HTTP 522 — Cloudflare: sayt serveri javob bermadi (ulanish vaqti tugadi)" == r.error
+
+    body = (await client.get("/api/events/status", headers=analyst_headers)).json()
+    assert body["failing_total"] == 2
+    first, second = body["failing"]
+    assert (first["name"], first["status"], first["http_status"]) == ("CF site", "down", 522)
+    assert first["error"].startswith("HTTP 522 — Cloudflare") and first["next_run_at"] and first["since"]
+    assert (second["name"], second["outcome"], second["retry_after_seconds"]) == ("Limited site", "rate_limited", 300)
+    assert body["last_error"] == f"CF site: {s.last_error}"

@@ -312,6 +312,19 @@ export type EventItem = {
 
 export type EventsResponse = { count: number; items: EventItem[] };
 
+/** Ishlamayotgan (down / blocked) yoqilgan manba — Events holat qatorida nomi va sababi bilan */
+export type FailingSource = {
+  id: number;
+  name: string;
+  status: string;
+  outcome: string | null;
+  http_status: number | null;
+  error: string | null;
+  since: string | null;
+  next_run_at: string | null;
+  retry_after_seconds: number | null;
+};
+
 export type CollectorStatus = {
   enabled: boolean;
   running: boolean;
@@ -334,6 +347,9 @@ export type CollectorStatus = {
   retention_keep: string[];
   last_purged: number;
   purged_total: number;
+  /** yig'uvchining o'zi emas — alohida manbalar (≤ 5, eng yangi tekshirilgani birinchi) */
+  failing?: FailingSource[];
+  failing_total?: number;
 };
 
 // --- Saytdagi ogohlantirishlar (🔔) ---

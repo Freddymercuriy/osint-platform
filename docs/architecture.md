@@ -71,7 +71,10 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 - **`services/connectors/`** — ulagichlar, tur bo'yicha ro'yxatga olinadi (`@register`); yozish qoidalari:
   [`docs/connectors.md`](connectors.md). `http.py` — xost navbati va pauzalar, shartli so'rov, holat kodlari, SSRF.
 - **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline
-  (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi.
+  (birinchi yig'ish ogohlantirmaydi), takrorlar mavjud hodisaning `also_reported_by` ga qo'shiladi. Global manbaning
+  (xalqaro kiber-saytlar — 0014, NewsNow) Markaziy Osiyo belgisi bor elementi `regional` bo'ladi (`filters.region_hits`).
+- Events holat qatori (`/api/events/status`): `failing` — yoqilgan down/blocked manbalar (nom, sabab, keyingi urinish);
+  yig'uvchining o'zi bilan aralashtirilmaydi. HTTP xatolari: `http.http_error_text` (5xx, Cloudflare 52x izohi).
 - Telegram: har kuzatiladigan chat — alohida `telegram_user` manbasi (`{"chat": username yoki -100id}`); dialoglar
   asosiy ro'yxat (`TG_DIALOG_LIMIT`) va "Arxiv" papkasidan (folder 1, `TG_ARCHIVE_LIMIT`) o'qiladi.
   `TG_MONITOR_ARCHIVED=true` — `services/events/telegram_archive.py` arxivdagi har kanal/guruh uchun manba yaratadi

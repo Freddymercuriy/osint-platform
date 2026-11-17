@@ -126,6 +126,28 @@ def reset_gates() -> None:
     _dns_cache.clear()
 
 
+# Sayt tomonidagi server xatolari — admin va Events banneri uchun tushunarli izoh (kod "HTTP NNN" ko'rinishida qoladi)
+SERVER_ERRORS = {
+    500: "sayt serverida ichki xato",
+    502: "sayt shlyuzi (proxy) noto'g'ri javob oldi",
+    503: "sayt vaqtincha ishlamayapti",
+    504: "sayt shlyuzi serverdan javob kutib qoldi",
+    520: "Cloudflare: sayt serveri noma'lum xato qaytardi",
+    521: "Cloudflare: sayt serveri ulanishni rad etdi (o'chiq)",
+    522: "Cloudflare: sayt serveri javob bermadi (ulanish vaqti tugadi)",
+    523: "Cloudflare: sayt serveriga yo'l topilmadi",
+    524: "Cloudflare: sayt serveri javobi kechikdi",
+    525: "Cloudflare: sayt serveri bilan SSL ulanishi o'rnatilmadi",
+    526: "Cloudflare: sayt serverining SSL sertifikati yaroqsiz",
+}
+
+
+def http_error_text(code: int) -> str:
+    """'HTTP 522 — Cloudflare: sayt serveri javob bermadi (...)'; noma'lum kod — 'HTTP 418'."""
+    note = SERVER_ERRORS.get(code)
+    return f"HTTP {code} — {note}" if note else f"HTTP {code}"
+
+
 # ---------------------------------------------------------------- yordamchilar
 def parse_retry_after(value: str | None) -> float | None:
     if not value:
@@ -164,7 +186,7 @@ def raise_for_status(resp: httpx.Response, expect_html: bool = False) -> None:
         why = "challenge/CAPTCHA sahifasi" if looks_like_challenge(resp) else "kirish taqiqlandi"
         raise SourceBlocked(f"Manba blokladi: {why} (HTTP {code})", http_status=code)
     if code >= 400:
-        raise ConnectorError(f"HTTP {code}", http_status=code)
+        raise ConnectorError(http_error_text(code), http_status=code)
     if not expect_html and code == 200 and looks_like_challenge(resp):
         raise SourceBlocked("Manba blokladi: challenge/CAPTCHA sahifasi qaytdi", http_status=code)
 

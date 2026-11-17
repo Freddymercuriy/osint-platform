@@ -6,7 +6,7 @@
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da).
 GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi talabi bilan; `main` o'zgarmagan). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-16
+**Oxirgi yangilanish:** 2026-11-17
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -82,6 +82,32 @@ bo'yicha, Markaziy Osiyo davlatlari uchun bo'lsin"*.
   (faqat regex darajasida); qozoq/tojik/turkman tilidagi mavzu so'zlari real matnda.
 - Sozlash: filtr juda qattiq/yumshoq bo'lsa — `feeds.py` dagi `TOPIC_*`, `FOREIGN_MARKERS`; eski hodisalar kerak bo'lsa —
   `EVENTS_SINCE` ni o'zgartirish/bo'shatish (manbalar hali qaytarayotganlarini yig'uvchi qayta yozadi).
+
+### v2 dan keyin — "manbalar ishlayapti, ma'lumot kelmayapti" tahlili; xalqaro kiber-saytlar Global (2026-11-16)
+- Foydalanuvchi: *"107 ishlaydigan manbadan ma'lumot keladiganga o'xshamayapti"*. Tahlil (quruq yurgizish, 48 soat):
+  mahalliy yangilik saytlari (31, kiber filtri) — 830 element → 24 o'tdi (510 tasi mintaqa haqida, 27 tasi kiber);
+  xalqaro kiber-saytlar (25, hudud filtri) — 168 → 1; `site:` Google News (3) — 0–1; Telegram (43) — kalit so'z
+  filtri connector ichida (`source_runs.items` = filtrdan keyingi son), 39 tasidan hech qachon hodisa yo'q; sessiya
+  2026-11-16 10:25 UTC gacha `auth_missing` edi. Xato yo'q — filtrlar (Markaziy Osiyo + kiber) kesadi: ~25–30
+  regional hodisa / sutka. Sanalar to'g'ri (Dark Reading, ESET va b. — oxirgi maqolalar 11–13 noyabr).
+- Foydalanuvchi tanlovi — 2-variant: migratsiya `0014_international_cyber_global` — RSS (`region_filter` yoqiq,
+  `cyber_filter` o'chiq; 25 ta) va `site:` Google News (BleepingComputer, CyberNews, The Cyber Express — so'rovdan
+  Markaziy Osiyo sharti olindi) → `scope=global`, hudud filtrisiz; `baseline_done=false` + ETag tozalandi —
+  birinchi yig'ish ogohlantirishsiz (🔔 oqimi yo'q). `pipeline.store_items`: global manbaning (`it.scope` berilmagan)
+  Markaziy Osiyo belgisi bor elementi → `regional` (+ `matched_keywords`) — asosiy lenta avvalgidek to'liq.
+  Kutilgan oqim: ~80 global kiber yangilik / sutka ("Global" filtrida). Testlar: `test_global_cyber_sources.py`.
+- HTTP 522 (HackRead — sayt serveri, Cloudflare ulana olmayapti): `http.SERVER_ERRORS` / `http_error_text` —
+  5xx va Cloudflare 52x uchun izoh ("HTTP 522 — Cloudflare: sayt serveri javob bermadi ..."). `/api/events/status`:
+  `failing` (yoqilgan down/blocked manbalar, ≤5: nom, sabab, HTTP, keyingi urinish, Retry-After) + `failing_total`;
+  `last_error` endi manba nomi bilan. Events: qizil "Yig'uvchi xatosi" o'rniga sariq `FailingSources` ("N ta manba
+  ishlamayapti — yig'uvchining o'zi ishlayapti ...", ro'yxat). `events.collectorError` kaliti olib tashlandi.
+- 2026-11-17 tekshiruv: migratsiya jonli bazada qo'llangan (`alembic_version = 0014`). U **26** ta RSS'ni o'zgartirdi
+  (25 ta yoqilgan + o'chiq "Have I Been Pwned" RSS — 0007 da API bilan almashtirilgan; zararsiz), test shunga moslandi.
+  `downgrade` endi faqat `Global (0014)` belgili qatorlarni qaytaradi (keyin admin qo'shgan global RSS'ga tegmaydi).
+  Jonli: 28 ta manba baseline'ni 03:38–04:01 UTC da tugatdi — 541 global (hammasi baseline, 🔔 yo'q) + 4 regional;
+  `/api/events/status` → `failing_total=3` (Google News (RU) — 429; 2 ta Telegram chat — "Chat topilmadi yoki akkaunt
+  a'zo emas": SecurelyContactingAZRAEL, crackedstatusupdate). The Record RSS'da `pubDate` ertangi (18-noyabr 01:20 GMT) —
+  manbaning o'zi; lenta tepasida turib qoladi (cheklash — `docs/tasks.md` ⬜).
 
 ### v2 dan keyin — bloklash / rate limit kutishi ko'rinadi; NewsNow doimiy (2026-11-16)
 - Foydalanuvchi talabi: *"doimiy kuzatishi kk ... agar sayt bloklasa 5 min rate limitmi yoki qancha vaqt kk bo'lsa

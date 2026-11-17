@@ -1,11 +1,43 @@
 "use client";
 
-import { CalendarDays, Clock, Database, Send, Sparkles } from "lucide-react";
+import { AlertTriangle, CalendarDays, Clock, Database, Send, Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Badge, Card, ErrorBanner, LiveDot, Skeleton } from "@/components/ui";
+import { Badge, Card, LiveDot, Skeleton, toneClass } from "@/components/ui";
 import { useCategories } from "@/lib/useCategories";
 import { useFormat } from "@/lib/format";
-import type { CollectorStatus, TgStatus } from "@/lib/api";
+import { cn } from "@/lib/cn";
+import type { CollectorStatus, FailingSource, TgStatus } from "@/lib/api";
+
+/** Ishlamayotgan manbalar: nomi, sababi, sayt so'ragan kutish va qayta urinish vaqti (yig'uvchining o'zi ishlaydi). */
+function FailingSources({ items, total }: { items: FailingSource[]; total: number }) {
+  const t = useTranslations("events");
+  const f = useFormat();
+  const more = Math.max(0, total - items.length);
+  return (
+    <div role="status" className={cn("rounded-lg border px-4 py-3 text-sm", toneClass("amber"))}>
+      <div className="flex items-start gap-2 font-medium">
+        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+        <span>{t("sourcesDown", { count: total })}</span>
+      </div>
+      <ul className="mt-1.5 space-y-1 pl-6">
+        {items.map((s) => {
+          const kind = s.outcome === "rate_limited" ? "rate_limited" : s.status === "blocked" ? "blocked" : "down";
+          return (
+            <li key={s.id} className="break-words">
+              <span className="font-semibold">{s.name}</span> — {t(`failing.${kind}`)}
+              {s.error ? `: ${s.error}` : ""}
+              {s.retry_after_seconds != null && ` · ${t("failing.siteAsked", { min: Math.max(1, Math.ceil(s.retry_after_seconds / 60)) })}`}
+              {s.next_run_at && (
+                <span title={f.dateTime(s.next_run_at)}> · {t("failing.retry", { when: f.ago(s.next_run_at) })}</span>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {more > 0 && <div className="mt-1 pl-6 text-xs">{t("sourcesDownMore", { count: more })}</div>}
+    </div>
+  );
+}
 
 export function StatusStrip({
   cs,
@@ -40,7 +72,7 @@ export function StatusStrip({
         <div className="flex flex-col gap-3 text-sm md:flex-row md:items-center md:justify-between">
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
             <div className="flex items-center gap-2.5">
-              <LiveDot tone={!cs ? "red" : cs.last_error || !cs.running ? "amber" : "emerald"} />
+              <LiveDot tone={!cs ? "red" : cs.failing_total || cs.last_error || !cs.running ? "amber" : "emerald"} />
               <span className="font-medium text-fg">
                 {!cs ? t("status.unknown") : cs.running ? t("status.live") : t("status.stopped")}
               </span>
@@ -107,7 +139,9 @@ export function StatusStrip({
           </div>
         </div>
       </Card>
-      {cs?.last_error && <ErrorBanner message={t("collectorError", { error: cs.last_error })} />}
+      {cs?.failing?.length ? (
+        <FailingSources items={cs.failing} total={cs.failing_total ?? cs.failing.length} />
+      ) : null}
     </div>
   );
 }
