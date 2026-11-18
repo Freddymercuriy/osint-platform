@@ -216,6 +216,10 @@ def test_render_global_and_untranslated_note():
     assert "Таржима ҳали тайёр эмас" in r.text and "#global" in r.text
     ca = render.render_event(_view(countries=[], scope="regional"), "ru")
     assert "🌏 ЦЕНТРАЛЬНАЯ АЗИЯ" in ca.text.split("\n")[0]
+    other = render.render_event(_view(category_slug="other", sector=None, countries=["KZ"]), "uz")
+    assert other.text.endswith("#KZ") and "#other" not in other.text  # ma'nosiz teg yo'q
+    econ = render.render_event(_view(category_slug="other", sector=None, countries=["KZ"], rubric="economy"), "uz")
+    assert econ.text.endswith("#KZ #economy")
 
 
 def test_render_long_caption_moves_sections_to_a_reply():

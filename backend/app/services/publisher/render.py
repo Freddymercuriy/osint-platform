@@ -356,7 +356,9 @@ def render_event(v: EventView, lang: str, *, public_app_url: str = "", photo: bo
     source_line = (f"🔎 <b>{esc(t('pub_source_label', lang))}:</b> {esc(shown)} · "
                    f"<i>{esc(t(confidence_code(v), lang))}</i>")
     note = f"<i>{esc(t('pub_translation_missing', lang))}</i>" if not v.translated else ""
-    tags = [hashtag(c) for c in (regional or ["global"])] + [hashtag(v.category_slug), hashtag(v.sector)]
+    # "#other" o'quvchiga hech narsa demaydi — o'rniga rubrika (#economy, #ai ...); kiber rubrikada — tegsiz
+    topic = v.category_slug if v.category_slug != "other" else (rubric if rubric != "cyber" else None)
+    tags = [hashtag(c) for c in (regional or ["global"])] + [hashtag(topic), hashtag(v.sector)]
     tag_line = " ".join(dict.fromkeys(x for x in tags if x))
 
     def assemble(title_text: str, body: str, blocks: list[str]) -> str:

@@ -109,6 +109,9 @@ vaqt, manba va havola; kanal — "bot lentasi" emas, professional nashr ko'rinis
   yuborish multipart, javob tartibi, rasmni kutish, rad etilgan rasm, matn rejimi). Jonli: illyustratsiyalar va
   manba rasmlari ko'zdan kechirildi (92 ta maqola rasmi birinchi soatda; Habr matnli kartalari chiqarildi);
   OpenJDK (UZCERT, maqola rasmi) va O'zbekiston ransomware (illyustratsiya) postlari yangi ko'rinishda qurildi.
+  **Jonli:** birinchi rasmli post — kanal «osint», post 203 (Telegram message 84, 15:48): sendPhoto qabul
+  qilindi, HTML formatlash tanildi (entities bor), illyustratsiya (Google News havolasi — maqola rasmi olinmaydi).
+  Shundan keyin `#other` o'rniga rubrika tegi (#economy, #ai ...; kiber rubrikada — tegsiz).
   Frontend: `npm run typecheck`, `npm run test:i18n` (976 kalit × 4 til), production smoke (23 tekshiruv — "Hammasi toza"), desktop / 360px, light / dark skrinshotlari ko'zdan kechirildi. Backend: 588 test.
 - **Cheklovlar:** illyustratsiya — mavzuli, lekin aniq voqea surati emas (AI-rasm servisi ulanmagan: kalit va
   pul talab qiladi; ulash uchun `media/service.py::_draw` yagona joy). "Murakkab texnik matnni sodda o'zbekchaga"
