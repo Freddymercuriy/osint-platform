@@ -84,6 +84,7 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
   baza ustida vaqtinchalik dry-run kanali — 60 post, kirill, ≤ 518 belgi. **Tekshirilmadi:** haqiqiy Telegram
   (token yo'q), Telegram orqali tasdiqlash (review chat), brifing / haftalik hisobot, admin "Kanal" sahifasi.
 - **Ulandi (2026-11-18):** bot @messageosi_nt_bot, kanal «osint» (`-1004306867669`, yopiq) → manzil `[5] osint`, `--feed`, sinov xabari yuborildi (message_id 4), `mode=auto`. `my_chat_member` kelmadi (bot token qo'yilishidan oldin qo'shilgan) — zaxira yo'l qo'shildi: kanaldagi istalgan post (`channel_post`) yoki botga forward qilingan kanal posti → `getChatMember` → `bot_chats`.
+- Kanal tili egasi talabi bilan **o'zbek lotin** (`set 5 lang=uz`, 2026-11-18): kirillda inglizcha nomlar buzilardi ("PIXELLEAKS" → "ПИХЕЛЛЕАКС").
 - Ishga tushirish (egasi): @BotFather → bot; botni kanalga admin ("Post messages"); `backend/.env` ga
   `TG_BOT_TOKEN=...`; keyin konteynerni qayta yaratish (`docker-compose stop backend && docker-compose rm -f backend
   && docker-compose up -d backend`), so'ng `python scripts/channel.py chats` → `add --chat <id> --name ... --feed`
