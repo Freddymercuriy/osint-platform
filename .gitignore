@@ -56,3 +56,6 @@ tmp/
 
 # Lokal NewsNow bazasi (dump + docker-compose, parol .env da) — repo'ga tushmaydi
 newsnow/
+
+# Claude Code shaxsiy sozlamalari
+.claude/settings.local.json
