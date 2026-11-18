@@ -638,6 +638,9 @@ MESSAGES: dict[str, dict[str, str]] = {
                         "ru": "Ваш Telegram ID: {id}. Чтобы стать проверяющим публикаций, отправьте его администратору "
                               "платформы.",
                         "en": "Your Telegram ID: {id}. To become a reviewer, send it to the platform administrator."},
+    "pub_channel_found": {"uz": "Kanal topildi: «{title}». Botning holati: {status}.",
+                          "ru": "Канал найден: «{title}». Статус бота: {status}.",
+                          "en": "Channel found: “{title}”. Bot status: {status}."},
     "pub_review_unavailable": {"uz": "Telegram orqali tasdiqlash hali yoqilmagan", "ru": "Подтверждение через Telegram "
                                "пока не включено", "en": "Approval via Telegram is not enabled yet"},
     # tuzilgan elementlar sarlavhalari (da'vo tili: "hujum qilganini da'vo qilmoqda" — "buzildi" emas)

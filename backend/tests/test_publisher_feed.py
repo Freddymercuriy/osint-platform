@@ -415,3 +415,37 @@ async def test_check_bot_status_is_stored(db, webhook, code, expected):
     assert st.bot_status == expected
     await runner._set_status("missing")  # token yo'q holati ham cheklovdan o'tadi
     await c.aclose()
+
+
+async def test_channel_discovered_from_channel_post_and_forward(db):
+    st = await get_state(db)
+    st.bot_id = 555
+    await db.commit()
+    calls: list[dict] = []
+    tg = FakeTelegram()
+    base = tg.handler
+
+    def handler(req: httpx.Request) -> httpx.Response:
+        if req.url.path.endswith("/getChatMember"):
+            calls.append(json.loads(req.content))
+            return httpx.Response(200, json={"ok": True, "result": {
+                "status": "administrator", "can_post_messages": True, "user": {"id": 555}}})
+        return base(req)
+
+    c = bot.BotClient(TOKEN, transport=httpx.MockTransport(handler))
+    channel = {"id": CHAT, "type": "channel", "title": "osint"}
+    tg.updates = [{"update_id": 1, "channel_post": {"message_id": 3, "chat": channel, "date": 1, "text": "test"}},
+                  {"update_id": 2, "channel_post": {"message_id": 4, "chat": channel, "date": 1, "text": "yana"}}]
+    await updates.poll_once(db, c, timeout=0)
+    chat = await db.get(BotChat, CHAT)
+    assert chat.title == "osint" and chat.status == "administrator" and chat.rights["can_post_messages"] is True
+    assert calls == [{"chat_id": CHAT, "user_id": 555}]  # ma'lum chat har postda qayta so'ralmaydi
+
+    other = {"id": -1009, "type": "channel", "title": "Boshqa"}
+    tg.updates = [{"update_id": 3, "message": {"chat": {"id": 7, "type": "private"}, "from": {"id": 7},
+                                               "forward_origin": {"type": "channel", "chat": other, "message_id": 1,
+                                                                  "date": 1}}}]
+    await updates.poll_once(db, c, timeout=0)
+    assert (await db.get(BotChat, -1009)).status == "administrator"
+    assert "Kanal topildi: «Boshqa»" in tg.sent[-1]["text"]
+    await c.aclose()

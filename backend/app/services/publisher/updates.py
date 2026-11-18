@@ -2,6 +2,9 @@
 
 - `my_chat_member` → `bot_chats` (bot qo'shilgan / chiqarilgan chat, huquqlari). Kanal manziliga bog'langan chatda
   bot chiqarilsa yoki post huquqini yo'qotsa — kanal darhol `down`; qayta admin qilinsa — `ok`.
+- Zaxira yo'l (`my_chat_member` kelmagan bo'lsa — masalan bot boshqa vaqtda qo'shilgan): bot admin bo'lgan kanaldagi
+  har qanday post (`channel_post`) yoki shaxsiy chatga forward qilingan kanal posti — chat `getChatMember` bilan
+  tekshirilib `bot_chats` ga yoziladi (yopiq kanal ID'sini taklif havolasidan bilib bo'lmaydi).
 - Shaxsiy chatda `/start` — foydalanuvchiga Telegram ID'sini va tasdiqlovchi bo'lish yo'lini aytadi.
 - `callback_query` — Telegram orqali tasdiqlash hali yo'q: "yoqilmagan" deb javob.
 Offset bazada (`publisher_state.updates_offset`) — restartdan keyin yangilanishlar qayta ishlanmaydi.
@@ -24,7 +27,7 @@ from app.services.publisher.sender import mark_down, mark_up
 
 log = logging.getLogger("osint.publisher")
 
-ALLOWED = ["my_chat_member", "message", "callback_query"]
+ALLOWED = ["my_chat_member", "message", "channel_post", "callback_query"]
 RIGHT_KEYS = ("can_post_messages", "can_edit_messages", "can_delete_messages", "can_manage_chat",
               "can_invite_users", "can_pin_messages")
 
@@ -78,9 +81,43 @@ async def on_my_chat_member(db: AsyncSession, m: dict) -> None:
             await mark_down(db, d, f"bot holati: {status}, post huquqi yo'q", now)
 
 
-async def on_message(db: AsyncSession, client: BotClient, msg: dict) -> None:
+async def discover(db: AsyncSession, client: BotClient, chat: dict, bot_id: int | None, by: dict | None = None,
+                   *, force: bool = False) -> str | None:
+    """Chat (kanal / guruh) — botning undagi holati `getChatMember` bilan; `bot_chats` va kanal sog'lig'i yangilanadi.
+
+    Qaytaradi: bot holati (administrator, member, left ...) yoki None (tekshirib bo'lmadi). Ma'lum chat har postda
+    qayta so'ralmaydi (`force` bo'lmasa).
+    """
+    if "id" not in chat or not bot_id:
+        return None
+    known = await db.get(BotChat, int(chat["id"]))
+    if known is not None and not force:
+        return known.status
+    try:
+        member = await client.get_chat_member(chat["id"], bot_id)
+    except BotError as exc:
+        log.warning("Chat %s da bot holatini olib bo'lmadi: %s", chat.get("id"), exc)
+        return None
+    await on_my_chat_member(db, {"chat": chat, "new_chat_member": member, "from": by})
+    return str(member.get("status") or "unknown")
+
+
+async def on_message(db: AsyncSession, client: BotClient, msg: dict, bot_id: int | None = None) -> None:
     chat, user = msg.get("chat") or {}, msg.get("from") or {}
-    if chat.get("type") != "private" or not str(msg.get("text") or "").startswith("/start"):
+    if chat.get("type") != "private":
+        return
+    origin = msg.get("forward_origin") or {}
+    fwd_chat = origin.get("chat") if origin.get("type") == "channel" else msg.get("forward_from_chat")
+    if fwd_chat:  # kanaldan forward qilingan post — kanalni aniqlash
+        status = await discover(db, client, fwd_chat, bot_id, user, force=True)
+        text = t("pub_channel_found", _user_lang(user), title=fwd_chat.get("title") or fwd_chat.get("id"),
+                 status=status or "?")
+        try:
+            await client.send_message(chat["id"], text, parse_mode=None)
+        except BotError as exc:
+            log.warning("Forward javobi yuborilmadi: %s", exc)
+        return
+    if not str(msg.get("text") or "").startswith("/start"):
         return
     await upsert_chat(db, chat, "private", {}, user)
     try:
@@ -108,7 +145,9 @@ async def poll_once(db: AsyncSession, client: BotClient, *, timeout: int = 25) -
             if "my_chat_member" in u:
                 await on_my_chat_member(db, u["my_chat_member"])
             elif "message" in u:
-                await on_message(db, client, u["message"])
+                await on_message(db, client, u["message"], st.bot_id)
+            elif "channel_post" in u:
+                await discover(db, client, (u["channel_post"] or {}).get("chat") or {}, st.bot_id)
             elif "callback_query" in u:
                 await on_callback(client, u["callback_query"])
         except Exception:
