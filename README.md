@@ -65,6 +65,11 @@ npm run dev                            # tugagach: docker-compose start frontend
   `TRANSLATE_TIMEOUT_SECONDS=90`; o'chirish — `TRANSLATE_ENABLED=false`. Holati: admin → Tizim → Tarjima.
   O'zbek kirill (`uzn_Cyrl`) — lotin tarjimadan [latin.jaybi.uz](https://latin.jaybi.uz) dvigateli bilan
   (`backend/app/services/i18n/vendor/`, MIT).
+- Hodisa rasmlari (16:9; dashboard kartalari va Telegram postlari): maqolaning o'z rasmi (RSS media / og:image)
+  yoki platforma chizgan illyustratsiya — tashqi servis va kalit kerak emas. Fayllar `backend/media/`
+  (`MEDIA_DIR`, git'da yo'q); `MEDIA_SOURCE_IMAGES=false` — faqat illyustratsiya; `MEDIA_ENABLED=false` — fon
+  ishchisi o'chiq (rasm so'ralganda baribir chiziladi). Kanal postlari rasm bilan: `PUBLISHER_PHOTOS=true`,
+  maqola rasmini kutish `PUBLISHER_IMAGE_WAIT_MINUTES=3`.
 
 - Reverse proxy (nginx, Caddy...) ortida ishlatilsa: `TRUSTED_PROXIES` ga proxy manzilini yozing (IP/CIDR) —
   aks holda login limiti hamma foydalanuvchini bitta proxy IP'si deb hisoblaydi. Rate limit va yig'uvchi bitta

@@ -131,20 +131,42 @@ def _markup(buttons: list) -> dict | None:
     return {"inline_keyboard": rows} if rows else None
 
 
+async def _send(client: BotClient, d: ChannelDestination, p: ChannelPost, text: str, reply_to: int | None,
+                markup: dict | None, *, parse_mode: str | None, photo: bytes | None):
+    if photo is not None:
+        return await client.send_photo(d.chat_id, photo, caption=text, parse_mode=parse_mode, silent=p.silent,
+                                       protect_content=d.protect_content, reply_markup=markup, thread_id=d.topic_id,
+                                       reply_to=reply_to, filename=f"news-{(p.event_ids or [p.id])[0]}.jpg",
+                                       content_type="image/jpeg")
+    return await client.send_message(d.chat_id, text, parse_mode=parse_mode, silent=p.silent,
+                                     protect_content=d.protect_content, reply_to=reply_to, reply_markup=markup,
+                                     thread_id=d.topic_id)
+
+
+def _fallback_photo(p: ChannelPost) -> bytes:
+    from app.services.media import art, store
+
+    return store.encode(art.render_fallback(str((p.meta or {}).get("rubric") or "cyber")))[0]
+
+
 async def _deliver(client: BotClient, d: ChannelDestination, p: ChannelPost, reply_to: int | None):
+    """Rasmli post — sendPhoto (izoh), aks holda sendMessage. HTML xatosi — oddiy matn; Telegram rasmni rad etsa —
+    bir marta zaxira rasm bilan (post rasmsiz chiqmasin)."""
     text = p.final_text
     markup = _markup(p.buttons)
+    photo = bytes(p.photo) if p.photo else None
     try:
-        return await client.send_message(d.chat_id, text, silent=p.silent, protect_content=d.protect_content,
-                                         reply_to=reply_to, reply_markup=markup, thread_id=d.topic_id)
+        return await _send(client, d, p, text, reply_to, markup, parse_mode="HTML", photo=photo)
     except BotBadRequest as exc:
+        if photo is not None and exc.photo_rejected:
+            log.error("Post %s: Telegram rasmni qabul qilmadi (%s) — zaxira rasm bilan qayta", p.id, exc)
+            p.meta = {**(p.meta or {}), "photo_error": str(exc)[:300], "photo_fallback": True}
+            return await _send(client, d, p, text, reply_to, markup, parse_mode="HTML", photo=_fallback_photo(p))
         if not exc.is_parse_error:
             raise
         log.error("Post %s: HTML parse xatosi (%s) — oddiy matn sifatida qayta yuboriladi", p.id, exc)
         p.meta = {**(p.meta or {}), "parse_error": str(exc)[:300], "sent_plain": True}
-        return await client.send_message(d.chat_id, plain(text), parse_mode=None, silent=p.silent,
-                                         protect_content=d.protect_content, reply_to=reply_to, reply_markup=markup,
-                                         thread_id=d.topic_id)
+        return await _send(client, d, p, plain(text), reply_to, markup, parse_mode=None, photo=photo)
 
 
 async def send_due(db: AsyncSession, client: BotClient, now: datetime | None = None, *, max_posts: int = 10,
@@ -175,11 +197,19 @@ async def send_due(db: AsyncSession, client: BotClient, now: datetime | None = N
         if d.id in blocked:
             continue
         now = datetime.now(UTC) if stats.sent else now
-        if p.kind == "alert" and p.created_at and p.created_at < now - EXPIRE:
+        if p.kind in ("alert", "followup") and p.created_at and p.created_at < now - EXPIRE:
             p.status, p.skip_reason = "expired", "stale"
             stats.expired += 1
             await db.commit()
             continue
+        if p.kind == "followup":  # davom xabari — faqat asl rasmli post chiqqandan keyin, unga javob sifatida
+            parent = await db.get(ChannelPost, p.reply_to_post_id) if p.reply_to_post_id else None
+            if parent is None or parent.status in ("failed", "expired", "skipped", "rejected"):
+                p.status, p.skip_reason = "skipped", "parent_not_sent"
+                await db.commit()
+                continue
+            if parent.status != "sent":
+                continue
         wait = rate.delay(d.chat_id, clock())
         if wait > 0:
             await sleep(wait)

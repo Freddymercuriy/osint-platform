@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api import admin_categories, admin_publisher, admin_sources, admin_translations, admin_users, auth, stats_v2, events, notifications, search, stats, telegram
+from app.api import admin_categories, admin_publisher, admin_sources, admin_translations, admin_users, auth, stats_v2, events, media, notifications, search, stats, telegram
 from app.core.config import settings
 from app.core.db import AsyncSessionLocal, engine
 from app.core.errors import register_error_handlers
@@ -63,6 +63,7 @@ register_error_handlers(app)
 app.include_router(auth.router)
 app.include_router(search.router)
 app.include_router(events.router)
+app.include_router(media.router)
 app.include_router(telegram.router)
 app.include_router(notifications.router)
 app.include_router(stats.router)

@@ -958,7 +958,9 @@
       "save": "Save",
       "lockedHint": "The category you choose is locked: automatic re-classification will not change it again.",
       "saved": "Category changed and locked",
-      "original": "Original language: {lang}"
+      "original": "Original language: {lang}",
+      "illustration": "Illustration",
+      "photoCredit": "Photo: {source}"
     },
     "sourcesDown": "{count, plural, one {# source is down} other {# sources are down}} — the collector itself is running and will retry them automatically",
     "sourcesDownMore": "{count} more — Admin → Sources",
@@ -1002,6 +1004,15 @@
         "underground_only": "Only an underground channel reports it",
         "global_cap": "Outside the region and not on the watchlist"
       }
+    },
+    "rubric": {
+      "cyber": "Cybersecurity",
+      "vulnerability": "Vulnerabilities",
+      "ai": "Artificial intelligence",
+      "tech": "Technology",
+      "telecom": "Telecommunications",
+      "economy": "Economy",
+      "politics": "Politics & regulation"
     }
   },
   "history": {

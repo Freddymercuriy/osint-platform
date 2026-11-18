@@ -6,6 +6,7 @@
     docker-compose exec backend python scripts/channel.py set 1 mode=auto     # dry_run | review | auto
     docker-compose exec backend python scripts/channel.py test 1              # sinov xabari (haqiqiy)
     docker-compose exec backend python scripts/channel.py preview 1 -n 3      # oxirgi tayyorlangan postlar matni
+    docker-compose exec backend python scripts/channel.py preview 1 --save media/preview  # + rasmlari faylga
     docker-compose exec backend python scripts/channel.py pending             # tasdiq kutayotganlar
     docker-compose exec backend python scripts/channel.py approve 15 [16 ...] # → navbatga
     docker-compose exec backend python scripts/channel.py reject 15
@@ -31,7 +32,7 @@ from app.models import BotChat, ChannelDestination, ChannelPost  # noqa: E402
 from app.models.publisher import BANDS, LANGS, MODES, QUIET_POLICIES  # noqa: E402
 from app.services.publisher.bot import BotError, make_client, redact, token_configured  # noqa: E402
 from app.services.publisher.outbox import get_state, insert_post  # noqa: E402
-from app.services.publisher.render import render_test  # noqa: E402
+from app.services.publisher.render import render_test, tg_len  # noqa: E402
 from app.services.publisher.sender import mark_down, mark_up  # noqa: E402
 from app.services.publisher.updates import can_post  # noqa: E402
 
@@ -172,9 +173,18 @@ async def cmd_preview(args) -> None:
         rows = (await db.scalars(select(ChannelPost).where(ChannelPost.destination_id == d.id, ChannelPost.text != "")
                                  .order_by(ChannelPost.id.desc()).limit(args.n))).all()
         for p in reversed(rows):
-            print(f"──── post {p.id} · {p.status}{' / ' + p.skip_reason if p.skip_reason else ''} · "
-                  f"{len(p.final_text)} belgi · tugmalar: {[b['text'] for r in p.buttons for b in r]}")
+            img = (p.meta or {}).get("image") or {}
+            photo = (f" · rasm: {img.get('kind', '?')} ({len(p.photo) // 1024} KB)" if p.photo else
+                     " · rasmsiz" if p.kind == "alert" else "")
+            reply = f" · javob → post {p.reply_to_post_id}" if p.kind == "followup" else ""
+            print(f"──── post {p.id} · {p.kind} · {p.status}{' / ' + p.skip_reason if p.skip_reason else ''} · "
+                  f"{tg_len(p.final_text)} belgi{photo}{reply} · tugmalar: {[b['text'] for r in p.buttons for b in r]}")
             print(p.final_text)
+            if args.save and p.photo:
+                path = Path(args.save) / f"post-{p.id}.jpg"
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(p.photo)
+                print(f"   rasm saqlandi: {path}")
         if not rows:
             print("Hali post yo'q (rejalashtiruvchi har 30 s da ishlaydi; tarjima tayyor bo'lishini kutadi).")
 
@@ -220,6 +230,7 @@ def main() -> None:
     p = sub.add_parser("preview")
     p.add_argument("id")
     p.add_argument("-n", type=int, default=5)
+    p.add_argument("--save", metavar="PAPKA", help="postlar rasmini shu papkaga yozish (ko'rib chiqish uchun)")
     sub.add_parser("pending")
     for name in ("approve", "reject"):
         x = sub.add_parser(name)

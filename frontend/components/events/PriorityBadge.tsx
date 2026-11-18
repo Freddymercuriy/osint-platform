@@ -45,7 +45,13 @@ export function useReasonText() {
 }
 
 /** Ustuvorlik belgisi: band va ball; bosilganda / ustiga kelganda — sabablar ro'yxati (telefonda ham). */
-export function PriorityBadge({ e }: { e: Pick<EventItem, "priority" | "priority_band" | "priority_reasons"> }) {
+export function PriorityBadge({
+  e,
+  align = "left",
+}: {
+  e: Pick<EventItem, "priority" | "priority_band" | "priority_reasons">;
+  align?: "left" | "right";
+}) {
   const t = useTranslations("events.priority");
   const reasonText = useReasonText();
   const [open, setOpen] = useState(false);
@@ -87,7 +93,8 @@ export function PriorityBadge({ e }: { e: Pick<EventItem, "priority" | "priority
         id={id}
         role="tooltip"
         className={cn(
-          "absolute left-0 top-full z-30 mt-1.5 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface p-3 text-xs shadow-lg",
+          align === "right" ? "right-0" : "left-0",
+          "absolute top-full z-30 mt-1.5 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-border bg-surface p-3 text-xs shadow-lg",
           open ? "block" : "hidden group-hover:block",
         )}
       >

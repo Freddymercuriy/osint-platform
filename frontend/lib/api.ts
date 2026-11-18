@@ -285,6 +285,13 @@ export async function getTgStatus(): Promise<TgStatus> {
 }
 
 // --- Events (yangiliklar/tadbirlar) ---
+export type EventImage = {
+  url: string;
+  thumb: string;
+  kind: "source" | "generated" | "fallback" | "pending";
+};
+export type EventRubric = "cyber" | "vulnerability" | "ai" | "tech" | "telecom" | "economy" | "politics";
+
 export type EventItem = {
   source: string;
   title: string;
@@ -319,6 +326,9 @@ export type EventItem = {
   translation_status?: string | null;
   original_title?: string | null;
   original_summary?: string | null;
+  // tasvir va rubrika (backend)
+  image?: EventImage | null;
+  rubric?: EventRubric | null;
 };
 
 export type EventsResponse = { count: number; items: EventItem[] };

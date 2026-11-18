@@ -59,6 +59,62 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### Rasmli yangiliklar: dashboard kartalari va Telegram postlari (2026-11-18)
+Egasi talabi: har yangilik — mavzuga mos rasm, aniq sarlavha, rubrika, daraja, qisqa matn, tuzilgan ma'lumotlar,
+vaqt, manba va havola; kanal — "bot lentasi" emas, professional nashr ko'rinishi.
+
+- **Rasmlar** (`app/services/media/`, migratsiya `0023_event_images`; zaxira:
+  `~/osint-backups/osint-pre-media-20261118-151047.sql`). Har hodisa — 16:9 rasm (1280×720 va 640×360 JPEG,
+  `backend/media/`, git'da yo'q; jadvalda tur, asl URL, versiya):
+  1. maqolaning o'z rasmi — RSS media / og:image / twitter:image (`source.py`): faqat yangilik saytlari;
+     Telegram, API-trekerlar, Google News, .onion, maxfiy kategoriyalar (leak, darkweb-sale, credentials,
+     defacement, ransomware) va yashirin / jamoat manbalari — hech qachon (sizib chiqqan ma'lumot skrinshoti
+     kanalga tushmasin). `HttpFetcher` (SSRF himoyasi, xost bo'yicha pauza), hajm / o'lcham / landshaft / "tekis"
+     / shaffof logotip tekshiruvi; bir nechta hodisadagi bir xil rasm — saytning umumiy rasmi → ishlatilmaydi;
+     saytlar avtomatik yasaydigan "matnli ijtimoiy karta" (habr.com/share/...) ham;
+  2. aks holda — platforma chizgan illyustratsiya (`art.py`, Pillow + numpy, tashqi servis / kalit yo'q):
+     rubrika rangidagi gradient, naqsh (tarmoq / mikrosxema / radar / to'r / bokeh), mavzu ikonkasi (24 ta:
+     qalqon, qulf, ma'lumotlar bazasi, qarmoq, neyron tarmoq, antenna, bino ...), Markaziy Osiyo — bayroq ranglari
+     chizig'i; matn, logotip, odam yo'q; urug' — hodisa ID (har hodisaning o'z rasmi, qayta chizilsa ham bir xil);
+  3. chizish xato bersa — rubrika zaxira rasmi. Rasmsiz hodisa / post bo'lmaydi.
+  Fon ishchisi (scheduler, alohida vazifa, 12 ta / tick, 90 s): yangi hodisalar eng yangisidan; API so'rovi rasm
+  hali yo'q bo'lsa — tarmoqsiz illyustratsiya chizadi (bir vaqtda ≤ 4), ishchi keyin maqola rasmini topsa
+  almashtiradi. Housekeeping — o'chirilgan hodisalar fayllari. Kategoriya qo'lda o'zgarsa — illyustratsiya qayta.
+- **Rubrika** (`rubric.py`): cyber, vulnerability, ai, tech, telecom, economy, politics — aniq kiber kategoriya →
+  cyber / vulnerability; `other` / `advisory` / `ddos-outage` — kalit so'zlar (sarlavha 3 ball, matn 1 ball,
+  teng bo'lsa qat'iy tartib). Platforma kategoriyalari o'zgarmadi (batafsil, filtrlar ishlaydi).
+- **API**: `/api/events` har elementda `image {url, thumb, kind}` (HMAC-imzoli havola — `<img>` sarlavhasiz
+  ochadi; imzosiz 404) va `rubric`; `GET /api/media/events/{id}.jpg?size=s|l&v=&sig=`.
+- **Telegram posti** (`render.py`, `planner.py`, `sender.py`): `sendPhoto` + HTML izoh — "🛡 KIBERXAVFSIZLIK |
+  🇺🇿 O'ZBEKISTON", daraja (faqat o'rta+), sarlavha, vaqt, 1–2 gap, 📌 asosiy ma'lumotlar (faqat manbada bor
+  maydonlar: CVE aynan, CVSS matnda yozilgan bo'lsa, guruh, soha, yozuvlar), ⚠️ nima uchun muhim (ustuvorlik
+  sabablari), ✅ tavsiya (kategoriya shabloni), 🔎 manba + ishonchlilik, hashtag, "🌐 Asl manbani ochish" tugmasi.
+  Til modeli yozmaydi (spetsifikatsiya qoidasi). Izoh ≤ 1000 (UTF-16; chegara 1024): sig'masa avval "nima uchun
+  muhim", ikkinchi gap tushadi, ma'lumotlar 3 qatorga; tavsiya / ma'lumotlar baribir sig'masa — `followup` posti
+  (rasmli postga javob, ovozsiz; asl post chiqmaguncha kutadi, asl post yiqilsa tashlanadi). Telegram rasmni
+  rad etsa — zaxira rasm bilan bir marta; HTML xatosi — oddiy matn. `PUBLISHER_PHOTOS=false` — oldingidek matn.
+  Rasm uchun kutish: `PUBLISHER_IMAGE_WAIT_MINUTES` (3) — fon ishchisi maqola rasmini qidirib ulgursin.
+- **Dashboard kartalari** (`EventCard.tsx`, `events/page.tsx`; frontend subagenti, ko'rib chiqildi): to'r — mobil 1,
+  `lg` dan 2 ustun; har karta tepasida 16:9 rasm (`image.thumb`, lazy), rasm ustida rubrika (chapda), o'rta+
+  jiddiylik / ustuvorlik (o'ngda), pastda "Foto: {nashr}" yoki "Illyustratsiya" (haqiqiy foto deb o'ylanmasin);
+  rasm yo'q / yuklanmasa — tokenli o'rinbosar. Sarlavha, 3 qator matn, kategoriya / kanal / davlat filtr chiplari,
+  manba, vaqt, aktor, kalit so'zlar, "boshqa manbalar", admin kategoriya tahriri, asl matn, "Manbani ochish" —
+  hammasi saqlangan; teng balandlik, pastki qator mahkam. Skeleton yangi kartaga mos. i18n: `events.rubric.*`,
+  `events.card.illustration/photoCredit` (uz-Cyrl generatsiya).
+- **CLI**: `channel.py preview ID --save media/preview` — postlar rasm turi, uzunligi, javob xabari, rasm fayli.
+- **Tekshirildi:** `test_media.py` (40: rubrika va motiv, illyustratsiya — deterministik / noyob / hamma ikonka,
+  saqlash va imzo, og:image tahlili, xavfsizlik qoidalari, SSRF — ichki manzilga so'rov ketmaydi, maxfiy
+  kategoriya — tarmoqqa chiqilmaydi, saytning umumiy rasmi, zaxira, fon ishchisi, API, RSS rasmi),
+  `test_publisher_feed.py` (+10: yangi post tuzilishi, CVE/CVSS aynan, izoh chegarasi va javob xabari, rasmli
+  yuborish multipart, javob tartibi, rasmni kutish, rad etilgan rasm, matn rejimi). Jonli: illyustratsiyalar va
+  manba rasmlari ko'zdan kechirildi (92 ta maqola rasmi birinchi soatda; Habr matnli kartalari chiqarildi);
+  OpenJDK (UZCERT, maqola rasmi) va O'zbekiston ransomware (illyustratsiya) postlari yangi ko'rinishda qurildi.
+  Frontend: `npm run typecheck`, `npm run test:i18n` (976 kalit × 4 til), production smoke (23 tekshiruv — "Hammasi toza"), desktop / 360px, light / dark skrinshotlari ko'zdan kechirildi. Backend: 588 test.
+- **Cheklovlar:** illyustratsiya — mavzuli, lekin aniq voqea surati emas (AI-rasm servisi ulanmagan: kalit va
+  pul talab qiladi; ulash uchun `media/service.py::_draw` yagona joy). "Murakkab texnik matnni sodda o'zbekchaga"
+  — faqat NLLB tarjimasi + shablonlar (til modeli taqiqlangan). Maqola rasmi manba saytniki (muallif belgisi
+  bo'lishi mumkin) — `MEDIA_SOURCE_IMAGES=false` bilan o'chiriladi.
+
 ### Yangiliklar lentasi kanali (o'zbek kirill) — Bosqich 3/4 ning bir qismi (2026-11-18)
 - Egasining talabi: "yangiliklarni https://t.me/+53mtgEkGJhdjMzky kanaliga yuklab borsin, har biri o'zbekcha" →
   tanlov: **hamma hodisa** (global ham, kuniga ~220), **o'zbek kirill**. Spetsifikatsiyadan chetlanish: rahbariyat

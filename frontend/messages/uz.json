@@ -958,7 +958,9 @@
       "save": "Saqlash",
       "lockedHint": "Tanlangan kategoriya qotiriladi: avtomatik qayta tasniflash uni boshqa o'zgartirmaydi.",
       "saved": "Kategoriya o'zgartirildi va qotirildi",
-      "original": "Asl til: {lang}"
+      "original": "Asl til: {lang}",
+      "illustration": "Illyustratsiya",
+      "photoCredit": "Foto: {source}"
     },
     "sourcesDown": "{count} ta manba ishlamayapti — yig'uvchining o'zi ishlayapti va ularni avtomatik qayta tekshiradi",
     "sourcesDownMore": "yana {count} ta — Admin → Manbalar",
@@ -1002,6 +1004,15 @@
         "underground_only": "Faqat yashirin kanal xabar qilgan",
         "global_cap": "Mintaqadan tashqarida va kuzatuv ro'yxatida yo'q"
       }
+    },
+    "rubric": {
+      "cyber": "Kiberxavfsizlik",
+      "vulnerability": "Zaifliklar",
+      "ai": "Sun'iy intellekt",
+      "tech": "Texnologiya",
+      "telecom": "Telekommunikatsiya",
+      "economy": "Iqtisodiyot",
+      "politics": "Siyosat va qonunchilik"
     }
   },
   "history": {

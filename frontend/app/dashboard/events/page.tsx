@@ -62,18 +62,21 @@ function dayKey(iso: string | null): string {
 
 function FeedSkeleton() {
   return (
-    <ul className="space-y-3" aria-hidden>
-      {Array.from({ length: 5 }).map((_, i) => (
+    <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-hidden>
+      {Array.from({ length: 6 }).map((_, i) => (
         <li key={i}>
-          <Card className="space-y-3 p-5">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-20 rounded-full" />
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="ml-auto h-4 w-16" />
+          <Card className="overflow-hidden">
+            <Skeleton className="aspect-video w-full rounded-none" />
+            <div className="space-y-3 p-5">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-20 rounded-full" />
+                <Skeleton className="h-5 w-16 rounded-full" />
+              </div>
+              <Skeleton className="h-5 w-4/5" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+              <Skeleton className="h-4 w-1/3" />
             </div>
-            <Skeleton className="h-5 w-4/5" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-2/3" />
           </Card>
         </li>
       ))}
@@ -409,7 +412,7 @@ function EventsView() {
                   <h2 className="text-xs font-semibold text-fg">{g.label}</h2>
                   <span className="font-mono text-[11px] tabular-nums text-fg-muted">{g.items.length}</span>
                 </div>
-                <ul className="space-y-3">
+                <ul className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                   {g.items.map(({ e, idx }) => (
                     <EventCard
                       key={`${e.id ?? e.url}-${idx}`}

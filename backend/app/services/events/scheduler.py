@@ -95,6 +95,7 @@ class SchedulerState:
     _sem: asyncio.Semaphore | None = field(default=None, repr=False)
     _http: HttpFetcher | None = field(default=None, repr=False)
     _tr_http: HttpFetcher | None = field(default=None, repr=False)  # tarjima servisi uchun alohida mijoz
+    _media_task: asyncio.Task | None = field(default=None, repr=False)  # hodisa rasmlari (bittadan ortiq emas)
     _last_housekeeping: float = 0.0
 
 
@@ -385,6 +386,30 @@ async def translation_tick() -> dict:
     return {"planned": planned, "stats": stats}
 
 
+async def media_tick() -> None:
+    """Yangi hodisalar rasmi (maqola rasmi yoki illyustratsiya) — alohida vazifa: sekin saytlar yig'ishni ushlamasin."""
+    from app.services.media import service as media
+
+    async with AsyncSessionLocal() as db:
+        stats = await media.process_pending(db)
+    if stats.done:
+        log.info("Rasmlar: %d ta hodisa (maqola rasmi %d, illyustratsiya %d, xato %d)",
+                 stats.done, stats.source, stats.generated, stats.errors)
+
+
+def start_media_tick() -> None:
+    if not settings.media_enabled or (state._media_task is not None and not state._media_task.done()):
+        return
+
+    async def _run() -> None:
+        try:
+            await media_tick()
+        except Exception:
+            log.exception("Rasmlar navbati xatosi")
+
+    state._media_task = asyncio.create_task(_run(), name="media-tick")
+
+
 async def resolve_alerts(db, source_id: int, now: datetime) -> None:
     await db.execute(update(AdminAlert).where(
         AdminAlert.kind == "source_down", AdminAlert.source_id == source_id, AdminAlert.resolved_at.is_(None)
@@ -435,6 +460,15 @@ async def housekeeping() -> None:
         await telegram_archive.maybe_sync()  # TG_MONITOR_ARCHIVED: arxivdagi kanal/guruhlar → manbalar
     except Exception:
         log.exception("Telegram arxivi sinxronlash xatosi")
+    from app.services.media import service as media
+
+    try:
+        async with AsyncSessionLocal() as db:
+            removed = await media.purge_orphans(db)
+        if removed:
+            log.info("Rasmlar: o'chirilgan hodisalarning %d ta fayli tozalandi", removed)
+    except Exception:
+        log.exception("Rasm fayllarini tozalash xatosi")
 
 
 async def try_lock(conn: AsyncConnection) -> bool:
@@ -482,6 +516,7 @@ async def _loop() -> None:
                 t = asyncio.create_task(_guarded_run(sid), name=f"source-{sid}")
                 tasks.add(t)
                 t.add_done_callback(tasks.discard)
+            start_media_tick()
             try:
                 await translation_tick()
             except Exception:
@@ -527,6 +562,16 @@ async def stop() -> None:
     if state._tr_http is not None:
         await state._tr_http.aclose()
         state._tr_http = None
+    if state._media_task is not None:
+        state._media_task.cancel()
+        try:
+            await state._media_task
+        except (asyncio.CancelledError, Exception):
+            pass
+        state._media_task = None
+    from app.services.media import service as media
+
+    await media.aclose()
     state._sem = None
 
 

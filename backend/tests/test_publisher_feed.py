@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import json
 import logging
+from email import policy as email_policy
+from email.parser import BytesParser
 from datetime import UTC, datetime, time, timedelta
 
 import httpx
@@ -30,33 +32,58 @@ def _token(monkeypatch):
     stories.clear_cache()
 
 
+def _multipart(req: httpx.Request) -> dict:
+    """multipart/form-data (sendPhoto) → maydonlar (JSON qiymatlar ochiladi) + "photo" baytlari, fayl nomi, turi."""
+    msg = BytesParser(policy=email_policy.default).parsebytes(
+        b"Content-Type: " + req.headers["content-type"].encode() + b"\r\n\r\n" + req.read())
+    out: dict = {}
+    for part in msg.iter_parts():
+        name = part.get_param("name", header="content-disposition")
+        data = part.get_payload(decode=True)
+        if part.get_filename():
+            out[name], out[f"{name}_filename"], out[f"{name}_type"] = data, part.get_filename(), part.get_content_type()
+            continue
+        text = data.decode()
+        try:
+            out[name] = json.loads(text) if text[:1] in "[{" or text.lstrip("-").isdigit() else text
+        except ValueError:
+            out[name] = text
+    return out
+
+
 class FakeTelegram:
-    """Bot API: `sendMessage` → muvaffaqiyat (yoki navbatdagi tayyorlangan xato), so'rovlar yoziladi."""
+    """Bot API: `sendMessage` / `sendPhoto` → muvaffaqiyat (yoki navbatdagi tayyorlangan xato), so'rovlar yoziladi."""
 
     def __init__(self) -> None:
         self.sent: list[dict] = []
+        self.methods: list[str] = []
         self.errors: list[tuple[int, dict]] = []
         self.updates: list[dict] = []
         self.next_id = 100
 
     def handler(self, req: httpx.Request) -> httpx.Response:
         method = req.url.path.rsplit("/", 1)[-1]
-        body = json.loads(req.content or b"{}")
+        multipart = req.headers.get("content-type", "").startswith("multipart/")
+        body = _multipart(req) if multipart else json.loads(req.content or b"{}")
         if method == "getUpdates":
             ups, self.updates = self.updates, []
             return httpx.Response(200, json={"ok": True, "result": ups})
-        if method in ("sendMessage", "answerCallbackQuery"):
+        if method in ("sendMessage", "sendPhoto", "answerCallbackQuery"):
             if self.errors:
                 code, extra = self.errors.pop(0)
                 return httpx.Response(code, json={"ok": False, "error_code": code, **extra})
             self.sent.append(body)
+            self.methods.append(method)
             if method == "answerCallbackQuery":
                 return httpx.Response(200, json={"ok": True, "result": True})
             self.next_id += 1
             ents = [{"type": "bold", "offset": 0, "length": 3}] if body.get("parse_mode") == "HTML" else []
-            return httpx.Response(200, json={"ok": True, "result": {
-                "message_id": self.next_id, "chat": {"id": body["chat_id"]}, "date": 1, "text": "x",
-                "entities": ents}})
+            result = {"message_id": self.next_id, "chat": {"id": body["chat_id"]}, "date": 1}
+            if method == "sendPhoto":
+                result.update(caption="x", caption_entities=ents, photo=[{"file_id": "f", "width": 1280}])
+            else:
+                result.update(text="x", entities=ents)
+            return httpx.Response(200, json={"ok": True, "result": result})
         return httpx.Response(200, json={"ok": True, "result": {}})
 
     def client(self) -> bot.BotClient:
@@ -105,7 +132,8 @@ def _view(**kw) -> render.EventView:
     base = dict(id=1, title="Xakerlar bankka hujum qildi", summary="Hujum tafsilotlari. Ikkinchi gap. Uchinchi gap.",
                 url="https://kun.uz/news/1", when=datetime(2026, 11, 18, 9, 5, tzinfo=UTC), band="high",
                 countries=["UZ"], scope="regional", category_slug="darkweb-sale", category_name="Ma'lumot savdosi",
-                sector="finance", source="Kun.uz", reliability="media", action="Parollarni almashtirish.")
+                sector="finance", source="Kun.uz", reliability="media", action="Parollarni almashtirish.",
+                rubric="cyber")
     base.update(kw)
     return render.EventView(**base)
 
@@ -113,15 +141,41 @@ def _view(**kw) -> render.EventView:
 def test_render_uzbek_cyrillic_post():
     r = render.render_event(_view(), "uz-Cyrl")
     lines = r.text.split("\n")
-    assert lines[0] == "🟠 ЮҚОРИ · 🇺🇿 Ўзбекистон · Маълумот савдоси"
-    assert lines[1] == "<b>Хакерлар банкка ҳужум қилди</b>"
-    assert lines[2] == "<i>18-ноябрь, 14:05 (Тошкент)</i>"  # Toshkent vaqti (UTC+5)
+    assert lines[0] == "🛡 <b>КИБЕРХАВФСИЗЛИК</b> | <b>🇺🇿 ЎЗБЕКИСТОН</b>"  # rubrika | hudud
+    assert lines[1] == "🟠 <b>ЮҚОРИ ДАРАЖА</b>"
+    assert lines[3] == "<b>Хакерлар банкка ҳужум қилди</b>"
+    assert lines[4] == "<i>18-ноябрь, 14:05 (Тошкент)</i>"  # Toshkent vaqti (UTC+5)
     assert "Ҳужум тафсилотлари. Иккинчи гап." in r.text and "Учинчи" not in r.text  # 2 gap
-    assert "<b>Ишончлилик:</b> ОАВ хабари · манба: Kun.uz" in r.text  # manba nomi o'girilmaydi
-    assert "<b>Тавсия:</b> Паролларни алмаштириш." in r.text
+    assert "📌 <b>АСОСИЙ МАЪЛУМОТЛАР</b>\n• Соҳа: Молия" in r.text
+    assert "✅ <b>ТАВСИЯ</b>\nПаролларни алмаштириш." in r.text
+    assert "🔎 <b>Манба:</b> Kun.uz · <i>ОАВ хабари</i>" in r.text  # manba nomi o'girilmaydi
     assert lines[-1] == "#UZ #darkweb_sale #finance"  # ASCII hashtag
-    assert r.buttons == [[{"text": "Манбани очиш", "url": "https://kun.uz/news/1"}]]
-    assert render.visible_len(r.text) <= render.ALERT_MAX
+    assert r.buttons == [[{"text": "🌐 Асл манбани очиш", "url": "https://kun.uz/news/1"}]]
+    assert render.tg_len(r.text) <= render.POST_BUDGET and r.more == ""
+
+
+def test_render_structured_facts_only_from_the_source():
+    v = _view(category_slug="ransomware", actor="Akira", cves=["CVE-2026-114938"], cvss="9.8", records=1_200_000,
+              countries=["UZ"], reasons=[{"code": "country_uz", "points": 30}, {"code": "sector", "arg": "finance"},
+                                         {"code": "records_1m", "arg": 1_200_000}, {"code": "official_source"}])
+    r = render.render_event(v, "uz")
+    assert "• CVE: CVE-2026-114938" in r.text and "• CVSS bahosi: 9.8" in r.text and "• Guruh: Akira" in r.text
+    assert "• Yozuvlar soni: 1 200 000" in r.text
+    # nima uchun muhim — faqat sabablardan; "rasmiy manba" ishonchlilik qatorida, bu yerda takrorlanmaydi
+    assert "⚠️ <b>NIMA UCHUN MUHIM?</b>\nO'zbekistondagi moliya tashkiloti; taxminan 1 200 000 ta yozuv." in r.text
+    low = render.render_event(_view(band="low", sector=None, reasons=v.reasons), "uz")
+    assert "DARAJA" not in low.text and "MUHIM" not in low.text and "TAVSIYA" not in low.text
+    assert "ASOSIY" not in low.text  # ko'rsatadigan maydon yo'q — bo'lim ham yo'q (hech narsa o'ylab topilmaydi)
+
+
+@pytest.mark.parametrize("text,cves,cvss", [
+    ("Critical flaw CVE-2026-114938 (CVSS 9.8) and cve-2025-1234", ["CVE-2026-114938", "CVE-2025-1234"], "9.8"),
+    ("CVSS v3.1 score of 7,5 for CVE-2024-00001x", [], "7.5"),
+    ("CVSS v3.1 bo'yicha baholanmagan", [], None),
+    ("Uyazvimost s otsenkoy CVSS: 10.0", [], "10.0"),
+])
+def test_cve_and_cvss_are_taken_verbatim(text, cves, cvss):
+    assert render.cves_in(text) == cves and render.cvss_in(text) == cvss
 
 
 def test_render_scrubs_links_personal_data_and_escapes():
@@ -145,9 +199,9 @@ def test_unsafe_urls_get_no_button(url):
 
 def test_render_confidence_and_outlet_dedupe():
     one = render.render_event(_view(source="CyberScoop (NewsNow)", also_sources=["CyberScoop"]), "en")
-    assert "media report · source: CyberScoop" in one.text  # bitta nashr — "bir nechta manba" emas
+    assert "🔎 <b>Source:</b> CyberScoop · <i>media report</i>" in one.text  # bitta nashr — "bir nechta" emas
     multi = render.render_event(_view(also_sources=["Gazeta.uz", "UzDaily"]), "en")
-    assert "confirmed by several sources · 3 sources: Kun.uz, Gazeta.uz, UzDaily" in multi.text
+    assert "<b>Source:</b> Kun.uz, Gazeta.uz, UzDaily · <i>confirmed by several sources</i>" in multi.text
     claim = render.render_event(_view(reliability="tracker", category_slug="ransomware"), "ru")
     assert "заявление группировки, не подтверждено" in claim.text
     under = render.render_event(_view(reliability="underground"), "uz")
@@ -156,16 +210,30 @@ def test_render_confidence_and_outlet_dedupe():
 
 def test_render_global_and_untranslated_note():
     r = render.render_event(_view(countries=[], scope="global", band="critical", translated=False,
-                                  title="Hackers attacked", summary=""), "uz-Cyrl")
-    assert r.text.startswith("🔴 КРИТИК · 🌐 Глобал")
+                                  title="Hackers attacked", summary="", rubric="ai"), "uz-Cyrl")
+    assert r.text.startswith("🤖 <b>СУНЪИЙ ИНТЕЛЛЕКТ</b> | <b>🌍 ДУНЁ</b>\n🔴 <b>КРИТИК ДАРАЖА</b>")
     assert "<b>Hackers attacked</b>" in r.text  # asl matn kirillga o'girilmaydi
     assert "Таржима ҳали тайёр эмас" in r.text and "#global" in r.text
+    ca = render.render_event(_view(countries=[], scope="regional"), "ru")
+    assert "🌏 ЦЕНТРАЛЬНАЯ АЗИЯ" in ca.text.split("\n")[0]
 
 
-def test_render_long_text_stays_on_one_screen():
+def test_render_long_caption_moves_sections_to_a_reply():
     long = " ".join(f"Bu {i}-gap juda uzun bo'lib, hujum tafsilotlari haqida batafsil ma'lumot beradi." for i in range(30))
-    r = render.render_event(_view(title="Sarlavha " * 20, summary=long, action="Tavsiya " * 60), "uz")
-    assert render.visible_len(r.text) <= render.ALERT_MAX and len(r.text) <= render.TEXT_LIMIT
+    v = _view(title="Sarlavha " * 20, summary=long, action="Tizimlarni tekshirish va yangilash. " * 20,
+              cves=[f"CVE-2026-{i:05d}" for i in range(5)], actor="Akira", category_slug="ransomware",
+              records=5_000_000)
+    r = render.render_event(v, "uz", photo=True)
+    assert render.tg_len(r.text) <= render.CAPTION_LIMIT  # izoh chegarasi (UTF-16)
+    assert "<b>Sarlavha" in r.text and "🔎 <b>Manba:</b>" in r.text and "#UZ" in r.text  # asosiysi izohda
+    assert "• CVE: CVE-2026-00000, CVE-2026-00001, CVE-2026-00002" in r.text  # ma'lumotlar izohda (3 qator)
+    assert "Yozuvlar soni" not in r.text and "TAVSIYA" not in r.text
+    assert r.more.startswith("✅ <b>TAVSIYA</b>\nTizimlarni tekshirish")  # sig'magan bo'lim — javob xabarida
+    huge = render.render_event(_view(**{**v.__dict__, "title": "Sarlavha " * 80}), "uz", photo=True)
+    assert render.tg_len(huge.text) <= render.CAPTION_LIMIT and "ASOSIY" not in huge.text
+    assert huge.more.startswith("📌 <b>ASOSIY MA'LUMOTLAR</b>") and "• Yozuvlar soni: 5 000 000" in huge.more
+    assert "✅ <b>TAVSIYA</b>" in huge.more and huge.more.count("<b>") == huge.more.count("</b>")
+    assert render.render_event(_view(), "uz", photo=True).more == ""  # sig'adigan post — bitta xabar
 
 
 def test_quiet_window_crosses_midnight():
@@ -263,13 +331,15 @@ async def test_sender_sends_queued_with_buttons_and_marks_sent(db):
     tg = FakeTelegram()
     c = tg.client()
     stats = await sender.send_due(db, c, sleep=_no_sleep)
-    assert stats.sent == 1
+    assert stats.sent == 1 and tg.methods == ["sendPhoto"]
     body = tg.sent[0]
-    assert body["chat_id"] == CHAT and body["parse_mode"] == "HTML"
-    assert body["reply_markup"]["inline_keyboard"][0][0]["text"] == "Манбани очиш"
-    assert body["link_preview_options"] == {"is_disabled": True}
+    assert body["chat_id"] == CHAT and body["parse_mode"] == "HTML" and "<b>" in body["caption"]
+    assert body["photo"][:3] == b"\xff\xd8\xff" and body["photo_type"] == "image/jpeg"  # JPEG, 1280×720
+    assert body["photo_filename"].endswith(".jpg")
+    assert body["reply_markup"]["inline_keyboard"][0][0]["text"] == "🌐 Асл манбани очиш"
     [p] = await _posts(db, d)
     assert p.status == "sent" and p.message_id == 101 and p.sent_at is not None
+    assert p.meta["image"]["kind"] == "generated" and p.meta["rubric"] == "cyber"
     await db.refresh(d)
     assert d.status == "ok" and d.last_success_at is not None
     await c.aclose()
@@ -293,7 +363,8 @@ async def test_sender_rate_limit_and_parse_error_fallback(db):
     tg.errors = [(400, {"description": "Bad Request: can't parse entities: unexpected end tag"})]
     stats = await sender.send_due(db, c, sleep=_no_sleep)
     assert stats.sent == 2
-    assert tg.sent[0].get("parse_mode") is None and "<b>" not in tg.sent[0]["text"]  # oddiy matn sifatida
+    assert tg.sent[0].get("parse_mode") is None and "<b>" not in tg.sent[0]["caption"]  # oddiy matn sifatida
+    assert tg.sent[0]["photo"][:3] == b"\xff\xd8\xff"  # rasm baribir bor
     assert (await _posts(db, d))[0].meta.get("sent_plain") is True
     await c.aclose()
 
@@ -545,3 +616,101 @@ async def test_duplicates_within_one_tick_and_dry_run(db):
     assert third.event_ids == [third_ev.id] and third.skip_reason == "duplicate"
     assert third.meta == {"duplicate_of_event": posts[1].event_ids[0], "duplicate_of_post": posts[0].id}
 
+
+
+# ---------------------------------------------------------------- rasmli post, davom xabari
+async def _long_post_event(db):
+    from app.models import Category
+
+    cat = await db.scalar(select(Category).where(Category.slug == "vulnerability"))
+    cat.action_uz = "Ta'sirlangan tizimlarni aniqlab, ishlab chiqaruvchi yangilanishini o'rnating. " * 6
+    await db.commit()
+    summary = " ".join(f"{i}-gap: zaiflik masofadan kod bajarishga olib kelishi mumkin." for i in range(8))
+    return await _event(db, uid="long", category="vulnerability", priority_band="high", countries=["UZ"],
+                        scope="regional", title="Critical OpenJDK flaw CVE-2026-114938 (CVSS 9.8) exploited",
+                        summary="Java4Shell CVE-2026-114938 lets attackers run code.", actor="Unknown",
+                        uz=("OpenJDK dasturidagi kritik Java4Shell zaifligi " * 6, summary))
+
+
+async def test_photo_post_with_followup_reply_in_order(db):
+    d = await _dest(db, lang="uz")
+    ev = await _long_post_event(db)
+    await planner.plan(db)
+    main, more = await _posts(db, d)
+    assert main.kind == "alert" and main.photo[:3] == b"\xff\xd8\xff" and main.meta["image"]["kind"] == "generated"
+    assert "• CVE: CVE-2026-114938" in main.text + more.text and "CVSS bahosi: 9.8" in main.text + more.text
+    assert more.kind == "followup" and more.reply_to_post_id == main.id and more.silent and more.photo is None
+    assert more.dedup_key == f"followup:{ev.id}" and "TAVSIYA" in more.text
+    tg = FakeTelegram()
+    c = tg.client()
+    stats = await sender.send_due(db, c, sleep=_no_sleep)
+    assert stats.sent == 2 and tg.methods == ["sendPhoto", "sendMessage"]
+    reply = tg.sent[1]
+    assert reply["reply_parameters"]["message_id"] == 101 and reply["disable_notification"] is True
+    assert (await planner.plan(db)).created == 0  # qayta rejalashtirilmaydi
+    await c.aclose()
+
+
+async def test_followup_waits_for_parent_and_is_dropped_if_parent_fails(db):
+    d = await _dest(db, lang="uz")
+    await _long_post_event(db)
+    await planner.plan(db)
+    main, more = await _posts(db, d)
+    tg = FakeTelegram()
+    tg.errors = [(429, {"description": "Too Many Requests", "parameters": {"retry_after": 30}})]
+    c = tg.client()
+    await sender.send_due(db, c, sleep=_no_sleep)
+    assert tg.sent == [] and (await _posts(db, d))[1].status == "queued"  # asl post kutmoqda — javob ham
+    main.status, main.next_attempt_at = "failed", None
+    await db.commit()
+    await sender.send_due(db, c, sleep=_no_sleep)
+    more = (await _posts(db, d))[1]
+    assert more.status == "skipped" and more.skip_reason == "parent_not_sent" and tg.sent == []
+    await c.aclose()
+
+
+async def test_planner_waits_for_article_image_then_draws_one(db, monkeypatch):
+    from app.services.media import service as media_service
+
+    monkeypatch.setattr(settings, "publisher_image_wait_minutes", 3)
+    d = await _dest(db)
+    ev = await _event(db, uid="img")
+    stats = await planner.plan(db)
+    assert stats.waiting == 1 and await _posts(db, d) == []  # fon ishchisi maqola rasmini qidirmoqda
+    await media_service.ensure_image(db, ev, fetch=True)  # ishchi o'z ishini qildi (rasm topilmadi)
+    await db.commit()
+    assert (await planner.plan(db)).created == 1
+    [p] = await _posts(db, d)
+    assert p.photo and p.meta["image"]["kind"] == "generated"
+    late = await _event(db, uid="late", title="Phishing wave", uz=("Fishing to'lqini pochtalarga tarqalmoqda", ""),
+                        first_seen=datetime.now(UTC) - timedelta(minutes=4))
+    await planner.plan(db)  # 3 daqiqadan oshgan — kutilmaydi, illyustratsiya darhol chiziladi
+    assert any(late.id in x.event_ids and x.photo for x in await _posts(db, d))
+
+
+async def test_rejected_photo_is_resent_with_fallback_image(db):
+    d = await _dest(db)
+    await _event(db)
+    await planner.plan(db)
+    tg = FakeTelegram()
+    tg.errors = [(400, {"description": "Bad Request: IMAGE_PROCESS_FAILED"})]
+    c = tg.client()
+    assert (await sender.send_due(db, c, sleep=_no_sleep)).sent == 1
+    [p] = await _posts(db, d)
+    assert p.status == "sent" and p.meta["photo_fallback"] is True and tg.methods == ["sendPhoto"]
+    assert tg.sent[0]["photo"][:3] == b"\xff\xd8\xff"  # post rasmsiz chiqmadi
+    await c.aclose()
+
+
+async def test_text_mode_when_photos_are_disabled(db, monkeypatch):
+    monkeypatch.setattr(settings, "publisher_photos", False)
+    d = await _dest(db)
+    await _event(db)
+    await planner.plan(db)
+    [p] = await _posts(db, d)
+    assert p.photo is None and "image" not in p.meta
+    tg = FakeTelegram()
+    c = tg.client()
+    await sender.send_due(db, c, sleep=_no_sleep)
+    assert tg.methods == ["sendMessage"] and tg.sent[0]["link_preview_options"] == {"is_disabled": True}
+    await c.aclose()

@@ -121,6 +121,14 @@ class BotBadRequest(BotError):
         return "chat not found" in self._d or "chat_id is empty" in self._d or "peer_id_invalid" in self._d
 
     @property
+    def photo_rejected(self) -> bool:
+        """Telegram rasm faylini qabul qilmadi (o'lcham, format, ishlov xatosi)."""
+        d = self._d
+        return any(k in d for k in ("photo_invalid", "image_process_failed", "photo_ext_invalid", "photo_save_file",
+                                    "wrong file", "file is too big", "photo_crop", "failed to get http url content",
+                                    "wrong type of the web page content", "photo_invalid_dimensions"))
+
+    @property
     def too_long(self) -> bool:
         return "too long" in self._d
 
@@ -282,14 +290,16 @@ class BotClient:
 
     async def send_photo(self, chat_id: int | str, photo: bytes, *, caption: str | None = None,
                          parse_mode: str | None = "HTML", silent: bool = False, protect_content: bool = False,
-                         reply_markup: dict | None = None, thread_id: int | None = None,
-                         filename: str = "chart.png") -> SentMessage:
+                         reply_markup: dict | None = None, thread_id: int | None = None, reply_to: int | None = None,
+                         filename: str = "chart.png", content_type: str = "image/png") -> SentMessage:
         params: dict[str, Any] = {
             "chat_id": chat_id, "caption": caption, "parse_mode": parse_mode if caption else None,
             "disable_notification": silent or None, "protect_content": protect_content or None,
             "reply_markup": reply_markup, "message_thread_id": thread_id,
         }
-        return sent_of(await self.call("sendPhoto", params, files={"photo": (filename, photo, "image/png")},
+        if reply_to:
+            params["reply_parameters"] = {"message_id": reply_to, "allow_sending_without_reply": True}
+        return sent_of(await self.call("sendPhoto", params, files={"photo": (filename, photo, content_type)},
                                        timeout=60.0))
 
     async def edit_message_text(self, chat_id: int | str, message_id: int, text: str, *,

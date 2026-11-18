@@ -103,6 +103,15 @@ class JobReport(BaseModel):
 
 
 # --- Events (yangiliklar/tadbirlar) ---
+class EventImageOut(BaseModel):
+    """Hodisa rasmi: imzolangan nisbiy havolalar (1280×720 va 640×360). kind: source (maqolaning o'z rasmi) |
+    generated (platforma chizgan illyustratsiya) | fallback (zaxira) | pending (hali tayyorlanmagan — so'rovda chiziladi)."""
+
+    url: str
+    thumb: str
+    kind: str
+
+
 class EventItemOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
@@ -139,6 +148,9 @@ class EventItemOut(BaseModel):
     translation_status: str | None = None
     original_title: str | None = None
     original_summary: str | None = None
+    # Rasm (har hodisada bor — so'rovda chiziladi) va yirik mavzu guruhi (media.rubric)
+    image: EventImageOut | None = None
+    rubric: str | None = None
 
 
 class EventsResponse(BaseModel):

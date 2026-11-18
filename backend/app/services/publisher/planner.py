@@ -15,6 +15,9 @@ Sokin soatlar (Toshkent): `all_silent` — ovozsiz; `uz_sound` — faqat O'zbeki
 Kunlik chegara (`max_instant_per_day`) dan oshgani — `skipped / daily_cap`.
 Bitta voqea — bitta post: shu kanalga oxirgi 48 soatda chiqqan voqeani boshqa nashr yozgan bo'lsa (`stories.py`,
 kanal tilidagi matn bo'yicha) — `skipped / duplicate`, `meta.duplicate_of_post`.
+Rasm (`PUBLISHER_PHOTOS`): har post hodisa rasmi bilan (`media.service`) — fon ishchisi maqola rasmini qidirib
+bo'lguncha `PUBLISHER_IMAGE_WAIT_MINUTES` kutiladi, keyin illyustratsiya chiziladi; rasmsiz post chiqmaydi. Izohga
+(1024 belgi) sig'magan bo'limlar — `followup` posti (rasmli postga javob, ovozsiz).
 """
 
 from __future__ import annotations
@@ -30,10 +33,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models import Category, ChannelDestination, ChannelPost, EventRecord, EventTranslation, Source
 from app.models.publisher import BANDS
+from app.models import EventImage
+from app.services.media import service as media
+from app.services.media import store as media_store
+from app.services.media.rubric import rubric_of
 from app.services.publisher import stories
 from app.services.publisher.outbox import insert_post
-from app.services.publisher.priority import band_at_least
-from app.services.publisher.render import EventView, base_lang, render_event
+from app.services.publisher.priority import band_at_least, record_count
+from app.services.publisher.render import EventView, base_lang, cves_in, cvss_in, render_event
 
 log = logging.getLogger("osint.publisher")
 
@@ -122,6 +129,11 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
         select(Source.id, Source.reliability).where(Source.id.in_({e.source_id for e in events if e.source_id}))
     )).all())
     used_today = await _today_count(db, d, now)
+    photos = settings.publisher_photos and d.mode != "dry_run"
+    imgs = {r.event_id: r for r in (await db.scalars(
+        select(EventImage).where(EventImage.event_id.in_(ids)).execution_options(populate_existing=True)
+    )).all()} if photos else {}
+    img_wait = timedelta(minutes=max(0, settings.publisher_image_wait_minutes))
     corpus = await stories.corpus_for(db, tr_lang, now)
     posted = await _posted_stories(db, d, tr_lang, corpus, now)
     wait = timedelta(minutes=max(0, settings.publisher_translation_wait_minutes))
@@ -157,6 +169,17 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
             posted.append(story)  # keyingi nusxa shu matnga o'xshasa ham — bitta voqea (guruh tranzitiv)
             continue
 
+        photo: bytes | None = None
+        img_meta: dict | None = None
+        if photos:
+            row = imgs.get(ev.id)
+            if (row is None or not row.source_checked) and age < img_wait:
+                stats.waiting += 1  # fon ishchisi maqola rasmini qidiryapti
+                continue
+            row = await media.ensure_image(db, ev, fetch=False)  # yo'q bo'lsa — illyustratsiya hozir chiziladi
+            photo = media_store.read(ev.id, "l")
+            img_meta = {"kind": row.kind, "version": row.version, "source_url": row.source_url}
+
         cat = cats.get(ev.category)
         reliability = rel.get(ev.source_id, "media")
         also = [str(a.get("source")) for a in (ev.also_reported_by or []) if isinstance(a, dict) and a.get("source")]
@@ -170,8 +193,14 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
             sector=ev.sector, source=ev.source, reliability=reliability, also_sources=also,
             action=(getattr(cat, f"action_{tr_lang}", "") or "") if cat else "",
             translated=ready,
+            rubric=rubric_of(ev.category, ev.title, ev.summary or ""),
+            cves=cves_in(ev.title, ev.summary, title, summary),
+            cvss=cvss_in(ev.title, ev.summary),
+            actor=ev.actor,
+            records=record_count(ev.title, ev.summary, ev.extra),
+            reasons=list(ev.priority_reasons or []),
         )
-        rendered = render_event(view, lang, public_app_url=settings.public_app_url)
+        rendered = render_event(view, lang, public_app_url=settings.public_app_url, photo=photo is not None)
         underground_only = reliability == "underground" and not also
 
         status, skip_reason, silent, scheduled = "queued", None, False, None
@@ -187,15 +216,26 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
             elif d.quiet_policy == "all_silent" or not (view.band == "critical" and "UZ" in view.countries):
                 silent = True
 
+        meta = {"translated": ready, "reliability": reliability, "underground_only": underground_only,
+                "rubric": view.rubric}
+        if img_meta:
+            meta["image"] = img_meta
         post = await insert_post(
             db, destination_id=d.id, kind="alert", dedup_key=f"alert:{ev.id}", event_ids=[ev.id], status=status,
             lang=lang, text=rendered.text, buttons=rendered.buttons, silent=silent, priority=ev.priority,
             scheduled_at=scheduled, skip_reason=skip_reason, band_at_send=view.band,
-            sources_at_send=1 + len(set(also)),
-            meta={"translated": ready, "reliability": reliability, "underground_only": underground_only},
+            sources_at_send=1 + len(set(also)), photo=photo if status != "skipped" else None, meta=meta,
         )
         if post is None:
             continue
+        if rendered.more and skip_reason != "daily_cap":
+            # izohga sig'magan bo'limlar — rasmli postga javob (yuboruvchi asl post chiqqach yuboradi)
+            await insert_post(
+                db, destination_id=d.id, kind="followup", dedup_key=f"followup:{ev.id}", event_ids=[ev.id],
+                status="queued" if status == "awaiting_approval" else status, lang=lang, text=rendered.more,
+                buttons=[], silent=True, priority=ev.priority, scheduled_at=scheduled, skip_reason=skip_reason,
+                reply_to_post_id=post.id, band_at_send=view.band, meta={"part_of": post.id},
+            )
         if status in COUNTED:
             used_today += 1
         if status in COUNTED or skip_reason == "dry_run":

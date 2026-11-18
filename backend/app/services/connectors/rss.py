@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import re
 from calendar import timegm  # feedparser struct_time'lari UTC'da — mktime (lokal vaqt) emas
 from datetime import UTC, datetime
 
@@ -24,6 +25,28 @@ from app.services.events.filters import _clean, _unescape
 def entry_time(e) -> datetime | None:
     tm = getattr(e, "published_parsed", None) or getattr(e, "updated_parsed", None)
     return datetime.fromtimestamp(timegm(tm), tz=UTC) if tm else None
+
+
+_IMG_SRC = re.compile(r"""<img\b[^>]*?\bsrc\s*=\s*["']([^"'>\s]+)""", re.IGNORECASE)
+
+
+def entry_image(e) -> str | None:
+    """Lenta elementidagi rasm: media:content / media:thumbnail / enclosure (image/*) yoki matndagi birinchi <img>."""
+    for item in (getattr(e, "media_content", None) or []):
+        url, medium, ctype = item.get("url"), item.get("medium", ""), item.get("type", "")
+        if url and (medium == "image" or ctype.startswith("image/") or (not medium and not ctype)):
+            return url
+    for item in (getattr(e, "media_thumbnail", None) or []):
+        if item.get("url"):
+            return item["url"]
+    for link in (getattr(e, "links", None) or []):
+        if link.get("rel") == "enclosure" and str(link.get("type", "")).startswith("image/") and link.get("href"):
+            return link["href"]
+    html = " ".join([*(c.get("value", "") for c in (getattr(e, "content", None) or [])), getattr(e, "summary", "") or ""])
+    m = _IMG_SRC.search(html)
+    if m and m.group(1).startswith(("http://", "https://")):
+        return m.group(1)
+    return None
 
 
 async def parse_feed(content: bytes):
@@ -64,9 +87,10 @@ class RssConnector(Connector):
             link, title = getattr(e, "link", "") or "", _unescape(getattr(e, "title", "") or "").strip()
             if not link or not title:
                 continue
+            image = entry_image(e)
             items.append(RawItem(
                 title=title, url=link.strip(), summary=_clean(getattr(e, "summary", "") or ""),
-                published=entry_time(e),
+                published=entry_time(e), extra={"image": image[:1000]} if image else {},
             ))
         return FetchResult(items, resp.status_code, etag=resp.headers.get("etag"),
                            last_modified=resp.headers.get("last-modified"))

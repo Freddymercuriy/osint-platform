@@ -113,7 +113,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
   transport sohalari, qayta hisoblash, Events'da belgi va filtr (`0018`; jonli tuzatishlar `0019`: "qilin" stem,
   IIV / DXX kuzatuvi o'chiq)
 - ✅ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state` (`0020`)
-- 🟨 Bosqich 3 — Post ko'rinishi: ✅ tezkor xabar / lenta posti (4 til, tozalash, ishonchlilik, tavsiya, hashtag, tugma), ✅ kategoriya `explain_*` / `action_*` (`0021`); ⬜ guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, atama izohi, takror eslatmasi, asl matn bloki
+- 🟨 Bosqich 3 — Post ko'rinishi: ✅ tezkor xabar / lenta posti (4 til, tozalash, ishonchlilik, tavsiya, hashtag, tugma), ✅ kategoriya `explain_*` / `action_*` (`0021`), ✅ rasmli post (sendPhoto: rubrika | hudud, daraja, 📌 asosiy ma'lumotlar, ⚠️ nima uchun muhim, ✅ tavsiya; 1024 belgiga sig'magani — javob xabari `followup`), ✅ hodisa rasmlari (`event_images`, `0023`: maqola rasmi yoki illyustratsiya, kesh, zaxira; rubrika aniqlash); ⬜ guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, atama izohi, takror eslatmasi, asl matn bloki
 - 🟨 Bosqich 4 — ✅ rejalashtiruvchi (lenta / tezkor), yuboruvchi, bot yangilanishlari (long polling), CLI (`scripts/channel.py`), `require_translation` (`0022`), bitta voqea — bitta post (`stories.py`, tillararo takror); ⬜ tasdiqlash (review chat), yangilanish / tuzatish postlari, brifinglar jadvali
 - ✅ Yangiliklar lentasi kanali (o'zbek kirill, hamma hodisa) — egasi talabi, 2026-11-18; token kutilmoqda
 - ⬜ Bosqich 5 — Admin: "Kanal" bo'limi (umumiy holat, manzillar, navbat / tarix, kuzatuv ro'yxati, ball + simulyatsiya,

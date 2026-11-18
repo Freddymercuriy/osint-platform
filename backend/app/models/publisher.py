@@ -74,7 +74,7 @@ class PublisherSettings(Base):
 LANGS = ("uz", "uz-Cyrl", "ru", "en")
 MODES = ("dry_run", "review", "auto")
 QUIET_POLICIES = ("uz_sound", "all_silent", "hold")  # sokin soatlarda: faqat UZ kritik ovozli | hamma kritik ovozsiz | hech biri
-POST_KINDS = ("alert", "group", "daily", "weekly", "update", "correction", "test")
+POST_KINDS = ("alert", "group", "daily", "weekly", "update", "correction", "test", "followup")
 POST_STATUSES = ("waiting_translation", "draft", "awaiting_approval", "queued", "sending", "sent", "failed",
                  "skipped", "rejected", "expired", "unknown")
 OPEN_STATUSES = ("waiting_translation", "draft", "awaiting_approval", "queued", "sending")

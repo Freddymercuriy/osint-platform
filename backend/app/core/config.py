@@ -109,6 +109,16 @@ class Settings(BaseSettings):
     publisher_translation_wait_minutes: int = 10  # kanal tilidagi tarjimani kutish, keyin asl matn izoh bilan
     # Platformaning tashqi manzili (https://...). Bo'sh — postlarda "Platformada ochish" tugmasi yo'q (LAN'da ishlaydi).
     public_app_url: str = ""
+    # Kanal postlari rasm bilan (sendPhoto + izoh). false — oldingidek faqat matn.
+    publisher_photos: bool = True
+    # Rasm tayyor bo'lishini kutish (daqiqa): fon ishchisi maqola rasmini qidiradi; kechiksa — illyustratsiya chiziladi.
+    publisher_image_wait_minutes: int = 3
+
+    # Hodisa rasmlari (16:9): maqolaning o'z rasmi (og:image / RSS media) yoki platforma chizgan illyustratsiya.
+    media_enabled: bool = True  # fon ishchisi (yangi hodisalar uchun rasm tayyorlash)
+    media_dir: str = "media"  # fayllar (nisbiy yo'l — backend papkasidan); git'ga tushmaydi
+    # Maqolaning o'z rasmini yuklash (false — faqat illyustratsiya; manba rasmlaridan foydalanish taqiqlangan bo'lsa)
+    media_source_images: bool = True
 
     # Statistika vaqt bo'laklari (soat/kun/hafta) shu zonada
     app_timezone: str = "Asia/Tashkent"

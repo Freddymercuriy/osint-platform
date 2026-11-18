@@ -11,11 +11,14 @@ from app.api.deps import AdminUser, CurrentUser, DbSession
 from app.core import ratelimit
 from app.core.config import settings
 from app.core.i18n import UZ_CYRL
-from app.models import Category, EventRecord, EventTranslation, Source
-from app.schemas import EventItemOut, EventsResponse
+from app.models import Category, EventImage, EventRecord, EventTranslation, Source
+from app.schemas import EventImageOut, EventItemOut, EventsResponse
 from app.services.events import export, scheduler
 from app.services.events.categories import effective_severity
 from app.services.i18n.text import uz_to_cyrillic
+from app.services.media import service as media
+from app.services.media import store as media_store
+from app.services.media.rubric import rubric_of
 
 router = APIRouter(prefix="/api/events", tags=["events"])
 
@@ -143,7 +146,23 @@ async def list_events(
         select(EventRecord).where(*filters).order_by(order, EventRecord.id.desc()).offset(offset).limit(limit)
     )).all()
     total = await db.scalar(select(func.count(EventRecord.id)).where(*filters)) or 0
-    return EventsResponse(count=total, items=await localize(db, rows, lang))
+    items = await localize(db, rows, lang)
+    await attach_media(db, items, rows)
+    return EventsResponse(count=total, items=items)
+
+
+async def attach_media(db, items: list[EventItemOut], rows) -> None:
+    """Rasm havolasi (imzolangan; rasm hali yo'q bo'lsa ham — so'rovda chiziladi) va rubrika."""
+    if not rows:
+        return
+    imgs = {r.event_id: r for r in (await db.scalars(
+        select(EventImage).where(EventImage.event_id.in_([r.id for r in rows]))
+    )).all()}
+    for it, r in zip(items, rows, strict=True):
+        img = imgs.get(r.id)
+        links = media_store.urls(r.id, img.version if img else None)
+        it.image = EventImageOut(url=links["url"], thumb=links["thumb"], kind=img.kind if img else "pending")
+        it.rubric = rubric_of(r.category, r.title, r.summary or "")
 
 
 @router.get("/export", responses={200: {"content": {"text/csv": {}, "application/json": {}}}})
@@ -292,8 +311,11 @@ async def update_event(event_id: int, data: EventUpdate, _: AdminUser, db: DbSes
     cat = await db.scalar(select(Category).where(Category.slug == data.category))
     if cat is None:
         raise api_error(status.HTTP_422_UNPROCESSABLE_ENTITY, "category_slug_not_found", slug=data.category)
+    changed = ev.category != cat.slug
     ev.category, ev.category_id, ev.category_locked = cat.slug, cat.id, True
     ev.severity = effective_severity(cat.severity, (ev.extra or {}).get("severity_floor"))
+    if changed:
+        await media.invalidate(db, ev.id)  # illyustratsiya yangi kategoriyaga mos qayta chiziladi
     await db.commit()
     from app.services.publisher.scoring import recompute
 

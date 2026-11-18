@@ -190,6 +190,18 @@ def _no_real_translation(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _isolated_media(monkeypatch, tmp_path):
+    """Rasm fayllari — test uchun vaqtinchalik papkada (haqiqiy MEDIA_DIR keshiga yozilmaydi); manba rasmi va
+    kanal postidagi rasmni kutish o'chiq (kerakli testlar o'zi yoqadi), tarmoqqa chiqilmaydi."""
+    from app.core.config import settings
+
+    monkeypatch.setattr(settings, "media_dir", str(tmp_path / "media"))
+    monkeypatch.setattr(settings, "media_source_images", False)
+    monkeypatch.setattr(settings, "publisher_image_wait_minutes", 0)
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _reset_rate_limits():
     from app.core import ratelimit
 
