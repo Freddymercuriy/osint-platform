@@ -59,6 +59,18 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### "BleepingComputer — so'rovlar cheklangan (HTTP 429)" banneri (2026-11-18)
+- Sabab: manba `google_news` turi — saytning o'zi emas, Google News RSS so'raladi; 7 ta Google News manbasi bitta
+  IP'dan (~13 so'rov / soat) va Google vaqti-vaqti bilan 429 qaytaradi (24 soatda ~4 marta, keyingi urinish o'tadi).
+  `RateLimited` `SourceBlocked` dan meros — birinchi 429 dayoq "blocked" → Events banneri "ishlamayapti". Rasm
+  ishchisi bunga aloqasi yo'q (BleepingComputer havolali hodisa yo'q, Google News havolalari rasm uchun ochilmaydi).
+- Tuzatish: 429 — ketma-ket `DOWN_AFTER` (3) marta yoki sayt ≥ 1 soat kutishni so'rasa (`Retry-After`) "blocked",
+  aks holda "degraded" (banner'da yo'q). `http.py`: `news.google.com` ga so'rovlar orasida 20–40 s (bir nechta
+  manba bir paytga to'g'ri kelsa ham ketma-ket emas); 429 dan keyin xostga 90–300 s tanaffus (boshqa manbalar ham
+  darhol urinmaydi); navbatda kutish (`GATE_WAIT`) manba tezligiga qo'shilmaydi ("sekin" deb belgilanmasin).
+- Jonli: BleepingComputer qayta tekshirildi — 200, banner bo'sh. Testlar: `test_scheduler.py` (+3: bitta 429 —
+  degraded / 3 marta — blocked va banner, Google oralig'i va 429 tanaffusi, kutish tezlikka qo'shilmaydi).
+
 ### Rasmli yangiliklar: dashboard kartalari va Telegram postlari (2026-11-18)
 Egasi talabi: har yangilik — mavzuga mos rasm, aniq sarlavha, rubrika, daraja, qisqa matn, tuzilgan ma'lumotlar,
 vaqt, manba va havola; kanal — "bot lentasi" emas, professional nashr ko'rinishi.

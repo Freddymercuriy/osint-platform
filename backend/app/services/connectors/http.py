@@ -1,7 +1,11 @@
 """HTTP qatlami: xostlar bo'yicha navbat va pauza, shartli so'rovlar, holat kodlarini xatolarga aylantirish,
 SSRF himoyasi.
 
-- Bir xostga bir vaqtda bitta so'rov; ketma-ket so'rovlar orasida tasodifiy 1–4 s pauza.
+- Bir xostga bir vaqtda bitta so'rov; ketma-ket so'rovlar orasida tasodifiy 1–4 s pauza. Ba'zi xostlarga uzunroq
+  (`HOST_PAUSE_RANGE`: Google News bir IP'dan qisqa vaqtdagi ketma-ket so'rovlarni 429 bilan cheklaydi — bir nechta
+  Google News manbasi bir paytga to'g'ri kelsa ham so'rovlar 20–40 s oraliq bilan ketadi). 429 dan keyin shu xostga
+  keyingi so'rov kamida `RATE_LIMIT_COOLDOWN` (yoki Retry-After) o'tgach. Navbatda kutilgan vaqt `GATE_WAIT` ga
+  yoziladi — manbaning tezligi (latency) o'z xushmuomalaligimiz bilan buzilmasin.
 - `If-None-Match` / `If-Modified-Since` — manba ETag / Last-Modified bergan bo'lsa; 304 → "o'zgarmagan".
 - 401 → AuthMissing; 403 / challenge sahifasi → SourceBlocked; 429 / 503+Retry-After → RateLimited.
 - Har so'rovdan oldin (redirect'lar ham) xost DNS orqali tekshiriladi: xususiy, loopback, link-local va
@@ -17,6 +21,7 @@ import ipaddress
 import random
 import socket
 import time
+from contextvars import ContextVar
 from email.utils import parsedate_to_datetime
 from datetime import UTC, datetime
 from urllib.parse import urlsplit
@@ -35,8 +40,12 @@ USER_AGENT = "Mozilla/5.0 (compatible; OSINT-Platform/2.0; +https://github.com/F
 TIMEOUT = httpx.Timeout(20.0, connect=10.0)
 MAX_BYTES = 25 * 1024 * 1024
 
-# Bir xostga ketma-ket so'rovlar orasidagi pauza (s). Testlar 0 qiladi.
+# Bir xostga ketma-ket so'rovlar orasidagi pauza (s). Testlar 0 qiladi (unda xostga xos pauza va 429 tanaffusi ham yo'q).
 PAUSE_RANGE: tuple[float, float] = (1.0, 4.0)
+HOST_PAUSE_RANGE: dict[str, tuple[float, float]] = {"news.google.com": (20.0, 40.0)}
+RATE_LIMIT_COOLDOWN: tuple[float, float] = (90.0, 300.0)  # 429 dan keyin xostga: kamida / ko'pi bilan (Retry-After bilan)
+# Joriy vazifa (masalan bitta manba yig'ilishi) xost navbatida kutgan soniyalar — [jami]; None — sanalmaydi
+GATE_WAIT: ContextVar[list[float] | None] = ContextVar("gate_wait", default=None)
 
 _CHALLENGE_MARKERS = (
     "cf-browser-verification", "challenge-platform", "cf_chl_", "just a moment...", "attention required!",
@@ -246,10 +255,14 @@ class HttpFetcher:
         if last_modified:
             headers["If-Modified-Since"] = last_modified
         gate = _gate(host)
+        polite = self.pause_range is None and PAUSE_RANGE[1] > 0  # begona sayt (o'z servisimiz / test emas)
         async with gate.lock:
             wait = gate.ready_at - time.monotonic()
             if wait > 0:
                 await asyncio.sleep(wait)
+                acc = GATE_WAIT.get()
+                if acc is not None:
+                    acc[0] += wait
             try:
                 resp = await self.client.request(method, url, headers=headers, **kwargs)
             except httpx.TimeoutException as exc:
@@ -260,7 +273,13 @@ class HttpFetcher:
                 raise ConnectorError(f"Ulanish xatosi: {host}: {type(exc).__name__}") from exc
             finally:
                 lo, hi = PAUSE_RANGE if self.pause_range is None else self.pause_range
+                if polite and host in HOST_PAUSE_RANGE:
+                    lo, hi = HOST_PAUSE_RANGE[host]
                 gate.ready_at = time.monotonic() + (random.uniform(lo, hi) if hi > 0 else 0)
+            if polite and resp.status_code == 429:  # xost cheklov qo'ydi — boshqa manbalar ham darhol urinmasin
+                asked = parse_retry_after(resp.headers.get("retry-after")) or 0.0
+                pause = min(max(asked, RATE_LIMIT_COOLDOWN[0]), RATE_LIMIT_COOLDOWN[1])
+                gate.ready_at = max(gate.ready_at, time.monotonic() + pause)
         self.requests += 1
         self.last_status = resp.status_code
         length = resp.headers.get("content-length")

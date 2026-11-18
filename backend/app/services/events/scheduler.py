@@ -38,7 +38,7 @@ from app.services.connectors.base import (
     SourceBlocked,
     SourceView,
 )
-from app.services.connectors.http import HttpFetcher
+from app.services.connectors.http import GATE_WAIT, HttpFetcher
 from app.services.events import pipeline
 from app.services.events.filters import apply_filters
 
@@ -51,6 +51,7 @@ MAX_BACKOFF = 6 * 3600
 MAX_RETRY_AFTER = 24 * 3600
 AUTH_RECHECK = 3600  # kalit yo'q manbani qayta tekshirish oralig'i
 DOWN_AFTER = 3  # ketma-ket shuncha xatodan keyin "down"
+RATE_LIMIT_BLOCKED_AFTER = 3600  # sayt shuncha soniya (Retry-After) kutishni so'rasa — bitta 429 ham "blocked"
 SLOW_MS = 15_000
 STALE_DAYS = 14  # lentaning eng yangi elementi shundan eski bo'lsa — "degraded"
 HOUSEKEEPING_EVERY = 600
@@ -187,6 +188,8 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
         summary = RunSummary(source_id, False, "error", source.status)
         result: FetchResult | None = None
         error: ConnectorError | None = None
+        waited = [0.0]  # xost navbatida (xushmuomalalik pauzasi) kutilgan vaqt — manbaning sekinligi emas
+        token = GATE_WAIT.set(waited)
         try:
             if connector is None:
                 raise ConnectorError(f"Noma'lum manba turi: {source.kind}")
@@ -196,9 +199,11 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
         except Exception as exc:  # ulagichdagi kutilmagan xato — boshqa manbalarga ta'sir qilmaydi
             log.exception("Manba %s: kutilmagan xato", source.name)
             error = ConnectorError(f"{type(exc).__name__}: {exc}")
+        finally:
+            GATE_WAIT.reset(token)
 
         now = datetime.now(UTC)
-        duration = int((time.monotonic() - t0) * 1000)
+        duration = max(0, int((time.monotonic() - t0 - waited[0]) * 1000))
         summary.duration_ms = duration
         source.last_check_at = now
         source.last_latency_ms = duration
@@ -252,7 +257,14 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
                 source.status = "auth_missing"
                 delay = max(AUTH_RECHECK, source.interval_seconds)
             else:
-                if isinstance(error, SourceBlocked):
+                if isinstance(error, RateLimited):
+                    # vaqtinchalik cheklov (masalan Google News 429): bir-ikki marta — "degraded" (ishlamayapti
+                    # emas, keyingi urinishda odatda o'tadi); ketma-ket DOWN_AFTER marta yoki sayt ≥ 1 soat kutishni
+                    # so'rasa — "blocked"
+                    long_wait = (error.retry_after or 0) >= RATE_LIMIT_BLOCKED_AFTER
+                    persistent = source.consecutive_failures >= DOWN_AFTER
+                    source.status = "blocked" if long_wait or persistent else "degraded"
+                elif isinstance(error, SourceBlocked):
                     source.status = "blocked"
                 elif source.consecutive_failures >= DOWN_AFTER:
                     source.status = "down"

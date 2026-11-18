@@ -170,7 +170,8 @@ async def test_rate_limit_wait_visible_then_cleared(db, monkeypatch, client, adm
     assert r.outcome == "rate_limited" and r.retry_after_seconds == 300 and 300 <= r.wait_seconds <= 301
 
     body = (await client.get(f"/api/admin/sources/{s.id}", headers=admin_headers)).json()
-    assert body["status"] == "blocked" and body["last_outcome"] == "rate_limited"
+    # bitta qisqa cheklov (Retry-After 5 daq) — vaqtinchalik: "degraded", "ishlamayapti" emas
+    assert body["status"] == "degraded" and body["last_outcome"] == "rate_limited"
     assert body["retry_after_seconds"] == 300 and body["last_http_status"] == 429
     runs = (await client.get(f"/api/admin/sources/{s.id}/runs", headers=admin_headers)).json()
     assert runs[0]["retry_after_seconds"] == 300 and runs[0]["wait_seconds"] == r.wait_seconds
@@ -338,3 +339,65 @@ async def test_cloudflare_522_named_in_events_status(db, monkeypatch, client, an
     assert first["error"].startswith("HTTP 522 — Cloudflare") and first["next_run_at"] and first["since"]
     assert (second["name"], second["outcome"], second["retry_after_seconds"]) == ("Limited site", "rate_limited", 300)
     assert body["last_error"] == f"CF site: {s.last_error}"
+
+
+async def test_occasional_429_is_not_reported_as_a_broken_source(db, monkeypatch, client, analyst_headers):
+    """Google News kabi xost ba'zan 429 qaytaradi (Retry-After'siz): bitta-ikkita — "degraded", banner'da yo'q;
+    ketma-ket DOWN_AFTER marta — "blocked" va banner'da."""
+    s = await _source(db, name="Rate limited feed", interval_seconds=1800)
+    use_transport(monkeypatch, lambda req: httpx.Response(429, text="unusual traffic"))
+    for i in range(1, scheduler.DOWN_AFTER + 1):
+        r = await scheduler.run_source(s.id)
+        s = await _reload(db, s)
+        body = (await client.get("/api/events/status", headers=analyst_headers)).json()
+        if i < scheduler.DOWN_AFTER:
+            assert r.outcome == "rate_limited" and s.status == "degraded" and s.down_since is None
+            assert body["failing_total"] == 0
+        else:
+            assert s.status == "blocked" and s.down_since is not None
+            assert body["failing_total"] == 1 and body["failing"][0]["outcome"] == "rate_limited"
+
+
+async def test_google_news_requests_are_spaced_and_429_pauses_the_host(monkeypatch):
+    """news.google.com: so'rovlar orasida xostga xos oraliq; 429 dan keyin tanaffus; navbatda kutish GATE_WAIT'da."""
+    from app.services.connectors import http
+
+    monkeypatch.setattr(http, "PAUSE_RANGE", (0.01, 0.01))
+    monkeypatch.setattr(http, "HOST_PAUSE_RANGE", {"news.google.com": (0.25, 0.25)})
+    monkeypatch.setattr(http, "RATE_LIMIT_COOLDOWN", (0.4, 0.4))
+    monkeypatch.setattr(http, "RESOLVER", lambda host: ["93.184.216.34"])
+    http.reset_gates()
+    codes = iter([200, 429, 200, 200])
+    fetcher = http.HttpFetcher.create(transport=httpx.MockTransport(lambda req: httpx.Response(next(codes))))
+    waited = [0.0]
+    token = http.GATE_WAIT.set(waited)
+    try:
+        await fetcher.get("https://news.google.com/rss/search?q=a", raise_errors=False)
+        await fetcher.get("https://news.google.com/rss/search?q=b", raise_errors=False)  # ~0.25 s oraliq, keyin 429
+        first = waited[0]
+        await fetcher.get("https://news.google.com/rss/search?q=c", raise_errors=False)  # 429 tanaffusi ~0.4 s
+        after_429 = waited[0] - first
+        await fetcher.get("https://other.example/x", raise_errors=False)  # boshqa xost — kutmaydi
+    finally:
+        http.GATE_WAIT.reset(token)
+        await fetcher.aclose()
+    assert 0.2 <= first <= 0.35 and 0.33 <= after_429 <= 0.5
+    assert waited[0] - first - after_429 < 0.05
+
+
+async def test_latency_excludes_our_own_politeness_wait(db, monkeypatch):
+    """Xost navbatidagi kutish manba tezligiga qo'shilmaydi (aks holda Google manbalari "sekin" deb belgilanardi)."""
+    import time as _time
+
+    from app.services.connectors import http
+
+    s = await _source(db)
+    use_transport(monkeypatch, lambda req: httpx.Response(
+        200, content=rss([("Fresh", "https://feed.example/x", ago(hours=1))]),
+        headers={"content-type": "application/rss+xml"}))
+    host = "feed.example"
+    http._gate(host).ready_at = _time.monotonic() + 0.6  # boshqa manba hozirgina so'rov yuborgan
+    r = await scheduler.run_source(s.id)
+    s = await _reload(db, s)
+    assert r.ok and s.last_latency_ms < 500 and r.duration_ms < 500
+
