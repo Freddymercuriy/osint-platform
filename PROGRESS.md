@@ -88,6 +88,15 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
 - Kanal qamrovi egasi talabi bilan **faqat Markaziy Osiyo** (`set 5 countries= include_global=false`, 2026-11-18):
   `scope=regional` hodisalarning hammasi (hudud filtri — 5 davlat; ~17/sutka), jumladan davlati aniqlanmagan
   regional hodisalar (davlat ro'yxati bilan filtr ularni tashlab yuborardi). Navbatdagi 1 ta global post rad etildi.
+- **Kanalda takror voqea yo'q** (egasi talabi, 2026-11-18): bitta voqeani bir necha nashr turli tilda yozsa (masalan,
+  qozog'istonlik gumonlanuvchining Italiyadan ekstraditsiyasi — 6 ta maqola), yig'ish dedup'i (original sarlavhalar)
+  ularni birlashtirmaydi. `publisher/stories.py`: kanal tilidagi tarjima (sarlavha + matn boshi) bo'yicha IDF-kosinus
+  (korpus — 14 kunlik tarjimalar, soatiga keshlanadi) + umumiy noyob nomlar (Rezet, Kaspersky, Italiya, "278,3");
+  veto — boshqa davlat, 48 soatdan uzoq, bir manba bir tilda (UZCERT'ning turli e'lonlari). Planner: shu kanalga
+  48 soatda chiqqan voqea bo'lsa — `skipped / duplicate`, `meta.duplicate_of_event/post`; tashlangan nusxalar ham
+  solishtiriladi (guruh tranzitiv). Jonli simulyatsiya: 120 mintaqaviy hodisa → 89 post, 31 takror (hammasi haqiqiy
+  takror: Turla/Cereal, 278,3 mlrd, Oliy sud bazasi, Rezet, Kaspersky, Qirg'iziston banklari); noto'g'ri birlashish
+  yo'q. Testlar: `test_publisher_feed.py` (+5: tillararo takror, turli voqealar, planner, bir tick ichida, tranzitiv).
 - Ishga tushirish (egasi): @BotFather → bot; botni kanalga admin ("Post messages"); `backend/.env` ga
   `TG_BOT_TOKEN=...`; keyin konteynerni qayta yaratish (`docker-compose stop backend && docker-compose rm -f backend
   && docker-compose up -d backend`), so'ng `python scripts/channel.py chats` → `add --chat <id> --name ... --feed`

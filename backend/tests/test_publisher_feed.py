@@ -12,7 +12,7 @@ from sqlalchemy import select
 
 from app.core.config import settings
 from app.models import AdminAlert, BotChat, ChannelDestination, ChannelPost, EventRecord, EventTranslation, Source
-from app.services.publisher import bot, planner, render, sender, updates
+from app.services.publisher import bot, planner, render, sender, stories, updates
 from app.services.publisher.outbox import get_state
 
 TOKEN = "123456789:AAH-fake_TOKEN_value_abcdefghijklmnopqr"
@@ -27,6 +27,7 @@ def _token(monkeypatch):
     monkeypatch.setattr(settings, "tg_bot_token", TOKEN)
     monkeypatch.setattr(settings, "public_app_url", "")
     sender.rate.__init__()
+    stories.clear_cache()
 
 
 class FakeTelegram:
@@ -223,8 +224,9 @@ async def test_planner_respects_enabled_at_filters_and_modes(db):
 
     dry = await _dest(db, name="Dry", mode="dry_run", chat_id=None)
     regional = await _dest(db, name="UZ", countries=["UZ"], include_global=False)
-    await _event(db, uid="g")  # global
-    await _event(db, uid="uz", scope="regional", countries=["UZ"])
+    await _event(db, uid="g", title="Ransomware hits a port", uz=("Ransomware portni to'xtatib qo'ydi", ""))  # global
+    await _event(db, uid="uz", scope="regional", countries=["UZ"], title="Leak in Tashkent",
+                 uz=("Toshkentdagi klinika bazasi sizib chiqdi", ""))
     await planner.plan(db)
     dry_posts = await _posts(db, dry)
     assert {p.status for p in dry_posts} == {"skipped"} and {p.skip_reason for p in dry_posts} == {"dry_run"}
@@ -239,7 +241,7 @@ async def test_underground_only_waits_for_approval_and_cap_applies(db):
     await db.commit()
     d = await _dest(db, max_instant_per_day=1)
     await _event(db, uid="u", source="Leak chat", source_id=src.id, category="leak")
-    await _event(db, uid="m")
+    await _event(db, uid="m", title="Phishing wave", uz=("Fishing to'lqini pochtalarga tarqalmoqda", ""))
     await planner.plan(db)
     posts = await _posts(db, d)
     assert [p.status for p in posts] == ["awaiting_approval", "skipped"]
@@ -276,7 +278,7 @@ async def test_sender_sends_queued_with_buttons_and_marks_sent(db):
 async def test_sender_rate_limit_and_parse_error_fallback(db):
     d = await _dest(db)
     await _event(db, uid="a")
-    await _event(db, uid="b")
+    await _event(db, uid="b", title="Phishing wave", uz=("Fishing to'lqini pochtalarga tarqalmoqda", ""))
     await planner.plan(db)
     tg = FakeTelegram()
     tg.errors = [(429, {"description": "Too Many Requests", "parameters": {"retry_after": 30}})]
@@ -449,3 +451,97 @@ async def test_channel_discovered_from_channel_post_and_forward(db):
     assert (await db.get(BotChat, -1009)).status == "administrator"
     assert "Kanal topildi: «Boshqa»" in tg.sent[-1]["text"]
     await c.aclose()
+
+
+# ---------------------------------------------------------------- bitta voqea — bitta post
+# Jonli bazadagi (2026-11-18) hujjat chastotalari: 1665 o'zbekcha tarjima, umumiy so'zlar ko'p uchraydi
+_DF = {"2.1": 4, "2026": 423, "aniql": 109, "apach": 10, "aqsh": 35, "aybla": 15, "dastu": 175, "ekspe": 12,
+       "ekstr": 14, "etild": 21, "faol": 37, "firib": 50, "fosh": 11, "foyda": 284, "gumon": 19, "guruh": 74,
+       "hujum": 302, "itali": 12, "java": 17, "kaspe": 12, "kiber": 294, "kishi": 25, "kompa": 137, "kriti": 17,
+       "milli": 96, "mlrd": 5, "nisho": 49, "olind": 7, "ozbek": 25, "qildi": 112, "qilin": 118, "qilis": 187,
+       "qolga": 22, "qozog": 30, "ranso": 47, "rezet": 5, "serve": 123, "shaxs": 57, "shifo": 9, "tahdi": 68,
+       "toxta": 42, "xaker": 176, "xalqa": 15, "zaifl": 316, "zarar": 154}
+_CORPUS = stories.Corpus(n=1665, df=__import__("collections").Counter(_DF))
+_T0 = datetime(2026, 11, 18, 8, 0, tzinfo=UTC)
+
+
+def _story(i, title, summary="", *, source="Src", lang="en", countries=("KZ",), hours=0.0) -> stories.Story:
+    ev = EventRecord(id=i, source=source, lang=lang, countries=list(countries), first_seen=_T0 + timedelta(hours=hours))
+    return stories.make(_CORPUS, ev, title, summary, "uz")
+
+
+@pytest.mark.parametrize("a,b", [
+    (("Qozog'istonlik ransomware xakerlaridan gumon qilinayotgan shaxs Italiyadan ekstraditsiya qilindi", ""),
+     ("Ransomware guruhining gumon qilingan a'zosi Italiyadan AQShda shifoxonada, maktabda ta'qib qilish ishi "
+      "bo'yicha ayblovlarga duch kelishi uchun ekstraditsiya qilindi",
+      "AQSh shifoxonalari va maktablarini nishonga olgan ransomware va o'g'irlash fitnasida ayblangan Qozog'iston "
+      "fuqarosi")),
+    (("Rezet xakerlari O'zbekiston va MDH kompaniyalariga hujum qildi", ""),
+     ("Rezet xakerlari O'zbekiston va MDHdagi kompaniyalarni nishonga olmoqda",
+      "F6 xabar berishicha, Rezet kiber-jasuslik guruhi O'zbekiston kompaniyalariga qarshi fishing kampaniyalarini")),
+    (("Kaspersky kompaniyasi O'zbekistonda 2,1 million firibgarlik urinishlarini to'xtatdi",
+      "Kaspersky kompaniyasi O'zbekistondagi 2,1 million firibgarlik veb-saytlariga kirish urinishlarini to'xtatdi"),
+     ("2,1 mln bloklangan fishin o'tish yo'li: Kasperskiy laboratoriyasi ekspertlari O'zbekistondagi kiber "
+      "tahdidlar haqida", "O'zbekistonda foydalanuvchilarning yarmidan ko'pi mahalliy kiber tahdidlarga duchor")),
+])
+def test_same_story_across_outlets_and_languages(a, b):
+    assert stories.same_story(_story(1, *a), _story(2, *b, source="Other", lang="ru", hours=5), _CORPUS)
+
+
+def test_different_stories_stay_separate():
+    # umumiy so'zlar ("fosh etildi", "kiberjinoiy guruh") voqeani ajratmaydi
+    gang = _story(1, "Mirobod tumanida xalqaro kiberjinoiy guruhlar fosh etildi – 72 kishi qo'lga olindi",
+                  countries=())
+    fraud = _story(2, "O'zbekistonda 83 kishini qariyb 1 mlrd so'mga aldagan kiberjinoiy guruh fosh etildi",
+                   source="Daryo", countries=("UZ",))
+    assert not stories.same_story(gang, fraud, _CORPUS)
+    # bir manbaning bir tildagi turli e'lonlari
+    apache = _story(3, "Apache HTTP Server dasturidagi kritik zaiflikdan kiberhujumlarda faol foydalanilmoqda!",
+                    source="UZCERT", lang="uz")
+    java = _story(4, "OpenJDK dasturidagi kritik Java4Shell zaifligi serverlarda kod bajarish imkonini beradi",
+                  source="UZCERT", lang="uz")
+    assert not stories.same_story(apache, java, _CORPUS)
+    # boshqa davlat yoki 48 soatdan uzoq — boshqa voqea
+    rezet = ("Rezet xakerlari O'zbekiston va MDH kompaniyalariga hujum qildi", "")
+    assert not stories.same_story(_story(5, *rezet, countries=("UZ",)), _story(6, *rezet, countries=("KZ",)), _CORPUS)
+    assert not stories.same_story(_story(7, *rezet), _story(8, *rezet, source="B", hours=49), _CORPUS)
+    assert stories.same_story(_story(9, *rezet), _story(10, *rezet, source="B", hours=47), _CORPUS)
+
+
+async def test_planner_skips_story_already_posted_by_another_outlet(db):
+    d = await _dest(db)
+    first = await _event(db, uid="rec", source="The Record", title="Kazakh ransomware suspect extradited from Italy",
+                         uz=("Qozog'istonlik ransomware xakerlaridan gumon qilinayotgan shaxs Italiyadan "
+                             "ekstraditsiya qilindi", ""))
+    await planner.plan(db)
+    dup = await _event(db, uid="cs", source="CyberScoop", title="Alleged ransomware member extradited from Italy",
+                       uz=("Ransomware guruhining gumon qilinayotgan a'zosi Italiyadan ekstraditsiya qilindi", ""))
+    other = await _event(db, uid="ph", source="CyberScoop", title="Phishing wave",
+                         uz=("Fishing to'lqini O'zbekiston pochtalariga tarqalmoqda", ""))
+    stats = await planner.plan(db)
+    assert stats.by_status == {"queued": 1, "skipped": 1}
+    posts = {p.event_ids[0]: p for p in await _posts(db, d)}
+    assert posts[first.id].status == "queued" and posts[other.id].status == "queued"
+    skipped = posts[dup.id]
+    assert skipped.status == "skipped" and skipped.skip_reason == "duplicate" and skipped.text == ""
+    assert skipped.meta == {"duplicate_of_event": first.id, "duplicate_of_post": posts[first.id].id}
+
+
+async def test_duplicates_within_one_tick_and_dry_run(db):
+    d = await _dest(db, name="Dry", mode="dry_run", chat_id=None)
+    texts = ["Rezet xakerlari O'zbekiston va MDH kompaniyalariga hujum qildi",
+             "Rezet xakerlari O'zbekiston va MDHdagi kompaniyalarni nishonga olmoqda"]
+    for i, text in enumerate(texts):
+        await _event(db, uid=f"r{i}", source=f"Outlet {i}", title=f"Rezet {i}", uz=(text, ""))
+    await planner.plan(db)
+    posts = await _posts(db, d)
+    assert [(p.status, p.skip_reason) for p in posts] == [("skipped", "dry_run"), ("skipped", "duplicate")]
+    # uchinchi nusxa faqat takrorga o'xshaydi — u ham asl postga bog'lanadi (keyingi tick, bazadan o'qiladi)
+    third_ev = await _event(db, uid="r2", source="Outlet 2", title="Rezet 2",
+                            uz=("MDHdagi kompaniyalarni nishonga olmoqda: yangi kampaniya", ""))
+    stories.clear_cache()
+    await planner.plan(db)
+    third = (await _posts(db, d))[-1]
+    assert third.event_ids == [third_ev.id] and third.skip_reason == "duplicate"
+    assert third.meta == {"duplicate_of_event": posts[1].event_ids[0], "duplicate_of_post": posts[0].id}
+

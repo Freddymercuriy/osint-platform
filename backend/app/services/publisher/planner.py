@@ -13,6 +13,8 @@ matn izoh bilan. Rejim: `dry_run` — post to'liq tayyorlanib saqlanadi, Telegra
 `review` — `awaiting_approval`; `auto` — `queued`, lekin yagona manbasi yashirin kanal bo'lsa `awaiting_approval`.
 Sokin soatlar (Toshkent): `all_silent` — ovozsiz; `uz_sound` — faqat O'zbekiston kritik ovozli; `hold` — tonggacha.
 Kunlik chegara (`max_instant_per_day`) dan oshgani — `skipped / daily_cap`.
+Bitta voqea — bitta post: shu kanalga oxirgi 48 soatda chiqqan voqeani boshqa nashr yozgan bo'lsa (`stories.py`,
+kanal tilidagi matn bo'yicha) — `skipped / duplicate`, `meta.duplicate_of_post`.
 """
 
 from __future__ import annotations
@@ -28,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.config import settings
 from app.models import Category, ChannelDestination, ChannelPost, EventRecord, EventTranslation, Source
 from app.models.publisher import BANDS
+from app.services.publisher import stories
 from app.services.publisher.outbox import insert_post
 from app.services.publisher.priority import band_at_least
 from app.services.publisher.render import EventView, base_lang, render_event
@@ -119,6 +122,8 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
         select(Source.id, Source.reliability).where(Source.id.in_({e.source_id for e in events if e.source_id}))
     )).all())
     used_today = await _today_count(db, d, now)
+    corpus = await stories.corpus_for(db, tr_lang, now)
+    posted = await _posted_stories(db, d, tr_lang, corpus, now)
     wait = timedelta(minutes=max(0, settings.publisher_translation_wait_minutes))
     local_now = now.astimezone(_tz()).time()
     quiet = d.quiet_enabled and in_quiet(local_now, d.quiet_start, d.quiet_end)
@@ -142,13 +147,23 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
             await _skip(db, d, ev, "stale", stats, status="expired")
             continue
 
+        title = tr.title if ready else ev.title
+        summary = (tr.summary if ready and tr.summary is not None else ev.summary) or ""
+        story = stories.make(corpus, ev, title, summary, tr_lang)
+        if (dup := stories.find_duplicate(story, posted, corpus)) is not None:
+            await _skip(db, d, ev, "duplicate", stats,
+                        meta={"duplicate_of_event": dup.event_id, "duplicate_of_post": dup.post_id})
+            story.post_id = dup.post_id
+            posted.append(story)  # keyingi nusxa shu matnga o'xshasa ham — bitta voqea (guruh tranzitiv)
+            continue
+
         cat = cats.get(ev.category)
         reliability = rel.get(ev.source_id, "media")
         also = [str(a.get("source")) for a in (ev.also_reported_by or []) if isinstance(a, dict) and a.get("source")]
         view = EventView(
             id=ev.id,
-            title=tr.title if ready else ev.title,
-            summary=(tr.summary if ready and tr.summary is not None else ev.summary) or "",
+            title=title,
+            summary=summary,
             url=ev.url, when=ev.published or ev.first_seen, band=ev.priority_band or "low",
             countries=list(ev.countries or []), scope=ev.scope, category_slug=ev.category,
             category_name=(getattr(cat, f"name_{tr_lang}", "") or getattr(cat, "name_en", "")) if cat else ev.category,
@@ -183,15 +198,47 @@ async def plan_destination(db: AsyncSession, d: ChannelDestination, now: datetim
             continue
         if status in COUNTED:
             used_today += 1
+        if status in COUNTED or skip_reason == "dry_run":
+            story.post_id = post.id
+            posted.append(story)
         stats.created += 1
         stats.by_status[status] = stats.by_status.get(status, 0) + 1
 
 
+async def _posted_stories(db: AsyncSession, d: ChannelDestination, tr_lang: str, corpus: stories.Corpus,
+                          now: datetime) -> list[stories.Story]:
+    """Shu kanalga oxirgi `stories.WINDOW` da chiqqan (navbatdagi, dry-run'da tayyorlangan) hodisalar va ularning
+    takror deb tashlangan nusxalari (`post_id` — asl post)."""
+    rows = (await db.execute(
+        select(ChannelPost.id, ChannelPost.event_ids, ChannelPost.skip_reason, ChannelPost.meta).where(
+            ChannelPost.destination_id == d.id, ChannelPost.kind == "alert",
+            ChannelPost.created_at >= now - stories.WINDOW - WINDOW,
+            or_(ChannelPost.status.in_(COUNTED), ChannelPost.skip_reason.in_(("dry_run", "duplicate"))))
+    )).all()
+    post_of = {eid: (meta or {}).get("duplicate_of_post") if reason == "duplicate" else pid
+               for pid, ids, reason, meta in rows for eid in (ids or [])}
+    if not post_of:
+        return []
+    evs = (await db.scalars(select(EventRecord).where(EventRecord.id.in_(list(post_of))))).all()
+    trs = {t.event_id: t for t in (await db.scalars(
+        select(EventTranslation).where(EventTranslation.event_id.in_(list(post_of)), EventTranslation.lang == tr_lang,
+                                       EventTranslation.status == "done")
+    )).all()}
+    out = []
+    for ev in evs:
+        tr = trs.get(ev.id)
+        title = tr.title if tr is not None and tr.title else ev.title
+        summary = (tr.summary if tr is not None and tr.title and tr.summary is not None else ev.summary) or ""
+        out.append(stories.make(corpus, ev, title, summary, tr_lang, post_id=post_of[ev.id]))
+    return out
+
+
 async def _skip(db: AsyncSession, d: ChannelDestination, ev: EventRecord, reason: str, stats: PlanStats,
-                status: str = "skipped") -> None:
+                status: str = "skipped", meta: dict | None = None) -> None:
     """Hodisa bu kanalga chiqmaydi — sababi bilan yoziladi (qayta ko'rib chiqilmaydi, admin tarixda ko'radi)."""
     post = await insert_post(db, destination_id=d.id, kind="alert", dedup_key=f"alert:{ev.id}", event_ids=[ev.id],
-                             status=status, lang=d.lang, skip_reason=reason, band_at_send=ev.priority_band)
+                             status=status, lang=d.lang, skip_reason=reason, band_at_send=ev.priority_band,
+                             meta=meta or {})
     if post is not None:
         stats.created += 1
         stats.by_status[status] = stats.by_status.get(status, 0) + 1

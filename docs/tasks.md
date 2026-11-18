@@ -114,7 +114,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
   IIV / DXX kuzatuvi o'chiq)
 - ✅ Bosqich 2 — Nashr ma'lumot modeli: `channel_destinations`, `channel_posts`, `bot_chats`, `reviewers`, `publisher_state` (`0020`)
 - 🟨 Bosqich 3 — Post ko'rinishi: ✅ tezkor xabar / lenta posti (4 til, tozalash, ishonchlilik, tavsiya, hashtag, tugma), ✅ kategoriya `explain_*` / `action_*` (`0021`); ⬜ guruhlangan xabar, kunlik brifing, haftalik hisobot + grafik, atama izohi, takror eslatmasi, asl matn bloki
-- 🟨 Bosqich 4 — ✅ rejalashtiruvchi (lenta / tezkor), yuboruvchi, bot yangilanishlari (long polling), CLI (`scripts/channel.py`), `require_translation` (`0022`); ⬜ tasdiqlash (review chat), yangilanish / tuzatish postlari, brifinglar jadvali
+- 🟨 Bosqich 4 — ✅ rejalashtiruvchi (lenta / tezkor), yuboruvchi, bot yangilanishlari (long polling), CLI (`scripts/channel.py`), `require_translation` (`0022`), bitta voqea — bitta post (`stories.py`, tillararo takror); ⬜ tasdiqlash (review chat), yangilanish / tuzatish postlari, brifinglar jadvali
 - ✅ Yangiliklar lentasi kanali (o'zbek kirill, hamma hodisa) — egasi talabi, 2026-11-18; token kutilmoqda
 - ⬜ Bosqich 5 — Admin: "Kanal" bo'limi (umumiy holat, manzillar, navbat / tarix, kuzatuv ro'yxati, ball + simulyatsiya,
   ko'rinish), Events'da "Kanalga yuborish"
