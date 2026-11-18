@@ -47,6 +47,7 @@ os.environ.update({
     "ENVIRONMENT": "test",
     "SECRET_KEY": "test-secret-key-0123456789abcdef0123456789abcdef",
     "EVENTS_POLL_ENABLED": "false",
+    "PUBLISHER_ENABLED": "false",
     "REGISTRATION_OPEN": "true",
     "TG_SESSION_PATH": "/tmp/osint-test-no-session/tg",
 })

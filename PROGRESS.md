@@ -59,6 +59,35 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### Yangiliklar lentasi kanali (o'zbek kirill) — Bosqich 3/4 ning bir qismi (2026-11-18)
+- Egasining talabi: "yangiliklarni https://t.me/+53mtgEkGJhdjMzky kanaliga yuklab borsin, har biri o'zbekcha" →
+  tanlov: **hamma hodisa** (global ham, kuniga ~220), **o'zbek kirill**. Spetsifikatsiyadan chetlanish: rahbariyat
+  kanali faqat kritik + brifinglar edi; bu kanal — lenta (`scripts/channel.py add --feed`).
+- Kod (`services/publisher/`): `render.py` — post (sarlavha qatori: band nuqtasi + yorliq · bayroq + davlat ·
+  kategoriya; tarjima qilingan sarlavha, 1–2 gap, Toshkent vaqti, ishonchlilik + manbalar, yuqori/kritikda tavsiya,
+  ASCII hashtag, "Manbani ochish" tugmasi; URL / email / telefon / @mention / emoji / reklama qatorlari olib
+  tashlanadi, .onion va fayl havolalariga tugma yo'q; kirill — tozalashdan KEYIN, faqat matn maydonlariga; ≤ 900
+  belgi). `planner.py` — har 30 s: nomzodlar (enabled_at dan keyin, 24 soat, baseline emas, band / davlat / global /
+  kategoriya filtri), `dedup_key=alert:<id>`, tarjimani kutish (`require_translation` — asl matn hech qachon,
+  6 soatdan keyin `skipped/translation_missing`), rejim (dry_run → `skipped/dry_run` matni bilan; review / yagona
+  manbasi underground → `awaiting_approval`), sokin soatlar, kunlik chegara. `sender.py` — har 5 s, chat bo'yicha
+  ≥ 1,1 s va ≤ 18/daqiqa; 429 / parse xatosi (oddiy matn) / 403 (kanal down) / 401 (bot invalid) / tarmoq;
+  `sending` → restartda `unknown`; 6 soatda `expired`. `updates.py` — long poll: `my_chat_member` → `bot_chats` va
+  kanal sog'lig'i, `/start` → Telegram ID. `runner.py` — o'z advisory lock'i (`72_620_261_115`), token yo'q — faqat
+  dry-run (`bot_status=token_missing`); `main.py` lifespan'da.
+- Migratsiya `0022_require_translation`: `channel_destinations.require_translation`, `max_instant_per_day` chegarasi
+  100 → 1000 (downgrade 100 ga qisqartiradi). `core/i18n.py`: `pub_*` katalogi (avvalgi sessiyadan WIP) + 
+  `pub_conf_tracker`, `pub_conf_community`, `pub_start_reply`, `pub_review_unavailable`; `pub_t_outage` uz `{place}`.
+  `0021_category_texts` (WIP: `explain_*`, `action_*`) ham shu commit'da.
+- 🔔: `channel_down`, `bot_token_invalid`, `post_unknown`, `webhook_conflict` o'z matni bilan (uz/ru/en + uz-Cyrl).
+- Tekshirildi: 21 yangi test (soxta Telegram, `httpx.MockTransport`; token xato/log/bazaga tushmaydi); haqiqiy
+  baza ustida vaqtinchalik dry-run kanali — 60 post, kirill, ≤ 518 belgi. **Tekshirilmadi:** haqiqiy Telegram
+  (token yo'q), Telegram orqali tasdiqlash (review chat), brifing / haftalik hisobot, admin "Kanal" sahifasi.
+- Ishga tushirish (egasi): @BotFather → bot; botni kanalga admin ("Post messages"); `backend/.env` ga
+  `TG_BOT_TOKEN=...`; keyin konteynerni qayta yaratish (`docker-compose stop backend && docker-compose rm -f backend
+  && docker-compose up -d backend`), so'ng `python scripts/channel.py chats` → `add --chat <id> --name ... --feed`
+  → `preview` → `test` → `set <id> mode=auto`.
+
 ### Tarjima navbati: "til almashtirdim, kontent o'zgarmadi" (2026-11-18)
 - Sabab: NLLB servisi (umumiy GPU, `batch_size=16`) band paytda 15–40 s javob beradi; worker 64 talik paketni 30 s
   kutardi → butun paket timeout, 3 urinishdan keyin `failed` (ru ~37%, uz ~41% qatorlar tarjimasiz; eng yangi

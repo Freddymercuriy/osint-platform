@@ -60,6 +60,13 @@ class CategoryOut(BaseModel):
 
 class CategoryAdminOut(CategoryOut):
     rules: dict[str, Any]
+    # Rahbariyat kanali: atama izohi va tavsiya (uz-Cyrl — uz dan hosil qilinadi)
+    explain_en: str = ""
+    explain_ru: str = ""
+    explain_uz: str = ""
+    action_en: str = ""
+    action_ru: str = ""
+    action_uz: str = ""
     created_at: datetime
     updated_at: datetime
 
@@ -79,6 +86,12 @@ class CategoryBase(BaseModel):
     sort_order: int = Field(500, ge=0, le=100000)
     enabled: bool = True
     rules: dict[str, Any] = Field(default_factory=dict)
+    explain_en: str = Field("", max_length=600)
+    explain_ru: str = Field("", max_length=600)
+    explain_uz: str = Field("", max_length=600)
+    action_en: str = Field("", max_length=600)
+    action_ru: str = Field("", max_length=600)
+    action_uz: str = Field("", max_length=600)
 
     @field_validator("color")
     @classmethod
@@ -117,6 +130,12 @@ class CategoryUpdate(BaseModel):
     sort_order: int | None = Field(None, ge=0, le=100000)
     enabled: bool | None = None
     rules: dict[str, Any] | None = None
+    explain_en: str | None = Field(None, max_length=600)
+    explain_ru: str | None = Field(None, max_length=600)
+    explain_uz: str | None = Field(None, max_length=600)
+    action_en: str | None = Field(None, max_length=600)
+    action_ru: str | None = Field(None, max_length=600)
+    action_uz: str | None = Field(None, max_length=600)
 
     @field_validator("color")
     @classmethod

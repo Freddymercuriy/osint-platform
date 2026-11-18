@@ -1121,6 +1121,10 @@
     "system": "Tizim",
     "sourceDown": "«{source}» manbasi {since} dan beri ishlamayapti",
     "sourceBlocked": "«{source}» manbasi {since} dan beri bloklangan",
+    "channelDown": "«{destination}» Telegram kanaliga yuborib bo'lmayapti: {error}",
+    "botTokenInvalid": "Telegram bot tokeni noto'g'ri yoki bekor qilingan — kanalga yuborish to'xtadi",
+    "postUnknown": "Kanal posti #{post} yuborilgan-yuborilmagani noma'lum — kanalni tekshiring",
+    "webhookConflict": "Bot boshqa tizimda ishlatilmoqda (webhook) — kanal uchun alohida bot kerak",
     "openSources": "Manbalarni ochish"
   },
   "report": {

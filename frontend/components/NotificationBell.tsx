@@ -5,7 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { CategoryBadge, EmptyState } from "@/components/ui";
-import { getNotifications, markNotificationsRead, type NotificationsResponse } from "@/lib/api";
+import { getNotifications, markNotificationsRead, type NotificationsResponse, type SystemAlert } from "@/lib/api";
 import { cn } from "@/lib/cn";
 import { useFormat } from "@/lib/format";
 
@@ -65,6 +65,26 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
 
   const unread = data?.unread ?? 0;
 
+  /** Tizim ogohlantirishi matni turiga qarab (manba / Telegram kanali / bot). */
+  function systemAlertText(a: SystemAlert): string {
+    const d = a.data as Record<string, string | number | null | undefined>;
+    switch (a.kind) {
+      case "channel_down":
+        return t("channelDown", { destination: String(d.destination ?? "?"), error: String(d.error ?? "—") });
+      case "bot_token_invalid":
+        return t("botTokenInvalid");
+      case "post_unknown":
+        return t("postUnknown", { post: String(d.post_id ?? "?") });
+      case "webhook_conflict":
+        return t("webhookConflict");
+      default:
+        return t(a.data.status === "blocked" ? "sourceBlocked" : "sourceDown", {
+          source: a.data.source ?? "?",
+          since: a.data.since ? f.dateTime(a.data.since) : "—",
+        });
+    }
+  }
+
   return (
     <div className="relative" ref={boxRef}>
       <button
@@ -112,17 +132,12 @@ export default function NotificationBell({ onUnreadChange }: { onUnreadChange?: 
                 {data.system.map((a) => (
                   <Link
                     key={`sys-${a.id}`}
-                    href="/dashboard/admin/sources"
+                    href={a.kind === "source_down" ? "/dashboard/admin/sources" : "/dashboard/admin/system"}
                     onClick={() => setOpen(false)}
                     className="focus-ring flex items-start gap-2 px-4 py-2.5 text-sm transition-colors hover:bg-surface-2"
                   >
                     <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-warning" aria-hidden />
-                    <span className="min-w-0 flex-1 text-fg">
-                      {t(a.data.status === "blocked" ? "sourceBlocked" : "sourceDown", {
-                        source: a.data.source ?? "?",
-                        since: a.data.since ? f.dateTime(a.data.since) : "—",
-                      })}
-                    </span>
+                    <span className="min-w-0 flex-1 text-fg">{systemAlertText(a)}</span>
                     {a.is_new && <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-danger" aria-hidden />}
                   </Link>
                 ))}

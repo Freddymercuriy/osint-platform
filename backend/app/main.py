@@ -11,6 +11,7 @@ from app.core.errors import register_error_handlers
 from app.core.i18n import LangMiddleware
 from app.services.admin_roles import sync_admin_roles
 from app.services.events import scheduler as events_scheduler
+from app.services.publisher import runner as publisher
 
 # Modellar Base.metadata ga ro'yxatdan o'tishi uchun import qilinadi
 from app import models  # noqa: F401
@@ -35,7 +36,9 @@ async def lifespan(app: FastAPI):
     async with AsyncSessionLocal() as db:
         await sync_admin_roles(db)
     events_scheduler.start()  # fon yig'uvchi: har manba o'z jadvali bilan
+    publisher.start()  # Telegram kanal(lar)i: rejalashtiruvchi, yuboruvchi, bot yangilanishlari
     yield
+    await publisher.stop()
     await events_scheduler.stop()
     await engine.dispose()
 

@@ -1121,6 +1121,10 @@
     "system": "Система",
     "sourceDown": "Источник «{source}» не работает с {since}",
     "sourceBlocked": "Источник «{source}» заблокирован с {since}",
+    "channelDown": "Не удаётся публиковать в Telegram-канал «{destination}»: {error}",
+    "botTokenInvalid": "Токен Telegram-бота неверен или отозван — публикация в канал остановлена",
+    "postUnknown": "Неизвестно, опубликован ли пост канала #{post} — проверьте канал",
+    "webhookConflict": "Бот используется другой системой (webhook) — для канала нужен отдельный бот",
     "openSources": "Открыть источники"
   },
   "report": {

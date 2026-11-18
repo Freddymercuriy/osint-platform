@@ -1121,6 +1121,10 @@
     "system": "System",
     "sourceDown": "Source “{source}” has been down since {since}",
     "sourceBlocked": "Source “{source}” has been blocked since {since}",
+    "channelDown": "Cannot post to the Telegram channel “{destination}”: {error}",
+    "botTokenInvalid": "The Telegram bot token is invalid or revoked — channel posting has stopped",
+    "postUnknown": "Unknown whether channel post #{post} was sent — check the channel",
+    "webhookConflict": "The bot is used by another system (webhook) — the channel needs its own bot",
     "openSources": "Open sources"
   },
   "report": {

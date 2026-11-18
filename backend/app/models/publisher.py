@@ -122,6 +122,9 @@ class ChannelDestination(Base):
     protect_content: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false", nullable=False)
     show_original: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
     explain_terms: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
+    # true — post faqat kanal tilida: tarjima tayyor bo'lmaguncha kutadi, asl matn yuborilmaydi (0022)
+    require_translation: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false",
+                                                      nullable=False)
     enabled: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true", nullable=False)
     enabled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), server_default=func.now(),
                                                         nullable=True)
