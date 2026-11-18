@@ -14,16 +14,20 @@ latin.jaybi.uz dvigateli (`vendor/uztranslit.py`) bilan almashtiriladi — manba
   asl matnni qaytaradi.
 
 Paketlar: `/translate/batch` ga ≤ 64 matn; `max_input_length` (`GET /model`, token) dan uzun matnlar gaplar bo'yicha
-bo'linadi (belgilar soni ≤ tokenlar — xavfsiz chegara) va tarjimadan keyin qayta birlashtiriladi.
-Qayta urinish: ulanish xatosi va 5xx — 2 marta (1 s, 2 s + jitter); timeout va 422 — qayta urinilmaydi.
+bo'linadi (belgilar soni ≤ tokenlar — xavfsiz chegara) va tarjimadan keyin qayta birlashtiriladi. `/model` javob
+bermasa — standart chegara olinadi va 10 daqiqa so'ralmaydi (sekin servisda har paket oldidan kutib qolmaslik uchun).
+Qayta urinish: ulanish xatosi va 5xx — 2 marta (1 s, 2 s + jitter); timeout (`TranslationTimeout` — worker paketni
+bo'lib qayta yuboradi) va 422 — qayta urinilmaydi.
 """
 
 from __future__ import annotations
 
 import asyncio
 import logging
+import math
 import random
 import re
+import time
 from typing import Protocol
 
 import httpx
@@ -57,7 +61,9 @@ UZN = "uzn_Latn"
 UZ_CYRILLIC = frozenset({"uz-cyrl", "uz_cyrl", "uzn_cyrl"})
 
 _SENTENCE_END = re.compile(r"(?<=[.!?…])\s+")
-_max_input_cache: dict[str, int] = {}  # base_url → max_input_length
+# base_url → (max_input_length, amal qilish muddati — time.monotonic; servis javobi — cheksiz, standart qiymat — vaqtincha)
+_max_input_cache: dict[str, tuple[int, float]] = {}
+MODEL_RETRY_SECONDS = 600.0
 
 
 class UnsupportedLanguage(ConnectorError):
@@ -66,6 +72,10 @@ class UnsupportedLanguage(ConnectorError):
 
 class TranslationRequestError(ConnectorError):
     """Servis so'rovni rad etdi (HTTP 422) — qayta urinish foyda bermaydi."""
+
+
+class TranslationTimeout(ConnectorError):
+    """Servis belgilangan vaqtda javob bermadi — paket katta bo'lishi mumkin (worker uni bo'lib qayta yuboradi)."""
 
 
 class Translator(Protocol):
@@ -173,17 +183,21 @@ class NllbTranslator:
         return [uz_to_cyrillic(r) for r in result] if to_cyr else result
 
     async def chunk_chars(self) -> int:
-        """Bitta bo'lakning belgilar chegarasi: `max_input_length` (token) − zaxira. Bir marta so'raladi va keshlanadi."""
-        cached = _max_input_cache.get(self.base_url)
-        if cached is None:
+        """Bitta bo'lakning belgilar chegarasi: `max_input_length` (token) − zaxira.
+
+        Servis javobi jarayon davomida keshlanadi; javob bo'lmasa standart qiymat `MODEL_RETRY_SECONDS` ga keshlanadi.
+        """
+        hit = _max_input_cache.get(self.base_url)
+        if hit is None or hit[1] <= time.monotonic():
             try:
                 data = await self._request("GET", "/model")
-                cached = int(data.get("max_input_length") or DEFAULT_MAX_INPUT)
-                _max_input_cache[self.base_url] = cached
+                hit = (int(data.get("max_input_length") or DEFAULT_MAX_INPUT), math.inf)
             except (ConnectorError, ValueError, TypeError) as exc:
-                log.warning("Tarjima servisi /model javob bermadi (%s) — %d token deb olinadi", exc, DEFAULT_MAX_INPUT)
-                cached = DEFAULT_MAX_INPUT
-        return max(64, cached - TOKEN_RESERVE)
+                log.warning("Tarjima servisi /model javob bermadi (%s) — %d token deb olinadi, %d daqiqadan keyin "
+                            "qayta so'raladi", exc, DEFAULT_MAX_INPUT, MODEL_RETRY_SECONDS // 60)
+                hit = (DEFAULT_MAX_INPUT, time.monotonic() + MODEL_RETRY_SECONDS)
+            _max_input_cache[self.base_url] = hit
+        return max(64, hit[0] - TOKEN_RESERVE)
 
     async def _batch(self, texts: list[str], src: str, tgt: str) -> list[str]:
         data = await self._request("POST", "/translate/batch",
@@ -205,7 +219,7 @@ class NllbTranslator:
             except ConnectorError as exc:
                 if isinstance(exc.__cause__, httpx.TimeoutException):
                     # og'ir GPU so'rovini darhol takrorlash yukni oshiradi — navbat keyinroq qayta uradi
-                    raise ConnectorError(f"Tarjima servisi {self.timeout:g} s ichida javob bermadi ({path})") from exc
+                    raise TranslationTimeout(f"Tarjima servisi {self.timeout:g} s ichida javob bermadi ({path})") from exc
                 if last:
                     raise ConnectorError(f"Tarjima servisiga ulanib bo'lmadi ({path}): {exc}") from exc
                 await self._backoff(attempt, f"ulanish xatosi: {exc}")

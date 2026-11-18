@@ -62,7 +62,7 @@ npm run dev                            # tugagach: docker-compose start frontend
 - Telegram (ixtiyoriy): `TG_API_ID`, `TG_API_HASH` va bir marta login —
   `docker-compose exec backend python scripts/tg_login.py`.
 - Tarjima: o'z NLLB servisimiz, kalit kerak emas — `TRANSLATE_API_URL` (standart `https://translate.deepcore.uz`),
-  `TRANSLATE_TIMEOUT_SECONDS=30`; o'chirish — `TRANSLATE_ENABLED=false`. Holati: admin → Tizim → Tarjima.
+  `TRANSLATE_TIMEOUT_SECONDS=90`; o'chirish — `TRANSLATE_ENABLED=false`. Holati: admin → Tizim → Tarjima.
   O'zbek kirill (`uzn_Cyrl`) — lotin tarjimadan [latin.jaybi.uz](https://latin.jaybi.uz) dvigateli bilan
   (`backend/app/services/i18n/vendor/`, MIT).
 

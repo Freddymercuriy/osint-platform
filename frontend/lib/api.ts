@@ -1,3 +1,4 @@
+import { DEFAULT_LOCALE, LOCALE_COOKIE, isLocale } from "@/i18n/config";
 import { API_URL } from "@/lib/config";
 
 const TOKEN_KEY = "osint_token";
@@ -22,12 +23,15 @@ export function invalidateMe() {
 }
 
 // --- Til: cookie (next-intl o'qiydi) va backend'ga Accept-Language ---
-const LOCALE_COOKIE = "NEXT_LOCALE";
 
+/** Interfeys tili (uz | uz-Cyrl | ru | en): cookie → <html lang> → uz. */
 export function currentLocale(): string {
-  if (typeof document === "undefined") return "uz";
-  const m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=(uz|ru|en)/);
-  return m ? m[1] : document.documentElement.lang || "uz";
+  if (typeof document === "undefined") return DEFAULT_LOCALE;
+  const m = document.cookie.match(/(?:^|;\s*)NEXT_LOCALE=([^;]*)/);
+  const fromCookie = m ? decodeURIComponent(m[1]) : null;
+  if (isLocale(fromCookie)) return fromCookie;
+  const fromHtml = document.documentElement.lang;
+  return isLocale(fromHtml) ? fromHtml : DEFAULT_LOCALE;
 }
 
 export function setLocaleCookie(locale: string) {

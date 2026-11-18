@@ -118,7 +118,8 @@ class Settings(BaseSettings):
 
     # Tarjima — o'z NLLB servisimiz (facebook/nllb-200, FLORES-200 kodlari, kalitsiz). Bo'sh URL — tarjimalar "pending".
     translate_api_url: str = "https://translate.deepcore.uz"
-    translate_timeout_seconds: float = 30.0
+    # Bitta so'rov (≤16 matn) kutish vaqti: umumiy GPU servisi band paytda 30–40 s javob beradi
+    translate_timeout_seconds: float = 90.0
     translate_enabled: bool = True
     # Oylik belgilar chegarasi; 0 — chegarasiz (o'z servisimiz, to'lov yo'q). Hisob statistika uchun baribir yuritiladi.
     translate_monthly_char_limit: int = 0

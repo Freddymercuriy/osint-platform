@@ -6,7 +6,7 @@
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da).
 GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi talabi bilan; `main` o'zgarmagan). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-17
+**Oxirgi yangilanish:** 2026-11-18
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -58,6 +58,22 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 # frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### Tarjima navbati: "til almashtirdim, kontent o'zgarmadi" (2026-11-18)
+- Sabab: NLLB servisi (umumiy GPU, `batch_size=16`) band paytda 15–40 s javob beradi; worker 64 talik paketni 30 s
+  kutardi → butun paket timeout, 3 urinishdan keyin `failed` (ru ~37%, uz ~41% qatorlar tarjimasiz; eng yangi
+  hodisalar lenta tepasida inglizcha / asl tilda qolardi).
+- `services/i18n/worker.py`: paket ≤ 16 matn / 4000 belgi; timeout'da paket ikkiga bo'linib darhol qayta yuboriladi,
+  ketma-ket 2-timeout'da navbat 5 daqiqa tanaffus (`stopped="timeout"`); bitta chaqiruv ≤ 150 s (`time_budget`,
+  qolgani keyingi tick'da, urinish hisoblanmaydi); backoff ≤ 60 daqiqa; vaqtinchalik xato bilan `failed` qator
+  6 soatdan keyin o'zi `pending` ga qaytadi (`requeue_due_failed`; 422 / noma'lum til — `next_attempt_at` siz, qaytmaydi);
+  navbat so'rovi `populate_existing` bilan.
+- `translator.py`: `TranslationTimeout` (alohida xato turi); `/model` javob bermasa standart chegara 10 daqiqa
+  keshlanadi (avval har paket oldidan sekin `/model` kutilardi). `TRANSLATE_TIMEOUT_SECONDS` standarti 30 → 90.
+- Frontend `lib/api.ts::currentLocale`: `uz-Cyrl` cookie "uz" deb o'qilardi → backend xabarlari lotinda kelardi.
+- Testlar: +7 (paket hajmi, bo'lish, tanaffus, avto-qayta navbat, `/model` keshi).
+- Ma'lum: saqlangan tekshiruv natijalari (username/email/telefon/domen) tekshiruv paytidagi tilda qoladi — dizayn
+  (`core/i18n.py`), yangi tekshiruv tanlangan tilda.
 
 ### Rahbariyat kanali — Bosqich 2: nashr ma'lumot modeli (2026-11-17)
 - **Migratsiya `0020_publishing`** (downgrade bor), modellar `models/publisher.py`:

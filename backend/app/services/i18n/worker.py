@@ -6,6 +6,10 @@
 2. `process_pending` — navbatni jiddiylik bo'yicha (avval critical), paketlab tarjima qiladi: avval kesh, keyin
    provayder (o'z NLLB servisi); oylik belgi chegarasi (0 — chegarasiz); xatoda qator `pending` da qoladi va qayta
    urinadi (3 marta, hodisa shu orada asl tilda ko'rsatiladi), 422 / noma'lum tilda — darhol `failed`; rate limitda kutish.
+   Paket — ≤ 16 matn (servisning GPU paketi), timeout'da ikkiga bo'linib qayta yuboriladi; bitta chaqiruv
+   `TICK_BUDGET_SECONDS` dan oshmaydi (qolgani keyingi tick'da, urinish hisoblanmaydi).
+   Vaqtinchalik xato (timeout, 5xx) bilan `failed` bo'lgan qator `FAILED_RETRY_AFTER` dan keyin o'zi navbatga qaytadi —
+   servis bir necha soat ishlamasa ham tarjimalar yo'qolib qolmaydi.
 Sarlavha 300, matn 600 belgigacha qisqartiriladi.
 """
 
@@ -13,7 +17,8 @@ from __future__ import annotations
 
 import hashlib
 import logging
-from collections import defaultdict
+import time
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import UTC, date, datetime, timedelta
 
@@ -30,6 +35,7 @@ from app.services.i18n.translator import (
     MAX_CHARS,
     MAX_STRINGS,
     TranslationRequestError,
+    TranslationTimeout,
     Translator,
     UnsupportedLanguage,
 )
@@ -39,6 +45,13 @@ log = logging.getLogger("osint.i18n")
 TITLE_MAX = 300
 SUMMARY_MAX = 600
 MAX_ATTEMPTS = 3
+# Bitta so'rov: servis `batch_size` (GET /model → 16) dan katta paket bir nechta GPU o'tishi va timeout demak
+BATCH_STRINGS = min(16, MAX_STRINGS)
+BATCH_CHARS = min(4_000, MAX_CHARS)
+TICK_BUDGET_SECONDS = 150.0  # bitta process_pending — yig'uvchi tsiklini uzoq ushlab turmasin
+RETRY_CAP_MINUTES = 60
+SLOW_PAUSE = timedelta(minutes=5)  # ketma-ket 2 timeout — servis band, navbat shuncha kutadi
+FAILED_RETRY_AFTER = timedelta(hours=6)  # vaqtinchalik xato bilan failed → shu muddatdan keyin yana pending
 
 
 @dataclass
@@ -156,15 +169,48 @@ def _severity_rank():
     return case(*((EventRecord.severity == s, i) for i, s in enumerate(SEVERITIES)), else_=0)
 
 
+async def requeue_due_failed(db: AsyncSession, now: datetime) -> int:
+    """Vaqtinchalik xato bilan `failed` bo'lgan (qayta urinish vaqti belgilangan) qatorlar — yana `pending`.
+
+    Doimiy xato (422, noma'lum til) `next_attempt_at` siz yoziladi va bu yerda tegilmaydi.
+    """
+    result = await db.execute(
+        update(EventTranslation)
+        .where(EventTranslation.status == "failed", EventTranslation.next_attempt_at <= now)
+        .values(status="pending", attempts=0, next_attempt_at=None)
+    )
+    return result.rowcount or 0
+
+
+def _batches(texts: list[str]) -> list[list[str]]:
+    """Matnlar → so'rov paketlari (≤ BATCH_STRINGS ta, ≤ BATCH_CHARS belgi; juda uzun matn — yolg'iz o'zi)."""
+    out: list[list[str]] = []
+    cur: list[str] = []
+    size = 0
+    for text in texts:
+        if cur and (len(cur) >= BATCH_STRINGS or size + len(text) > BATCH_CHARS):
+            out.append(cur)
+            cur, size = [], 0
+        cur.append(text)
+        size += len(text)
+    if cur:
+        out.append(cur)
+    return out
+
+
 async def process_pending(db: AsyncSession, translator: Translator, limit: int = 120) -> ProcessStats:
     stats = ProcessStats()
     now = datetime.now(UTC)
+    deadline = time.monotonic() + TICK_BUDGET_SECONDS
+    timeouts = 0  # ketma-ket timeout'lar (muvaffaqiyatli javob nollaydi)
     if not translator.configured:
         stats.stopped = "no_key"
         return stats
     if state.paused_until and state.paused_until > now:
         stats.stopped = "paused"
         return stats
+    if requeued := await requeue_due_failed(db, now):
+        log.info("Tarjima: %d ta muvaffaqiyatsiz qator qayta navbatga qo'yildi", requeued)
     usage = await usage_row(db, now)
     cap = settings.translate_monthly_char_limit  # 0 — chegarasiz
     state.budget_exhausted = cap > 0 and usage.chars >= cap
@@ -180,6 +226,7 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                (EventTranslation.next_attempt_at.is_(None)) | (EventTranslation.next_attempt_at <= now))
         .order_by(_severity_rank().desc(), EventRecord.first_seen.desc(), EventTranslation.id)
         .limit(limit)
+        .execution_options(populate_existing=True)  # requeue / qo'lda UPDATE dan keyin xotiradagi eski holat emas
     )).all()
     stats.rows = len(rows)
     # (manba til, maqsad til) bo'yicha guruhlash; har qatorning tarjima qilinadigan maydonlari
@@ -208,20 +255,16 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                 tr.provider = "cache" if tr.provider == "none" else tr.provider
             else:
                 todo.append((tr, fld, text))
-        # provayder — paketlar (≤64 satr, ≤12k belgi; uzun matnlarni klient o'zi bo'ladi); takror matnlar bir marta
-        unique: list[str] = list(dict.fromkeys(t for _, _, t in todo))
+        # provayder — paketlar (≤16 satr, ≤4k belgi; uzun matnlarni klient o'zi bo'ladi); takror matnlar bir marta
         results: dict[str, str] = {}
         errors: dict[str, tuple[str, bool]] = {}  # matn → (xato, qayta urinish befoyda)
-        i = 0
-        while i < len(unique):
-            batch, size = [], 0
-            while i < len(unique) and len(batch) < MAX_STRINGS and size + len(unique[i]) <= MAX_CHARS:
-                batch.append(unique[i])
-                size += len(unique[i])
-                i += 1
-            if not batch:  # bitta matn ham sig'madi (bo'lmasligi kerak — qisqartirilgan)
-                batch, size = [unique[i][:MAX_CHARS]], min(len(unique[i]), MAX_CHARS)
-                i += 1
+        queue = deque(_batches(list(dict.fromkeys(t for _, _, t in todo))))
+        while queue:
+            if time.monotonic() >= deadline:
+                stats.stopped = "time_budget"  # qolgan matnlar keyingi tick'da (urinish hisoblanmaydi)
+                break
+            batch = queue.popleft()
+            size = sum(len(t) for t in batch)
             if cap > 0 and usage.chars + size > cap:
                 state.budget_exhausted = True
                 stats.stopped = "budget"
@@ -238,6 +281,25 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                 state.paused_until = now + timedelta(seconds=exc.retry_after or 600)
                 stats.stopped, stats.errors = "rate_limited", [str(exc)]
                 break
+            except TranslationTimeout as exc:
+                timeouts += 1
+                stats.errors.append(str(exc))
+                state.last_error = str(exc)
+                if timeouts >= 2:  # ketma-ket ikkinchi timeout — servis band yoki ishlamayapti: tanaffus
+                    state.paused_until = now + SLOW_PAUSE
+                    stats.stopped = "timeout"
+                    log.warning("Tarjima servisi ketma-ket javob bermadi — %d daqiqa tanaffus: %s",
+                                SLOW_PAUSE.seconds // 60, exc)
+                    break
+                if len(batch) > 1:  # paket katta bo'lishi mumkin — ikkiga bo'lib darhol qayta
+                    half = len(batch) // 2
+                    queue.extendleft([batch[half:], batch[:half]])
+                    log.info("Tarjima %s→%s: %d ta matn — %s; paket ikkiga bo'linadi", src, tgt, len(batch), exc)
+                    continue
+                log.warning("Tarjima %s→%s (1 ta matn) bajarilmadi — keyinroq qayta urinadi: %s", src, tgt, exc)
+                results[batch[0]] = None  # type: ignore[assignment]
+                errors[batch[0]] = (str(exc), False)
+                continue
             except ConnectorError as exc:
                 permanent = isinstance(exc, (TranslationRequestError, UnsupportedLanguage))
                 log.warning("Tarjima %s→%s (%d ta matn) bajarilmadi%s: %s", src, tgt, len(batch),
@@ -249,6 +311,7 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
                     errors[t] = (str(exc), permanent)
                 continue
             state.key_rejected = False
+            timeouts = 0
             usage.chars += size
             usage.requests += 1
             stats.chars_sent += size
@@ -270,9 +333,11 @@ async def process_pending(db: AsyncSession, translator: Translator, limit: int =
             tr.error = error[:500]
             if tr.attempts >= MAX_ATTEMPTS:
                 tr.status = "failed"
+                # vaqtinchalik xato — keyinroq o'zi qayta navbatga (requeue_due_failed); doimiy — faqat qo'lda
+                tr.next_attempt_at = None if permanent else now + FAILED_RETRY_AFTER
                 stats.failed += 1
             else:
-                tr.next_attempt_at = now + timedelta(minutes=5 * 2 ** tr.attempts)
+                tr.next_attempt_at = now + timedelta(minutes=min(5 * 2 ** tr.attempts, RETRY_CAP_MINUTES))
         if stats.stopped:
             break
 

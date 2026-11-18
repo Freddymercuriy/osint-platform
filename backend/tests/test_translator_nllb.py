@@ -10,7 +10,7 @@ import pytest
 from sqlalchemy import select
 
 from app.core.config import settings
-from app.models import EventRecord, EventTranslation
+from app.models import EventRecord, EventTranslation, TranslationCache
 from app.services.connectors.base import ConnectorError, RateLimited
 from app.services.connectors.http import HttpFetcher
 from app.services.i18n import translator as tr_mod
@@ -298,3 +298,117 @@ async def test_scheduler_builds_nllb_translator(monkeypatch):
     assert t.http.ssrf_guard is False and t.http.pause_range == (0.0, 0.0)
     assert t.http is not scheduler.state._http  # ulagichlar mijozidan alohida
     await t.http.aclose()
+
+
+# ---------------------------------------------------------------- sekin servis: paketlar, timeout, tanaffus
+async def test_timeout_raises_translation_timeout():
+    def slow(req):
+        raise httpx.ReadTimeout("timed out", request=req)
+
+    t, _ = make(slow)
+    with pytest.raises(tr_mod.TranslationTimeout):
+        await t.translate(["x"], "ru", "en")
+
+
+async def test_model_failure_is_cached_for_a_while(monkeypatch):
+    calls = {"model": 0}
+
+    def h(req):
+        if req.url.path == "/model":
+            calls["model"] += 1
+            return httpx.Response(500)
+        return ok(req)
+
+    http = HttpFetcher.create(transport=httpx.MockTransport(h), ssrf_guard=False, pause_range=(0.0, 0.0))
+    t = NllbTranslator(BASE, http)
+    await t.translate(["a"], "ru", "en")
+    first = calls["model"]  # 5xx — klient o'zi 2 marta qayta uradi
+    assert first >= 1
+    await t.translate(["b"], "ru", "en")
+    assert calls["model"] == first  # har paket oldidan sekin /model kutilmaydi
+    base, _expires = tr_mod._max_input_cache[BASE]
+    tr_mod._max_input_cache[BASE] = (base, 0.0)  # muddat o'tdi — yana so'raladi
+    await t.translate(["c"], "ru", "en")
+    assert calls["model"] > first
+
+
+class _SlowFake(FakeTranslator):
+    """`max_ok` dan ko'p matnli paketda timeout (band GPU servisi kabi)."""
+
+    def __init__(self, max_ok: int) -> None:
+        super().__init__()
+        self.max_ok = max_ok
+
+    async def translate(self, texts, source, target):
+        self.calls.append((source, target, list(texts)))
+        if len(texts) > self.max_ok:
+            raise tr_mod.TranslationTimeout("Tarjima servisi 90 s ichida javob bermadi (/translate/batch)")
+        return [f"[{target}] {t}" for t in texts]
+
+
+async def _events(db, n: int) -> None:
+    for i in range(n):
+        db.add(EventRecord(uid=f"s{i}", source="S", category="other", title=f"Хакеры атаковали банк {i}",
+                           url=f"https://x.example/s{i}", summary=f"Подробности атаки номер {i}.", lang="ru",
+                           severity="info"))
+    await db.commit()
+    await worker.ensure_rows(db)
+
+
+async def test_worker_sends_small_batches(db):
+    await _events(db, 20)  # 20 hodisa × 2 til × 2 maydon = 80 matn
+    fake = FakeTranslator()
+    stats = await worker.process_pending(db, fake)
+    assert stats.done == 40 and stats.failed == 0
+    assert all(len(texts) <= worker.BATCH_STRINGS for _, _, texts in fake.calls)
+
+
+async def test_worker_splits_batch_on_timeout(db):
+    await _events(db, 4)  # bir til uchun 8 matn — bitta paket
+    fake = _SlowFake(max_ok=4)
+    stats = await worker.process_pending(db, fake)
+    assert stats.done == 8 and stats.failed == 0 and stats.stopped is None
+    sizes = [len(texts) for src, tgt, texts in fake.calls if tgt == "en"]
+    assert sizes == [8, 4, 4]
+
+
+async def test_worker_pauses_after_consecutive_timeouts(db):
+    await _events(db, 4)
+    stats = await worker.process_pending(db, _SlowFake(max_ok=0))
+    assert stats.stopped == "timeout" and worker.state.paused_until is not None
+    rows = await _rows(db)
+    assert all(r.status == "pending" and r.title is None for r in rows)  # asl matn yozilmadi
+    assert (await worker.process_pending(db, FakeTranslator())).stopped == "paused"
+
+
+async def test_transient_failures_are_requeued_later_permanent_are_not(db):
+    from datetime import UTC, datetime, timedelta
+
+    await _event(db)
+    fake = FakeTranslator(fail=ConnectorError("Tarjima servisi: HTTP 503"))
+    for _ in range(worker.MAX_ATTEMPTS):
+        await worker.process_pending(db, fake)
+        await db.execute(EventTranslation.__table__.update()
+                         .where(EventTranslation.__table__.c.status == "pending").values(next_attempt_at=None))
+        await db.commit()
+    rows = await _rows(db)
+    assert all(r.status == "failed" and r.next_attempt_at is not None for r in rows)
+
+    # muddat hali kelmagan — tegilmaydi
+    assert (await worker.process_pending(db, FakeTranslator())).done == 0
+    past = datetime.now(UTC) - timedelta(minutes=1)
+    await db.execute(EventTranslation.__table__.update().values(next_attempt_at=past))
+    await db.commit()
+    stats = await worker.process_pending(db, FakeTranslator())
+    assert stats.done == 2 and {r.status for r in await _rows(db)} == {"done"}
+
+    # doimiy xato (422) — avtomatik qaytarilmaydi
+    await db.execute(EventTranslation.__table__.update().where(EventTranslation.__table__.c.lang != "ru")
+                     .values(status="pending", title=None, summary=None, attempts=0))
+    await db.commit()
+    await db.execute(TranslationCache.__table__.delete())
+    await db.commit()
+    await worker.process_pending(db, FakeTranslator(fail=TranslationRequestError("422: bad", http_status=422)))
+    rows = await _rows(db)
+    assert all(r.status == "failed" and r.next_attempt_at is None for r in rows)
+    assert await worker.requeue_due_failed(db, datetime.now(UTC) + timedelta(days=1)) == 0
