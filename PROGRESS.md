@@ -112,7 +112,8 @@ vaqt, manba va havola; kanal — "bot lentasi" emas, professional nashr ko'rinis
   **Jonli:** birinchi rasmli post — kanal «osint», post 203 (Telegram message 84, 15:48): sendPhoto qabul
   qilindi, HTML formatlash tanildi (entities bor), illyustratsiya (Google News havolasi — maqola rasmi olinmaydi).
   Shundan keyin `#other` o'rniga rubrika tegi (#economy, #ai ...; kiber rubrikada — tegsiz).
-  Frontend: `npm run typecheck`, `npm run test:i18n` (976 kalit × 4 til), production smoke (23 tekshiruv — "Hammasi toza"), desktop / 360px, light / dark skrinshotlari ko'zdan kechirildi. Backend: 588 test.
+  Frontend: `npm run typecheck`, `npm run test:i18n` (976 kalit × 4 til), production smoke (23 tekshiruv) va `MATRIX=1` (144 tekshiruv: light / dark × uz / uz-Cyrl / ru / en ×
+  desktop / 360px) — "Hammasi toza", desktop / 360px, light / dark skrinshotlari ko'zdan kechirildi. Backend: 588 test.
 - **Cheklovlar:** illyustratsiya — mavzuli, lekin aniq voqea surati emas (AI-rasm servisi ulanmagan: kalit va
   pul talab qiladi; ulash uchun `media/service.py::_draw` yagona joy). "Murakkab texnik matnni sodda o'zbekchaga"
   — faqat NLLB tarjimasi + shablonlar (til modeli taqiqlangan). Maqola rasmi manba saytniki (muallif belgisi
