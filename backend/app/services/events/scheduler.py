@@ -5,7 +5,9 @@
   hammasini qayta yuklamaydi va rate limit'ni unutmaydi.
 - Bitta tsikl har 15–30 s uyg'onadi va vaqti kelganlarni ishga tushiradi: bir vaqtda ko'pi bilan 8 ta,
   bir xostga bittadan (pauza `connectors/http.py` da).
-- Xato → eksponensial backoff (jitter bilan, ≤ 6 soat); 429/503 Retry-After va Telegram FloodWait hurmat qilinadi.
+- Xato → eksponensial backoff (jitter bilan). Sayt shunchaki ishlamasa (timeout, DNS, 5xx) — kutish ≤ 1 soat
+  (uzilish tugagach manba bir soat ichida qayta tekshiriladi); blok / limit (403, 429, CAPTCHA) — ≤ 6 soat.
+  Hech qachon manbaning o'z intervalidan tez emas. 429/503 Retry-After va Telegram FloodWait hurmat qilinadi.
 - PostgreSQL advisory lock: ikkinchi worker ikkinchi rejalashtiruvchini ishga tushirmaydi
   (Telethon sessiya fayli ikki jarayonda ishlatilmasligi kerak — yig'uvchi API jarayoni ichida).
 
@@ -47,7 +49,8 @@ log = logging.getLogger("osint.events")
 LOCK_KEY = 72_620_261_114  # pg_advisory_lock kaliti (shu loyiha uchun, ixtiyoriy son)
 MAX_CONCURRENT = 8
 TICK_RANGE = (15.0, 30.0)
-MAX_BACKOFF = 6 * 3600
+MAX_BACKOFF = 6 * 3600  # blok / limit: sayt o'zi to'xtatgan — tez-tez urinish foyda bermaydi, odobsizlik
+DOWN_MAX_BACKOFF = 3600  # sayt ishlamayapti (timeout, DNS, 5xx): soatiga ≤ 1 so'rov — tiklangani tez bilinadi
 MAX_RETRY_AFTER = 24 * 3600
 AUTH_RECHECK = 3600  # kalit yo'q manbani qayta tekshirish oralig'i
 DOWN_AFTER = 3  # ketma-ket shuncha xatodan keyin "down"
@@ -67,13 +70,20 @@ def jittered(interval: int, jitter_pct: int, rng: random.Random | None = None) -
 
 
 def backoff_delay(interval: int, failures: int, retry_after: float | None = None,
-                  rng: random.Random | None = None) -> float:
-    """Eksponensial backoff: interval × 2^(failures−1), ±20% jitter, ≤ 6 soat; Retry-After'dan kam emas."""
-    base = min(MAX_BACKOFF, interval * (2 ** max(0, failures - 1)))
-    delay = min(MAX_BACKOFF, base * (rng or random).uniform(0.8, 1.2))
+                  rng: random.Random | None = None, cap: float = MAX_BACKOFF) -> float:
+    """Eksponensial backoff: interval × 2^(failures−1), ±20% jitter, ≤ cap; Retry-After'dan kam emas."""
+    base = min(cap, interval * 2 ** min(max(0, failures - 1), 30))
+    delay = min(cap, base * (rng or random).uniform(0.8, 1.2))
     if retry_after:
         delay = max(delay, min(float(retry_after), MAX_RETRY_AFTER))
     return delay
+
+
+def backoff_cap(error: ConnectorError, interval: int) -> float:
+    """Backoff chegarasi. Sayt bizni to'xtatgan bo'lsa (403, 429, CAPTCHA) — 6 soatgacha; sayt shunchaki ishlamasa
+    (timeout, DNS, 5xx) — 1 soat: uzoq uzilishdan keyin ham manba sayt tiklanganidan ≤ 1 soat o'tib qayta tekshiriladi
+    (6 soatlik chegara bilan tiklangan sayt soatlab "ishlamayapti" bo'lib turardi). Intervaldan tez emas."""
+    return max(interval, MAX_BACKOFF if isinstance(error, SourceBlocked) else DOWN_MAX_BACKOFF)
 
 
 def initial_offset(interval: int, rng: random.Random | None = None) -> float:
@@ -270,7 +280,8 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
                     source.status = "down"
                 else:
                     source.status = "degraded"
-                delay = backoff_delay(source.interval_seconds, source.consecutive_failures, error.retry_after)
+                delay = backoff_delay(source.interval_seconds, source.consecutive_failures, error.retry_after,
+                                      cap=backoff_cap(error, source.interval_seconds))
             if source.status in ("down", "blocked") and source.down_since is None:
                 source.down_since = now
             source.next_run_at = now + timedelta(seconds=delay)

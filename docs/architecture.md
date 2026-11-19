@@ -67,7 +67,8 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   (keyingi urinishgacha rejalashtirilgan). Admin → Manbalar "Holat" ustuni: sabab + HTTP, sayt so'ragan kutish,
   qayta urinishgacha jonli hisob (`WaitInfo`); muddat o'tsa satr qayta o'qiladi.
 - **`services/events/scheduler.py`** — rejalashtiruvchi: `next_run_at = now + interval × random(1 ± jitter)`, xatoda
-  eksponensial backoff (≤ 6 soat, Retry-After / FloodWait), PostgreSQL advisory lock bilan yagona nusxa.
+  eksponensial backoff (sayt ishlamasa — timeout / DNS / 5xx — ≤ 1 soat, blok / limit — ≤ 6 soat, intervaldan
+  tez emas; Retry-After / FloodWait), PostgreSQL advisory lock bilan yagona nusxa.
 - **`services/connectors/`** — ulagichlar, tur bo'yicha ro'yxatga olinadi (`@register`); yozish qoidalari:
   [`docs/connectors.md`](connectors.md). `http.py` — xost navbati va pauzalar, shartli so'rov, holat kodlari, SSRF.
 - **`services/events/pipeline.py`** — bazaga yozish: http(s) havolalar, `EVENTS_SINCE` va kategoriya muddati, baseline

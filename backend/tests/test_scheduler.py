@@ -34,6 +34,20 @@ def test_backoff_growth_cap_and_retry_after():
     assert scheduler.backoff_delay(600, 1, retry_after=7200, rng=rng) >= 7200
 
 
+def test_backoff_cap_depends_on_why_the_source_failed():
+    """Sayt ishlamasa (timeout, DNS, 5xx) — ≤ 1 soat; blok / limit — ≤ 6 soat; hech qachon intervaldan tez emas."""
+    from app.services.connectors.base import ConnectorError, RateLimited, SourceBlocked
+
+    down, blocked, limited = ConnectorError("HTTP 503", 503), SourceBlocked("HTTP 403", 403), RateLimited("429", 429)
+    assert scheduler.backoff_cap(down, 600) == scheduler.DOWN_MAX_BACKOFF == 3600
+    assert scheduler.backoff_cap(blocked, 600) == scheduler.backoff_cap(limited, 600) == scheduler.MAX_BACKOFF
+    assert scheduler.backoff_cap(down, 21600) == 21600 and scheduler.backoff_cap(blocked, 86400) == 86400
+    rng = random.Random(4)
+    many = [scheduler.backoff_delay(600, n, rng=rng, cap=3600) for n in (6, 50, 10_000)]
+    assert all(2880 <= d <= 3600 for d in many)
+    assert scheduler.backoff_delay(600, 6, retry_after=7200, rng=rng, cap=3600) >= 7200  # sayt so'ragani ustun
+
+
 def test_initial_offset_within_interval():
     rng = random.Random(3)
     offs = [scheduler.initial_offset(900, rng) for _ in range(500)]
@@ -134,6 +148,61 @@ async def test_failures_backoff_down_and_recovery(db, monkeypatch):
     # ko'p xatodan keyin muvaffaqiyat: oxirgi 10 urinishda 3 xato → "degraded" (flapping), lekin ishlayapti
     assert r.ok and s.consecutive_failures == 0 and s.down_since is None
     assert s.status in ("ok", "degraded") and s.last_success_at is not None
+
+
+async def test_long_outage_is_rechecked_hourly_and_banner_clears(db, monkeypatch, client, analyst_headers):
+    """Sputnik Кыргызстан ssenariysi: DNS xatosi → timeout'lar → 503 (soatlab). Kutish 1 soatdan oshmaydi (avval
+    6 soatgacha o'sardi — sayt tiklangach ham banner soatlab "ishlamayapti · qayta urinish 2 soatdan keyin" edi);
+    sayt tiklangan zahoti manba ishlaydi va banner yo'qoladi. Blok (403) esa uzoqroq kutadi."""
+    import socket
+
+    from app.services.connectors import http
+
+    s = await _source(db, name="Outage feed", interval_seconds=600)
+    blocked = await _source(db, name="Blocked feed", config={"url": "https://blocked.example/rss"}, interval_seconds=600)
+    mode = {"now": "dns"}
+
+    def handler(req):
+        if req.url.host == "blocked.example":
+            return httpx.Response(403, text="forbidden")
+        if mode["now"] == "timeout":
+            raise httpx.ConnectTimeout("timed out", request=req)
+        if mode["now"] == "503":
+            return httpx.Response(503, text="Service Unavailable")
+        return httpx.Response(200, content=rss([("Back", "https://feed.example/back", ago(minutes=5))]),
+                              headers={"content-type": "application/rss+xml"})
+
+    def resolver(host):
+        if mode["now"] == "dns" and host == "feed.example":
+            raise socket.gaierror(-2, "Name or service not known")
+        return ["93.184.216.34"]
+
+    use_transport(monkeypatch, handler)
+    monkeypatch.setattr(http, "RESOLVER", resolver)
+    waits = []
+    for step in ["dns", "timeout", "timeout", "timeout", "503", "503", "503", "503"]:
+        mode["now"] = step
+        r = await scheduler.run_source(s.id)
+        s = await _reload(db, s)
+        assert not r.ok
+        waits.append((s.next_run_at - s.last_check_at).total_seconds())
+    assert s.status == "down" and s.consecutive_failures == 8 and s.last_http_status == 503
+    assert max(waits) <= scheduler.DOWN_MAX_BACKOFF and min(waits[3:]) >= 0.8 * scheduler.DOWN_MAX_BACKOFF
+    body = (await client.get("/api/events/status", headers=analyst_headers)).json()
+    assert body["failing_total"] == 1 and body["failing"][0]["name"] == "Outage feed"
+
+    for _ in range(4):
+        await scheduler.run_source(blocked.id)
+    blocked = await _reload(db, blocked)
+    assert blocked.status == "blocked"
+    assert (blocked.next_run_at - blocked.last_check_at).total_seconds() > scheduler.DOWN_MAX_BACKOFF
+
+    mode["now"] = "ok"
+    r = await scheduler.run_source(s.id)
+    s = await _reload(db, s)
+    assert r.ok and r.new == 1 and s.down_since is None and s.status in ("ok", "degraded")
+    body = (await client.get("/api/events/status", headers=analyst_headers)).json()
+    assert [f["name"] for f in body["failing"]] == ["Blocked feed"]
 
 
 @pytest.mark.parametrize("response,expected_status,expected_outcome", [

@@ -6,7 +6,7 @@
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da).
 GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi talabi bilan; `main` o'zgarmagan). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-18
+**Oxirgi yangilanish:** 2026-11-19
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -58,6 +58,21 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 # frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### "Sputnik Кыргызстан — ishlamayapti: HTTP 503 · qayta urinish 2 soatdan keyin" banneri (2026-11-19)
+- Sabab: saytning o'zida haqiqiy uzilish — 2026-11-18 22:48 UTC dan DNS xatosi → 3 marta timeout → 503 (kamida
+  04:28 gacha; 24.kg ham tunda 7 marta 503 bergan — Qirg'iziston saytlari, bizning tarmoq joyida edi). Sayt ertalab
+  tiklangan, lekin backoff `interval × 2^(xatolar−1)` 6 soatgacha o'sgan (oxirgi kutish 16 999 s ≈ 4,7 soat) —
+  tiklangan sayt soatlab "ishlamayapti" bo'lib turdi.
+- Tuzatish (`scheduler.py`): `backoff_cap()` — sayt shunchaki ishlamasa (timeout, DNS, 5xx) kutish ≤ 1 soat
+  (`DOWN_MAX_BACKOFF`; soatiga ≤ 1 so'rov), blok / limit (403, 429, CAPTCHA) — avvalgidek ≤ 6 soat va Retry-After;
+  ikkalasi ham manbaning o'z intervalidan tez emas (6 soatlik manba — 6 soatda). Uzilish tugagach manba ≤ 1 soatda
+  qayta tekshiriladi va banner o'zi yo'qoladi.
+- Jonli: Sputnik Кыргызстан darhol qayta tekshirildi — 200, `degraded` (oxirgi 10 urinishda xatolar bor; banner'da
+  yo'q), `failing_total = 0`. Manba `cyber_filter` li (kuniga 0–1 hodisa) — tiklanishda yangi hodisa yo'qligi normal,
+  RSS arxivi (100 ta) uzilish oralig'ini qamraydi. Testlar: `test_scheduler.py` (+2: chegara qoidasi; DNS → timeout →
+  503 × 4 ssenariysi — har kutish ≤ 1 soat, banner'da ko'rinadi, tiklanganda yo'qoladi, 403 esa uzoqroq kutadi;
+  eski 6 soatlik chegara bilan test yiqiladi — 21 383 s).
 
 ### "BleepingComputer — so'rovlar cheklangan (HTTP 429)" banneri (2026-11-18)
 - Sabab: manba `google_news` turi — saytning o'zi emas, Google News RSS so'raladi; 7 ta Google News manbasi bitta
