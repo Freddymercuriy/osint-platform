@@ -16,6 +16,9 @@
                                    └───────────────────┘
 ```
 
+Fon yig'uvchining `.onion` manbalari (`onion_feed`) faqat compose ichidagi `tor` konteyneri (SOCKS5, `socks5h://tor:9050`)
+orqali boradi; Tor mijozi faqat `.onion` xostlarga so'rov yuboradi, oddiy mijoz `.onion` ni DNS'ga ham so'ramaydi.
+
 ## Backend qatlamlari (`backend/app/`)
 
 - `main.py` — FastAPI ilovasi, CORS, router'larni ulash

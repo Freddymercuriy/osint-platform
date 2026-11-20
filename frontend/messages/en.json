@@ -552,7 +552,8 @@
     "news": "News",
     "telegram_channel": "Telegram channel",
     "telegram_group": "Telegram group",
-    "api": "Threat-intel API"
+    "api": "Threat-intel API",
+    "forum": "Dark web forum"
   },
   "checks": {
     "modules": {

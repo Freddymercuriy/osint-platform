@@ -124,7 +124,7 @@ async def list_events(
     severity: list[str] | None = Query(None),
     band: list[str] | None = Query(None, description="Ustuvorlik bandi: low | medium | high | critical"),
     country: list[str] | None = Query(None, description="UZ, KZ, KG, TJ, TM"),
-    channel: list[str] | None = Query(None, description="news | telegram_channel | telegram_group | api"),
+    channel: list[str] | None = Query(None, description="news | telegram_channel | telegram_group | api | forum"),
     source: list[str] | None = Query(None, description="Manba ID yoki nomi"),
     scope: str | None = Query(None, pattern="^(regional|global|all)$", description="Standart: regional"),
     source_lang: list[str] | None = Query(None, description="Asl til filtri (en, ru, uz, kk ...)"),

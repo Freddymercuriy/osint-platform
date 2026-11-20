@@ -43,6 +43,7 @@ def use_transport(monkeypatch, handler: Callable[[httpx.Request], httpx.Response
 
     monkeypatch.setattr(scheduler, "HTTP_TRANSPORT", httpx.MockTransport(_h))
     monkeypatch.setattr(scheduler.state, "_http", None)
+    monkeypatch.setattr(scheduler.state, "_tor_http", None)
     monkeypatch.setattr(http, "PAUSE_RANGE", (0.0, 0.0))
     monkeypatch.setattr(http, "RESOLVER", lambda host: ["127.0.0.1"] if host.startswith("internal") else ["93.184.216.34"])
     http.reset_gates()

@@ -115,6 +115,7 @@ Rules for every connector:
 - Fill the structured fields whenever the source provides them: `countries`, `actor` (the ransomware group), `sector`, CVE id, record count. Otherwise derive `countries` and `sector` from the keyword maps that already exist in `feeds.py` and `dedup.py`.
 - When ransomware.live and RansomLook report the same victim, keep one event and list both sources in `also_reported_by`. Do the same in the existing news de-duplication, so "reported by N sources" becomes a number the dashboard can use.
 - Do not crawl .onion sites, forums behind logins, or the contents of pastes and dumps. The aggregators above already publish the metadata this platform needs.
+  - Amendment (owner decision, 2026-11-20): one exception for `.onion` — the `onion_feed` connector reads guest-visible RSS feeds of admin-listed onion sites through Tor only, and keeps thread metadata only (title, link, time, section, author alias). Post bodies, files, images and thread pages are never fetched. Logins and forums behind logins remain out of scope. See `docs/connectors.md`.
 
 ### Phase 4 — Categories with CRUD and classification
 

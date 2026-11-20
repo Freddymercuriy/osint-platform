@@ -1,0 +1,12 @@
+# Faqat mijoz (client) rejimi: relay / exit / hidden service yo'q.
+SocksPort 0.0.0.0:9050
+# Faqat Docker ichki tarmoqlaridan (compose tarmog'i) — boshqa hech kim
+SocksPolicy accept 172.16.0.0/12
+SocksPolicy accept 10.0.0.0/8
+SocksPolicy accept 192.168.0.0/16
+SocksPolicy accept 127.0.0.1
+SocksPolicy reject *
+ClientOnly 1
+ExitRelay 0
+DataDirectory /var/lib/tor
+Log notice stdout

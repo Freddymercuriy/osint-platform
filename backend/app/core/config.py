@@ -134,6 +134,10 @@ class Settings(BaseSettings):
     # Oylik belgilar chegarasi; 0 — chegarasiz (o'z servisimiz, to'lov yo'q). Hisob statistika uchun baribir yuritiladi.
     translate_monthly_char_limit: int = 0
 
+    # Tor SOCKS proksi — faqat `onion_feed` manbalari (admin qo'shgan .onion saytlar) uchun. docker-compose:
+    # socks5h://tor:9050 ("h" — xost nomini Tor o'zi resolve qiladi). Bo'sh — bunday manbalar "auth_missing".
+    tor_proxy_url: str = ""
+
     @property
     def is_development(self) -> bool:
         return self.environment.lower() in ("development", "dev", "local", "test")

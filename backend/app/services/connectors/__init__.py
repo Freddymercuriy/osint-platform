@@ -9,6 +9,7 @@ from app.services.connectors import (  # noqa: F401
     html_list,
     newsnow,
     nvd,
+    onion_feed,
     openphish,
     otx,
     ransomlook,

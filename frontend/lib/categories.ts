@@ -1,4 +1,4 @@
-import { Newspaper, Send, Server, Users, type LucideIcon } from "lucide-react";
+import { MessagesSquare, Newspaper, Send, Server, Users, type LucideIcon } from "lucide-react";
 
 /** Tone ranglari — `app/tones.css` (`.tone-<rang>`), kategoriya rangi bazadan (`categories.color`). */
 export const TONES = [
@@ -27,6 +27,7 @@ export const CHANNEL_META: Record<string, { tone: Tone; icon: LucideIcon }> = {
   telegram_channel: { tone: "sky", icon: Send },
   telegram_group: { tone: "violet", icon: Users },
   api: { tone: "teal", icon: Server },
+  forum: { tone: "rose", icon: MessagesSquare },
 };
 
 export const COUNTRIES = ["UZ", "KZ", "KG", "TJ", "TM"] as const;

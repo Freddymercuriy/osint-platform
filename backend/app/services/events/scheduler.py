@@ -106,6 +106,7 @@ class SchedulerState:
     _sem: asyncio.Semaphore | None = field(default=None, repr=False)
     _http: HttpFetcher | None = field(default=None, repr=False)
     _tr_http: HttpFetcher | None = field(default=None, repr=False)  # tarjima servisi uchun alohida mijoz
+    _tor_http: HttpFetcher | None = field(default=None, repr=False)  # .onion manbalar — faqat Tor orqali
     _media_task: asyncio.Task | None = field(default=None, repr=False)  # hodisa rasmlari (bittadan ortiq emas)
     _last_housekeeping: float = 0.0
 
@@ -117,6 +118,15 @@ def _http() -> HttpFetcher:
     if state._http is None:
         state._http = HttpFetcher.create(transport=HTTP_TRANSPORT)
     return state._http
+
+
+def _tor_http() -> HttpFetcher | None:
+    """Tor mijozi (TOR_PROXY_URL bo'lsa) — faqat .onion xostlarga so'rov yuboradi."""
+    if not settings.tor_proxy_url:
+        return None
+    if state._tor_http is None:
+        state._tor_http = HttpFetcher.create_tor(settings.tor_proxy_url, transport=HTTP_TRANSPORT)
+    return state._tor_http
 
 
 def _sem() -> asyncio.Semaphore:
@@ -170,12 +180,18 @@ async def _fetch(source_view: SourceView, connector, dry_run: bool) -> FetchResu
     env, key = api_key_for(source_view, connector)
     if connector.key == "required" and not key:
         raise AuthMissing(f"Kalit sozlanmagan: {env or '?'} (backend/.env)")
-    ctx = FetchContext(source=source_view, http=_http(), api_key=key, dry_run=dry_run)
+    tor = None
+    if connector.uses_tor:
+        tor = _tor_http()
+        if tor is None:
+            raise AuthMissing("Tor proksi sozlanmagan: TOR_PROXY_URL (docker-compose.yml yoki backend/.env)")
+    ctx = FetchContext(source=source_view, http=_http(), api_key=key, dry_run=dry_run, tor=tor)
     return await connector.fetch(ctx)
 
 
-def _health_after_success(source: Source, latency_ms: int, newest, now: datetime, failures_recent: int) -> str:
-    if latency_ms > SLOW_MS or failures_recent >= 3:
+def _health_after_success(source: Source, latency_ms: int, newest, now: datetime, failures_recent: int,
+                          slow_ms: int = SLOW_MS) -> str:
+    if latency_ms > slow_ms or failures_recent >= 3:
         return "degraded"
     stale_days = int((source.config or {}).get("stale_after_days") or STALE_DAYS)
     if newest is not None and newest < now - timedelta(days=stale_days):
@@ -231,7 +247,8 @@ async def run_source(source_id: int, *, manual: bool = False) -> RunSummary:
                 "select count(*) from (select ok from source_runs where source_id = :sid "
                 "order by started_at desc limit 10) t where not ok"
             ), {"sid": source_id}) or 0
-            source.status = _health_after_success(source, duration, source.newest_item_at, now, failures_recent)
+            source.status = _health_after_success(source, duration, source.newest_item_at, now, failures_recent,
+                                                  slow_ms=connector.slow_ms or SLOW_MS)
             source.consecutive_failures = 0
             source.down_since = None
             await resolve_alerts(db, source_id, now)
@@ -585,6 +602,9 @@ async def stop() -> None:
     if state._tr_http is not None:
         await state._tr_http.aclose()
         state._tr_http = None
+    if state._tor_http is not None:
+        await state._tor_http.aclose()
+        state._tor_http = None
     if state._media_task is not None:
         state._media_task.cancel()
         try:

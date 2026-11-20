@@ -552,7 +552,8 @@
     "news": "Новости",
     "telegram_channel": "Telegram-канал",
     "telegram_group": "Telegram-группа",
-    "api": "Threat-intel API"
+    "api": "Threat-intel API",
+    "forum": "Даркнет-форум"
   },
   "checks": {
     "modules": {

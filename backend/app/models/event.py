@@ -13,7 +13,7 @@ class EventRecord(Base):
     Faqat metadata va qisqa parcha saqlanadi — leak'ning o'zi (dump, PII, credential) saqlanmaydi.
 
     - `category` — kategoriya slug'i (denormalizatsiya; `category_id` bilan bir xil saqlanadi, slug o'zgarmaydi).
-    - `channel` — qayerdan kelgani: news | telegram_channel | telegram_group | api.
+    - `channel` — qayerdan kelgani: news | telegram_channel | telegram_group | api | forum (.onion forum lentasi).
     - `source` — manba nomi (manba o'chirilsa ham qoladi), `source_id` — manba yozuvi (SET NULL).
     - `also_reported_by` — shu voqeani yana xabar qilgan manbalar: [{"source": ..., "url": ..., "at": ...}].
     - `is_baseline` — manbaning birinchi (baseline) yig'ishidan: ogohlantirish bermaydi, "o'qilmagan" hisoblanmaydi.

@@ -33,7 +33,7 @@ hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / tel
 
 ## Ishga tushirish (dev)
 
-**1) Hammasi Docker'da (DB + backend + frontend production build):**
+**1) Hammasi Docker'da (DB + backend + frontend production build + Tor proksi):**
 ```bash
 cp backend/.env.example backend/.env
 # backend/.env: SECRET_KEY (python -c 'import secrets; print(secrets.token_hex(32))'), ADMIN_EMAILS, kalitlar (pastda)
@@ -42,6 +42,7 @@ docker-compose up -d --build           # yoki: docker compose up -d --build
 ```
 Backend konteyneri ishga tushganda migratsiyalarni o'zi qo'llaydi (`scripts/start.sh` → `alembic upgrade head`).
 Konteynerlarda `restart: unless-stopped` — kompyuter qayta yoqilganda o'zi ko'tariladi.
+`tor` xizmati — faqat `.onion` manbalar (`onion_feed`) uchun SOCKS proksi; hostga port ochmaydi.
 
 **2) Frontend'ni ishlab chiqish rejimida (hot reload, Node 20):**
 ```bash

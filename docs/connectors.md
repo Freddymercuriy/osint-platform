@@ -9,7 +9,12 @@ bo'yicha chaqiradi, natijani `services/events/pipeline.py` bazaga yozadi.
 - Faqat ochiq sahifalar, lentalar va **rasmiy API'lar**. Login devori, CAPTCHA yoki Cloudflare challenge chiqsa —
   chetlab o'tilmaydi (`SourceBlocked`). CAPTCHA yechuvchi, brauzer niqobi, proxy aylantirish, avtomatik login — yo'q.
 - Faqat **metadata**: kim, nima, qachon, qaysi guruh, havola. Sizib chiqqan fayl, parol/credential, shaxsiy ma'lumot
-  yuklanmaydi va saqlanmaydi. `.onion` va login talab qiladigan forumlar o'qilmaydi.
+  yuklanmaydi va saqlanmaydi. Login talab qiladigan forumlar o'qilmaydi.
+- `.onion` — **faqat `onion_feed` ulagichi** (egasi qarori, 2026-11-20): faqat admin qo'shgan manbalar (ro'yxat —
+  `sources` jadvali), faqat Tor orqali (`ctx.tor`, `TOR_PROXY_URL`, docker-compose `tor` xizmati), faqat v3 manzil
+  va faqat mehmonga ochiq RSS / Atom lentalari. Olinadi: mavzu sarlavhasi, havola, vaqt, bo'lim, muallif taxallusi.
+  Olinmaydi: post matni, fayllar, rasmlar, mavzu sahifalari; Doxes kabi xususiy shaxslar bo'limlari qo'shilmaydi.
+  Tor mijozi faqat `.onion` xostlarga (redirect ham), oddiy mijoz `.onion` ni DNS'ga ham so'ramaydi.
 - Kalit faqat muhitda (`backend/.env`), bazada — o'zgaruvchi NOMI (`sources.api_key_env`). Kalit logga, xatoga,
   `extra` ga yozilmaydi.
 - Ishlatishdan oldin API'ning **joriy hujjatini** oching: endpoint, autentifikatsiya, limitlar, javob shakli.
@@ -45,6 +50,8 @@ class MyConnector(Connector):
 - `ctx.http.get/post(url, *, headers, params, json, etag, last_modified, allow_not_modified, expect_html)` —
   bir xostga bittadan so'rov + pauza, SSRF tekshiruvi; 401 → `AuthMissing`, 403/challenge → `SourceBlocked`,
   429/503+Retry-After → `RateLimited`, boshqa ≥400 → `ConnectorError`. Ulagich o'zi `httpx` mijozi ochmaydi.
+- `ctx.tor` — Tor mijozi (xuddi `ctx.http` interfeysi), faqat `uses_tor = True` ulagichlarga; `TOR_PROXY_URL`
+  bo'lmasa manba `auth_missing`. `slow_ms` — "sekin" (degraded) chegarasi, standart 15 s (Tor manbasi — 180 s).
 - `FetchResult.state` — kursor (masalan oxirgi ko'rilgan ID/sana); `None` — o'zgarmaydi. Keyingi chaqiruvda
   `ctx.source.state` da keladi. Birinchi chaqiruvda (`state` bo'sh) `backfill_days` oynasini oling.
 - `RawItem` maydonlari: `title`, `url` (faqat http/https — boshqasi tashlanadi), `summary` (qisqa, ≤ 600 belgi),

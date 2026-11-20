@@ -25,7 +25,7 @@ class RawItem:
     lang: str | None = None  # None → manba tili
     source_name: str | None = None  # ko'rsatiladigan manba nomi (masalan "Reuters (Google News)"); None → manba nomi
     category: str | None = None  # ulagich aniq bilgan kategoriya slug'i (ransomware ...); None → manba / klassifikator
-    channel: str = "news"  # news | telegram_channel | telegram_group | api
+    channel: str = "news"  # news | telegram_channel | telegram_group | api | forum
     scope: str | None = None  # None → manba scope'i
     severity: str | None = None  # ulagich ko'targan daraja (kategoriyadan yuqori bo'lsa)
     countries: list[str] = field(default_factory=list)
@@ -114,6 +114,7 @@ class FetchContext:
     http: HttpFetcher
     api_key: str | None = None
     dry_run: bool = False
+    tor: HttpFetcher | None = None  # faqat `uses_tor` ulagichlariga (TOR_PROXY_URL); faqat .onion xostlarga
 
 
 class Connector:
@@ -124,6 +125,10 @@ class Connector:
     default_key_env: ClassVar[str | None] = None
     config_fields: ClassVar[tuple[str, ...]] = ()  # config'dagi asosiy maydonlar (admin formasi uchun)
     uses_http: ClassVar[bool] = True
+    # Tor mijozi kerak (`ctx.tor`): TOR_PROXY_URL bo'lmasa manba "auth_missing" bo'ladi
+    uses_tor: ClassVar[bool] = False
+    # Bitta yig'ish shundan uzoq davom etsa "degraded" (None — umumiy SLOW_MS; Tor manbalari tabiatan sekin)
+    slow_ms: ClassVar[int | None] = None
 
     def validate_config(self, config: dict[str, Any]) -> None:
         """Noto'g'ri sozlama bo'lsa ConfigError."""

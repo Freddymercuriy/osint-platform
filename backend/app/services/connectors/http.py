@@ -12,6 +12,9 @@ SSRF himoyasi.
   boshqa ichki manzillarga so'rov yuborilmaydi (admin kiritgan URL server ichkarisiga yo'l bo'lmasligi uchun).
 
 User-Agent ochiq aytadi: bu platformaning o'quvchisi (brauzerga o'xshatilmaydi).
+
+Tor (`HttpFetcher.create_tor`) — alohida mijoz, faqat `.onion` (v3) xostlarga, redirect'lar ham tekshiriladi:
+oddiy saytlar Tor chiqish tugunlari orqali so'ralmaydi, `.onion` esa oddiy mijozda (DNS'ga ham) hech qachon.
 """
 
 from __future__ import annotations
@@ -19,6 +22,7 @@ from __future__ import annotations
 import asyncio
 import ipaddress
 import random
+import re
 import socket
 import time
 from contextvars import ContextVar
@@ -44,6 +48,10 @@ MAX_BYTES = 25 * 1024 * 1024
 PAUSE_RANGE: tuple[float, float] = (1.0, 4.0)
 HOST_PAUSE_RANGE: dict[str, tuple[float, float]] = {"news.google.com": (20.0, 40.0)}
 RATE_LIMIT_COOLDOWN: tuple[float, float] = (90.0, 300.0)  # 429 dan keyin xostga: kamida / ko'pi bilan (Retry-After bilan)
+# Tor: zanjir qurish + yashirin servis sekin (bitta so'rov 2–25 s); yashirin saytga so'rovlar orasida uzunroq pauza
+ONION_TIMEOUT = httpx.Timeout(90.0, connect=60.0)
+ONION_PAUSE_RANGE: tuple[float, float] = (5.0, 15.0)
+_ONION_HOST = re.compile(r"(?:[a-z0-9-]+\.)*[a-z2-7]{56}\.onion")  # faqat v3 manzil (v2 — 2021 dan ishlamaydi)
 # Joriy vazifa (masalan bitta manba yig'ilishi) xost navbatida kutgan soniyalar — [jami]; None — sanalmaydi
 GATE_WAIT: ContextVar[list[float] | None] = ContextVar("gate_wait", default=None)
 
@@ -86,6 +94,9 @@ async def assert_public_url(url: str) -> None:
     if parts.scheme not in ("http", "https") or not parts.hostname:
         raise BlockedAddress(f"Faqat http(s) URL ruxsat etilgan: {url[:120]}")
     host = parts.hostname
+    if host.lower().rstrip(".").endswith(".onion"):
+        # Oddiy mijoz .onion'ni DNS'ga ham so'ramaydi (manzil tizim resolveriga sizmasin) — faqat Tor mijozi
+        raise BlockedAddress(f".onion manzil faqat Tor orqali (onion_feed): {host[:80]}")
     cached = _dns_cache.get(host)
     if cached and cached[1] > time.monotonic():
         ips = cached[0]
@@ -101,6 +112,12 @@ async def assert_public_url(url: str) -> None:
     bad = [ip for ip in ips if not _is_public(ip)]
     if bad:
         raise BlockedAddress(f"Ichki/xususiy manzil taqiqlangan: {host} → {', '.join(sorted(bad))}")
+
+
+def is_onion_url(url: str) -> bool:
+    """http(s) va xost — v3 .onion manzil (yoki uning subdomeni)."""
+    parts = urlsplit(url)
+    return parts.scheme in ("http", "https") and bool(_ONION_HOST.fullmatch((parts.hostname or "").lower()))
 
 
 def _is_ip(host: str) -> bool:
@@ -233,6 +250,30 @@ class HttpFetcher:
         holder["self"] = fetcher
         return fetcher
 
+    @classmethod
+    def create_tor(cls, proxy_url: str, transport: httpx.AsyncBaseTransport | None = None) -> HttpFetcher:
+        """Tor SOCKS proksi orqali mijoz — faqat .onion (v3) xostlarga, har so'rov va redirect'da tekshiriladi.
+
+        `transport` (testlar) berilsa proksi ishlatilmaydi. Muhitdagi HTTP(S)_PROXY hisobga olinmaydi
+        (`trust_env=False`) — so'rov Tor'dan boshqa yo'l bilan ketmasin.
+        """
+
+        async def _onion_only(request: httpx.Request) -> None:
+            if not is_onion_url(str(request.url)):
+                raise BlockedAddress(f"Tor mijozi faqat .onion manzillarga: {(request.url.host or '?')[:80]}")
+
+        client = httpx.AsyncClient(
+            timeout=ONION_TIMEOUT,
+            headers={"User-Agent": USER_AGENT, "Accept-Encoding": "gzip, deflate"},
+            follow_redirects=True,
+            max_redirects=5,
+            proxy=None if transport is not None else proxy_url,
+            transport=transport,
+            trust_env=False,
+            event_hooks={"request": [_onion_only]},
+        )
+        return cls(client, ssrf_guard=False)
+
     async def aclose(self) -> None:
         await self.client.aclose()
 
@@ -275,6 +316,8 @@ class HttpFetcher:
                 lo, hi = PAUSE_RANGE if self.pause_range is None else self.pause_range
                 if polite and host in HOST_PAUSE_RANGE:
                     lo, hi = HOST_PAUSE_RANGE[host]
+                elif polite and host.endswith(".onion"):
+                    lo, hi = ONION_PAUSE_RANGE
                 gate.ready_at = time.monotonic() + (random.uniform(lo, hi) if hi > 0 else 0)
             if polite and resp.status_code == 429:  # xost cheklov qo'ydi — boshqa manbalar ham darhol urinmasin
                 asked = parse_retry_after(resp.headers.get("retry-after")) or 0.0

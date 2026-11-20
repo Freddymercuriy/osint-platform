@@ -76,7 +76,7 @@ export function useLabels() {
       if (key === NONE) return t("unspecified");
       if (dim === "category") return bySlug(key).name;
       if (dim === "country" && ["UZ", "KZ", "KG", "TJ", "TM"].includes(key)) return tco(key);
-      if (dim === "channel" && ["news", "telegram_channel", "telegram_group", "api"].includes(key)) return tch(key);
+      if (dim === "channel" && ["news", "telegram_channel", "telegram_group", "api", "forum"].includes(key)) return tch(key);
       if (dim === "severity" && (SEVERITY_ORDER as readonly string[]).includes(key)) return tsev(key);
       if (dim === "sector" && t.has(`sector.${key}`)) return t(`sector.${key}`);
       return key;

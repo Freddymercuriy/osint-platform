@@ -38,7 +38,8 @@ async def test_seed_categories_and_sources(db):
             "vulnerability", "ddos-outage", "defacement", "espionage", "law-enforcement", "advisory",
             "research", "other"} == set(slugs)
     n = await db.scalar(select(func.count(Source.id)))
-    assert n == 63 + 15 + 1  # v1 FEEDS + Bosqich 3 (0007) + NewsNow (0012); testda TG_CHATS bo'sh — yagona Telegram manbasi
+    # v1 FEEDS + Bosqich 3 (0007) + NewsNow (0012) + DarkForums (0024); testda TG_CHATS bo'sh — yagona Telegram manbasi
+    assert n == 63 + 15 + 1 + 1
     rl = await db.scalar(select(Source).where(Source.name == "ransomware.live"))
     assert rl.kind == "ransomware_live" and rl.config["countries"] == ["UZ", "KZ", "KG", "TJ", "TM"]
     assert rl.interval_seconds == 900 and rl.status == "never_run"

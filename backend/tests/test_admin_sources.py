@@ -134,7 +134,7 @@ async def test_run_now_and_history(client, admin_headers, monkeypatch):
 
 async def test_export_import_roundtrip(client, admin_headers):
     exp = (await client.get("/api/admin/sources/export", headers=admin_headers)).json()
-    assert exp["format"] == "osint-sources" and len(exp["sources"]) == 79
+    assert exp["format"] == "osint-sources" and len(exp["sources"]) == 80
     assert all("status" not in s and "etag" not in s for s in exp["sources"])
     item = dict(exp["sources"][0])
     item["interval_seconds"] = 4321
@@ -148,7 +148,7 @@ async def test_export_import_roundtrip(client, admin_headers):
 async def test_collector_status(client, admin_headers):
     r = await client.get("/api/admin/collector", headers=admin_headers)
     body = r.json()
-    assert r.status_code == 200 and body["sources_total"] == 79
+    assert r.status_code == 200 and body["sources_total"] == 80
     assert body["by_status"]["auth_missing"] == 5 and body["by_status"]["blocked"] == 2
 
 

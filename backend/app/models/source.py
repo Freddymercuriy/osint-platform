@@ -19,7 +19,7 @@ from app.core.db import Base
 
 SOURCE_STATUSES = ("ok", "degraded", "down", "blocked", "auth_missing", "disabled", "never_run")
 SCOPES = ("regional", "global")
-CHANNELS = ("news", "telegram_channel", "telegram_group", "api")
+CHANNELS = ("news", "telegram_channel", "telegram_group", "api", "forum")
 
 
 class Source(Base):

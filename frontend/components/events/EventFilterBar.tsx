@@ -14,7 +14,7 @@ import { cn } from "@/lib/cn";
 export type Scope = NonNullable<EventFilters["scope"]>;
 export const SCOPES: Scope[] = ["regional", "global", "all"];
 const COUNTRIES = ["UZ", "KZ", "KG", "TJ", "TM"];
-const CHANNELS = ["news", "telegram_channel", "telegram_group", "api"];
+const CHANNELS = ["news", "telegram_channel", "telegram_group", "api", "forum"];
 const SEVERITIES = ["critical", "high", "medium", "low", "info"];
 // Tez davrlar — nisbiy, hozirdan orqaga soat aniqligida (`range`), kalendar kuni emas
 const PRESETS = [

@@ -46,7 +46,7 @@ export function DashboardFilters({
   const opts: Record<Dim, Option[]> = {
     category: categories.map((c) => ({ value: c.slug, label: c.name, count: c.event_count })),
     country: ["UZ", "KZ", "KG", "TJ", "TM"].map((c) => ({ value: c, label: tco(c), count: count(facets?.countries, c) })),
-    channel: ["news", "telegram_channel", "telegram_group", "api"].map((c) => ({ value: c, label: tch(c), count: count(facets?.channels, c) })),
+    channel: ["news", "telegram_channel", "telegram_group", "api", "forum"].map((c) => ({ value: c, label: tch(c), count: count(facets?.channels, c) })),
     source: (facets?.sources ?? []).map((s) => ({ value: s.label ?? s.value, label: s.label ?? s.value, count: s.count })),
     severity: ["critical", "high", "medium", "low", "info"].map((c) => ({ value: c, label: tsev(c), count: count(facets?.severities, c) })),
   };

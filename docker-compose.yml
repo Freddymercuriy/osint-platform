@@ -31,15 +31,27 @@ services:
       - ./backend/.env
     environment:
       DATABASE_URL: postgresql+asyncpg://osint:osint@db:5432/osint
+      # .onion manbalar (onion_html) faqat shu proksi orqali; bo'sh bo'lsa ular "auth_missing" bo'lib turadi
+      TOR_PROXY_URL: socks5h://tor:9050
     depends_on:
       db:
         condition: service_healthy
+      tor:
+        condition: service_started
     ports:
       # Barcha interfeyslarda: localhost va LAN (http://<LAN-IP>:8000). ⚠️ Docker chiqargan portlar ufw'ni chetlab
       # o'tadi — faqat shu kompyuterdan kerak bo'lsa "127.0.0.1:8000:8000". DB porti faqat shu kompyuterda qoladi.
       - "0.0.0.0:8000:8000"
     volumes:
       - ./backend:/app
+
+  # Tor SOCKS proksi — faqat admin qo'shgan .onion manbalar uchun (onion_html ulagichi). ports: YO'Q — hostga,
+  # LAN'ga ochilmaydi; faqat compose tarmog'idagi backend ulanadi (torrc: SocksPolicy — faqat ichki tarmoqlar).
+  tor:
+    build: ./tor
+    restart: unless-stopped
+    volumes:
+      - tor-data:/var/lib/tor
 
   # Frontend — production build (next build, standalone). Ishlab chiqishda: docker-compose stop frontend &&
   # (cd frontend && npm run dev); tugagach: docker-compose start frontend.
@@ -56,3 +68,4 @@ services:
 
 volumes:
   postgres-data:
+  tor-data:

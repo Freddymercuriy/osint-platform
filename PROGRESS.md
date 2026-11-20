@@ -6,7 +6,7 @@
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da).
 GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi talabi bilan; `main` o'zgarmagan). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-19
+**Oxirgi yangilanish:** 2026-11-20
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -32,7 +32,7 @@ GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi ta
 
 ### Ishga tushirish (shu kompyuterda)
 ```bash
-docker-compose up -d                      # db + backend + frontend (production build); restart: unless-stopped —
+docker-compose up -d                      # db + backend + frontend (production build) + tor; restart: unless-stopped —
                                           # kompyuter qayta yoqilganda o'zi ko'tariladi. http://localhost:3000
 # backend kodi o'zgarsa: docker-compose restart backend  (uvicorn --reload yo'q)
 # frontend ishlab chiqish (hot reload): docker-compose stop frontend && (cd frontend && npm run dev)
@@ -58,6 +58,39 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 # frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### DarkForums (.onion) — Tor orqali yig'ish, `onion_feed` ulagichi (2026-11-20)
+- Egasi talabi: *"darkfox...onion — tor orqali kiradigan qilib ber, bundagi ma'lumotlarni ham yig'aylik"*. Qoida
+  ".onion o'qilmaydi" edi — egasi tanlovi: **umumiy Tor ulagichi + ro'yxat** (faqat admin qo'shgan .onion manbalar) va
+  **faqat kiber bo'limlar, Global**. Qoida yangilandi: `docs/connectors.md`, `docs/upgrade-v2-spec.md` (amendment).
+- Sayt — bozor emas, **DarkForums** (MyBB, ma'lumotlar sizishi forumi). Mehmonga ochiq, login / CAPTCHA yo'q;
+  `syndication.php?fid=...` RSS lentalari ishlaydi (bo'lim raqamlari — `misc.php?action=syndication`).
+- **Tor**: `tor/` (alpine + tor, faqat mijoz, `SocksPolicy` — faqat ichki tarmoqlar), compose xizmati `tor`
+  (ports yo'q — hostga / LAN'ga ochilmaydi), backend'da `TOR_PROXY_URL=socks5h://tor:9050`; `httpx[socks]`.
+  `HttpFetcher.create_tor` — faqat v3 `.onion` xostlarga (redirect ham tekshiriladi, `trust_env=False`); oddiy
+  mijoz `.onion` ni DNS'ga ham so'ramaydi (`assert_public_url` → `BlockedAddress`). `.onion` ga pauza 5–15 s.
+- **Ulagich** `onion_feed` (`connectors/onion_feed.py`): config `feeds` [{url, category, section}], `site`,
+  `repost_memory`. Faqat metadata — sarlavha, havola, vaqt, bo'lim, muallif taxallusi (`actor`); summary —
+  "DarkForums · bo'lim" (post matni / namuna / fayl olinmaydi). Lenta o'rniga HTML (login / challenge) →
+  `SourceBlocked`, chetlab o'tilmaydi. Bitta lenta yiqilsa qolganlari yig'iladi. Qayta e'lon qilingan spam
+  (sarlavha bir xil, havola boshqa) — `state.seen` (normallashgan sarlavha xeshi). `TOR_PROXY_URL` yo'q →
+  `auth_missing`. "Sekin" chegarasi — 180 s (`Connector.slow_ms`). Yangi hodisa kanali **`forum`**
+  (Events / dashboard filtrlarida "Darknet forum", 4 til).
+- **Manba** (migratsiya `0024_onion_forum_source`; zaxira: `~/osint-backups/osint-pre-onion-20261120-084633.sql`):
+  "DarkForums (Tor)", 30 daq, backfill 3 kun, `global`, `underground`, 5 so'rov: leak (Databases, Premium
+  Databases, Other Leaks, Premium Other Leaks, Source Codes), credentials (Stealer Logs, Cracked Accounts),
+  darkweb-sale (Leaks Market, Access Market), fraud (Sellers Place), hacking (Malware, Exploits — klassifikator).
+  Ataylab yo'q: Doxes (xususiy shaxslar), Combolists, o'yinlar, lounge. Hajm (o'lchandi): ~55–60 mavzu / kun.
+  Markaziy Osiyo tilga olinsa — mintaqaviy lentaga (pipeline `region_hits`). Kanalga: "osint" kanali faqat
+  regional; underground_only → `awaiting_approval` (avtomatik ketmaydi). Rasm — faqat illyustratsiya.
+- **Jonli:** birinchi yig'ish 04:16 UTC — `ok`, 219 mavzu → 101 yangi (baseline: leak 46, darkweb-sale 24,
+  credentials 16, fraud 15; hammasi global — 3 kunda Markaziy Osiyo yo'q), 12,9 s (pauzalarsiz); summary'larda
+  email / parol yo'q; illyustratsiyalar `generated`, `source_url` bo'sh.
+- Testlar: `test_connector_onion_feed.py` (17: faqat metadata, qayta e'lon xotirasi, dry-run, HTML / CAPTCHA →
+  blocked, qisman xato, config (v2 / clearnet / boshqa xost), Tor mijozi clearnet'ga va redirect'ga yo'q, oddiy
+  mijoz .onion'ni resolve qilmaydi, proksi sozlamasi, seed manba + scheduler: auth_missing → ok, takrorsiz).
+  Fixture sintetik (haqiqiy forum matni git'da yo'q). Seed soni 79 → 80. Frontend: typecheck, i18n 977 × 4.
+- Boshqa .onion forum qo'shish: admin → Manbalar → tur `onion_feed`, `feeds` da faqat bitta v3 .onion xost.
 
 ### "Sputnik Кыргызстан — ishlamayapti: HTTP 503 · qayta urinish 2 soatdan keyin" banneri (2026-11-19)
 - Sabab: saytning o'zida haqiqiy uzilish — 2026-11-18 22:48 UTC dan DNS xatosi → 3 marta timeout → 503 (kamida
