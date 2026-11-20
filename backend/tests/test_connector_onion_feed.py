@@ -7,6 +7,7 @@ javobdan); sarlavha, muallif, manzil va post matni o'ylab topilgan (haqiqiy foru
 from __future__ import annotations
 
 import re
+from datetime import UTC, datetime, timedelta
 from email.utils import format_datetime
 
 import httpx
@@ -25,6 +26,7 @@ from app.services.connectors.base import (
     SourceView,
 )
 from app.services.connectors.http import BlockedAddress, HttpFetcher, assert_public_url, is_onion_url
+from app.services.connectors import onion_feed
 from app.services.connectors.onion_feed import OnionFeedConnector, title_key
 from app.services.events import scheduler
 from tests.helpers import ago, fixture_bytes, use_transport
@@ -101,6 +103,93 @@ async def test_dry_run_ignores_and_keeps_state():
     assert len(res.items) == 3 and res.state is None
 
 
+# ---------------------------------------------------------------- bloklanmaslik qoidalari
+def _feeds(n: int, every: list[int] | None = None) -> dict:
+    every = every or [0] * n
+    return {"site": "TestForums", "feeds": [
+        {"url": f"http://{HOST}/syndication.php?fid={i + 1}&limit=20", "category": "leak", "section": f"S{i}",
+         "every_minutes": every[i]} for i in range(n)]}
+
+
+def _counting():
+    calls: list[str] = []
+
+    def handler(req):
+        calls.append(str(req.url))
+        return _feed()
+
+    return calls, handler
+
+
+async def test_each_feed_runs_on_its_own_schedule(monkeypatch):
+    t0 = datetime(2026, 11, 20, 6, 0, tzinfo=UTC)
+    clock = {"now": t0}
+    monkeypatch.setattr(onion_feed, "_now", lambda: clock["now"])
+    cfg = _feeds(3, every=[0, 120, 720])
+    calls, handler = _counting()
+
+    first = await OnionFeedConnector().fetch(_ctx(handler, config=cfg))
+    assert len(calls) == 3 and first.note == "lentalar: 3/3"  # birinchi marta — hammasi
+    state = first.state
+    for minutes, expected in [(55, ["fid=1"]), (100, ["fid=1", "fid=2"]), (600, ["fid=1", "fid=2", "fid=3"])]:
+        calls.clear()
+        clock["now"] = t0 + timedelta(minutes=minutes)
+        res = await OnionFeedConnector().fetch(_ctx(handler, config=cfg, state=state))
+        assert [re.search(r"fid=\d+", c).group(0) for c in calls] == expected, minutes
+        state = res.state
+    # 55-daqiqada: 2 va 3-lenta navbatda emas — izohda ko'rinadi
+    clock["now"] = t0 + timedelta(minutes=655)
+    calls.clear()
+    res = await OnionFeedConnector().fetch(_ctx(handler, config=cfg, state=state))
+    assert len(calls) == 1 and res.note == "lentalar: 1/3 (qolganlari hali navbatda emas)"
+
+
+async def test_daily_request_cap_is_hard_and_resets_next_day(monkeypatch):
+    t0 = datetime(2026, 11, 20, 23, 0, tzinfo=UTC)
+    clock = {"now": t0}
+    monkeypatch.setattr(onion_feed, "_now", lambda: clock["now"])
+    cfg = {**_feeds(3), "max_requests_per_day": 4}
+    calls, handler = _counting()
+
+    first = await OnionFeedConnector().fetch(_ctx(handler, config=cfg))
+    assert len(calls) == 3 and first.state["budget"] == {"day": "2026-11-20", "count": 3}
+    calls.clear()
+    second = await OnionFeedConnector().fetch(_ctx(handler, config=cfg, state=first.state))
+    assert len(calls) == 1 and "kunlik so'rov limiti (4)" in second.note  # xato emas, qolgani ertaga
+    calls.clear()
+    third = await OnionFeedConnector().fetch(_ctx(handler, config=cfg, state=second.state))
+    assert calls == [] and third.items == [] and third.state["budget"]["count"] == 4
+    clock["now"] = t0 + timedelta(hours=2)  # yangi UTC kuni
+    calls.clear()
+    fourth = await OnionFeedConnector().fetch(_ctx(handler, config=cfg, state=third.state))
+    assert len(calls) == 3 and fourth.state["budget"] == {"day": "2026-11-21", "count": 3}
+
+
+async def test_dry_run_asks_only_the_first_feed():
+    calls, handler = _counting()
+    res = await OnionFeedConnector().fetch(_ctx(handler, config=_feeds(4), dry_run=True))
+    assert len(calls) == 1 and "fid=1" in calls[0] and res.state is None and res.note == "lentalar: 1/4 (qolganlari hali navbatda emas)"
+
+
+@pytest.mark.parametrize("code, headers", [(429, {"retry-after": "600"}), (403, {})])
+async def test_block_signal_stops_all_feeds_at_once(code, headers):
+    calls: list[str] = []
+
+    def handler(req):
+        calls.append(str(req.url))
+        return httpx.Response(code, headers=headers)
+
+    with pytest.raises(SourceBlocked):
+        await OnionFeedConnector().fetch(_ctx(handler, config=_feeds(4)))
+    assert len(calls) == 1  # birinchi blok belgisidan keyin qolgan 3 lenta so'ralmadi
+
+
+def test_honest_client_no_disguise():
+    tor = HttpFetcher.create_tor("socks5h://tor:9050")
+    assert "OSINT-Platform" in tor.client.headers["user-agent"]  # brauzerga o'xshatilmaydi
+    assert http_mod.ONION_PAUSE_RANGE[0] >= 10
+
+
 async def test_html_instead_of_feed_is_blocked_not_bypassed():
     login = b"<html><body><form action='member.php'>Please login</form></body></html>"
     ctx = _ctx(lambda r: httpx.Response(200, content=login, headers={"content-type": "text/html"}))
@@ -141,6 +230,9 @@ async def test_one_feed_failing_keeps_the_others():
     ({"feeds": [{"url": FEED}, {"url": "http://" + "b" * 56 + ".onion/rss"}]}, "bitta"),
     ({"feeds": [{"url": FEED, "category": "Leak!"}]}, "category"),
     ({"feeds": [{"url": FEED}], "repost_memory": -1}, "repost_memory"),
+    ({"feeds": [{"url": FEED, "every_minutes": -5}]}, "every_minutes"),
+    ({"feeds": [{"url": FEED}], "max_requests_per_day": 0}, "max_requests_per_day"),
+    ({"feeds": [{"url": FEED}], "max_requests_per_day": 10_000}, "max_requests_per_day"),
 ])
 def test_config_validation(config, match):
     with pytest.raises(ConfigError, match=match):
@@ -205,14 +297,17 @@ async def test_seeded_darkforums_source(db, monkeypatch):
     s = await db.scalar(select(Source).where(Source.kind == "onion_feed"))
     assert s is not None and s.name == "DarkForums (Tor)" and s.enabled
     assert s.scope == "global" and s.reliability == "underground" and not s.cyber_filter and not s.region_filter
+    assert s.interval_seconds == 3600 and s.config["max_requests_per_day"] == 80  # 0025: bloklanmaslik qoidalari
+    assert [f["every_minutes"] for f in s.config["feeds"]] == [0, 120, 120, 180, 720]
+    assert all(int(re.search(r"limit=(\d+)", f["url"]).group(1)) <= 30 for f in s.config["feeds"])
     OnionFeedConnector().validate_config(s.config)
     cats = [f["category"] for f in s.config["feeds"]]
     assert cats == ["leak", "credentials", "darkweb-sale", "fraud", None]
     real_host = re.match(r"http://([^/]+)/", s.config["feeds"][0]["url"]).group(1)
     assert is_onion_url(f"http://{real_host}/")
-    # Doxes (42) va Combolists (53) bo'limlari ataylab yo'q
+    # Doxes (42) va Combolists (53) ataylab yo'q; Premium (47, 51) mehmonga bo'sh — olib tashlangan (0025)
     fids = {int(x) for f in s.config["feeds"] for x in re.search(r"fid=([\d,]+)", f["url"]).group(1).split(",")}
-    assert not fids & {42, 88, 53, 85}
+    assert not fids & {42, 88, 53, 85, 47, 51}
 
     # TOR_PROXY_URL yo'q — auth_missing, birorta ham so'rov ketmaydi
     monkeypatch.setattr(settings, "tor_proxy_url", "")
@@ -237,7 +332,11 @@ async def test_seeded_darkforums_source(db, monkeypatch):
     assert uz.scope == "regional" and "UZ" in (uz.countries or [])  # Markaziy Osiyo — asosiy lentaga
     assert by_title["FRESH 100K PASSWORDS.TXT FREE"].scope == "global"
 
-    # Qayta yig'ish — o'sha mavzular yangi hodisa bo'lmaydi
+    # Qayta yig'ish darhol — faqat har yig'ishdagi lenta (sizishlar) so'raladi, o'sha mavzular yangi hodisa bo'lmaydi
+    seen.clear()
     r = await scheduler.run_source(s.id)
     assert r.ok and r.new == 0
+    assert len(seen) == 1 and "fid=10,13,12" in str(seen[0].url)
     assert await db.scalar(select(func.count(EventRecord.id))) == 3
+    await db.refresh(s)
+    assert s.state["budget"]["count"] == 6 and len(s.state["fetched_at"]) == 5

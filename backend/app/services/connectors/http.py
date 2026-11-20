@@ -50,7 +50,7 @@ HOST_PAUSE_RANGE: dict[str, tuple[float, float]] = {"news.google.com": (20.0, 40
 RATE_LIMIT_COOLDOWN: tuple[float, float] = (90.0, 300.0)  # 429 dan keyin xostga: kamida / ko'pi bilan (Retry-After bilan)
 # Tor: zanjir qurish + yashirin servis sekin (bitta so'rov 2–25 s); yashirin saytga so'rovlar orasida uzunroq pauza
 ONION_TIMEOUT = httpx.Timeout(90.0, connect=60.0)
-ONION_PAUSE_RANGE: tuple[float, float] = (5.0, 15.0)
+ONION_PAUSE_RANGE: tuple[float, float] = (10.0, 30.0)  # forum bizni bot deb to'smasin (onion_feed qoidalari)
 _ONION_HOST = re.compile(r"(?:[a-z0-9-]+\.)*[a-z2-7]{56}\.onion")  # faqat v3 manzil (v2 — 2021 dan ishlamaydi)
 # Joriy vazifa (masalan bitta manba yig'ilishi) xost navbatida kutgan soniyalar — [jami]; None — sanalmaydi
 GATE_WAIT: ContextVar[list[float] | None] = ContextVar("gate_wait", default=None)

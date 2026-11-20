@@ -91,6 +91,18 @@ Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" de
   mijoz .onion'ni resolve qilmaydi, proksi sozlamasi, seed manba + scheduler: auth_missing → ok, takrorsiz).
   Fixture sintetik (haqiqiy forum matni git'da yo'q). Seed soni 79 → 80. Frontend: typecheck, i18n 977 × 4.
 - Boshqa .onion forum qo'shish: admin → Manbalar → tur `onion_feed`, `feeds` da faqat bitta v3 .onion xost.
+- **Login kerakmi?** Yo'q (egasi so'radi, 2026-11-20): hammasi mehmonga ochiq lentalardan. Tekshirildi: login'siz
+  faqat Premium bo'limlar (Premium Databases 47, Premium Other Leaks 51) bo'sh — pullik akkaunt talab qiladi.
+  Akkaunt ulanmaydi (tashkilotni forum bilan bog'laydi, bot akkaunti bloklanadi, qoida "login yo'q").
+- **Bloklanmaslik qoidalari** (egasi talabi; migratsiya `0025_darkforums_polite`): Premium 47 / 51 olib
+  tashlandi; interval 30 → 60 daq; lentalar jadvali — sizishlar har yig'ishda (limit 30), stealer + akkauntlar va
+  sotuv 2 soatda, Sellers Place 3 soatda (limit 20), hacking 12 soatda (limit 10); kunlik qat'iy limit 80 so'rov
+  (UTC kuni; "Hozir yig'ish" ham hisoblanadi, oshsa — qolgan lentalar ertaga, xato emas); `.onion` ga pauza
+  10–30 s; "Sinash" — faqat 1-lenta; 403 / 429 / challenge — qolgan lentalar so'ralmaydi. Niqob yo'q (UA ochiq,
+  zanjir almashtirilmaydi, CAPTCHA yechilmaydi). Hisob: so'rovlar ~240 → ~58 / kun, javob hajmi ~5 baravar kam.
+  `state`: `seen`, `fetched_at` (lenta → vaqt), `budget` {day, count}; yig'ish izohi `source_runs.error`:
+  "lentalar: 1/5 (qolganlari hali navbatda emas)". Jonli: qo'lda yig'ish — 5/5 lenta, budget 5, `ok`.
+  Testlar: +9 (jadval, kunlik limit va kun almashishi, dry-run 1 lenta, 429 / 403 da to'xtash, ochiq UA).
 
 ### "Sputnik Кыргызстан — ishlamayapti: HTTP 503 · qayta urinish 2 soatdan keyin" banneri (2026-11-19)
 - Sabab: saytning o'zida haqiqiy uzilish — 2026-11-18 22:48 UTC dan DNS xatosi → 3 marta timeout → 503 (kamida

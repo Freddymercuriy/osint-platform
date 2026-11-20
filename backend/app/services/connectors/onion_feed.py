@@ -9,11 +9,29 @@ Qoidalar (docs/connectors.md, egasi qarori 2026-11-20):
   va mavzu sahifalari OLINMAYDI va saqlanmaydi.
 - Login, CAPTCHA, challenge — chetlab o'tilmaydi: lenta o'rniga HTML sahifa qaytsa `SourceBlocked`.
 
+Bloklanmaslik qoidalari (xushmuomalalik — niqoblanish EMAS; forum bizni bot deb to'smasligi uchun):
+  1. Kam so'rov: har lenta o'z hajmiga mos tezlikda (`every_minutes` — sizishlar har yig'ishda, sekin bo'limlar
+     soatlab bir marta), sahifa kichik (`limit=` 10–30, butun arxiv emas).
+  2. Kunlik qat'iy limit (`max_requests_per_day`, default 80; UTC kuni): admin interval / "Hozir yig'ish" ni
+     ko'p bossa ham forumga undan ortiq so'rov ketmaydi — qolgan lentalar keyingi kunga.
+  3. Bir vaqtda bitta so'rov, orasida 10–30 s pauza (`http.ONION_PAUSE_RANGE`; xost navbati).
+  4. "Sinash" (dry-run) — faqat birinchi lenta.
+  5. 403 / 429 / challenge / login sahifasi — darhol to'xtaydi (qolgan lentalar so'ralmaydi), manba blocked /
+     degraded, scheduler kutishni o'zi uzaytiradi (≤ 6 soat, Retry-After hurmat qilinadi).
+  6. Faqat lenta: mavzu sahifalari, rasmlar, fayllar ochilmaydi (sayt yuklamasi — 1 so'rov / lenta).
+  7. Niqob yo'q: User-Agent ochiq (platforma nomi), Tor zanjiri ataylab almashtirilmaydi, CAPTCHA yechilmaydi,
+     login / akkaunt yo'q. Cookie (mehmon sessiyasi) mijozda saqlanadi — har so'rov yangi sessiya ochmaydi.
+
 config:
-  feeds — 1..10 ta: [{"url": "http://<v3>.onion/syndication.php?fid=10&limit=50",
-                      "category": "leak" | null (null — klassifikator), "section": "Databases"}]
+  feeds — 1..10 ta: [{"url": "http://<v3>.onion/syndication.php?fid=10&limit=30",
+                      "category": "leak" | null (null — klassifikator), "section": "Databases",
+                      "every_minutes": 120 (0 / yo'q — har yig'ishda)}]
   site  — ko'rsatiladigan forum nomi ("DarkForums"); bo'sh — manba nomi
   repost_memory — bir xil sarlavha bilan qayta e'lon qilingan mavzularni eslab qolish soni (default 500)
+  max_requests_per_day — kunlik so'rov limiti (1..500, default 80)
+
+state: `seen` (sarlavha xeshlari), `fetched_at` {lenta url: oxirgi muvaffaqiyatli so'rov, ISO},
+`budget` {"day": "YYYY-MM-DD", "count": N}.
 
 Spam: forumlarda bir xil reklama mavzusi har kuni qayta ochiladi (sarlavha bir xil, havola boshqa) — normallashgan
 sarlavha xeshi `state.seen` da saqlanadi va takrori olinmaydi.
@@ -26,7 +44,7 @@ import hashlib
 import html
 import re
 from calendar import timegm
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from urllib.parse import urldefrag, urlsplit
 
 import feedparser
@@ -47,6 +65,13 @@ from app.services.connectors.http import is_onion_url
 MAX_FEEDS = 10
 MAX_ITEMS_PER_FEED = 100
 DEFAULT_MEMORY = 500
+DEFAULT_DAILY_REQUESTS = 80
+# Manba intervali jitter bilan (±20%) keladi — lenta `every_minutes` ning 75% o'tgan bo'lsa "navbatda" hisoblanadi
+DUE_TOLERANCE = 0.75
+
+
+def _now() -> datetime:  # testlar almashtiradi
+    return datetime.now(UTC)
 _SLUG = re.compile(r"[a-z0-9][a-z0-9-]{0,31}")
 _TAGS = re.compile(r"<[^>]+>")
 _NORM = re.compile(r"[\W_]+", re.UNICODE)
@@ -121,6 +146,9 @@ class OnionFeedConnector(Connector):
             sec = feed.get("section")
             if sec is not None and not (isinstance(sec, str) and len(sec) <= 64):
                 raise ConfigError(f"config.feeds[{i}].section — ≤ 64 belgili satr")
+            every = feed.get("every_minutes")
+            if every is not None and not (isinstance(every, int) and not isinstance(every, bool) and 0 <= every <= 10080):
+                raise ConfigError(f"config.feeds[{i}].every_minutes — 0..10080 (daqiqa)")
         if len(hosts) != 1:
             raise ConfigError("config.feeds — hamma lentalar bitta .onion saytdan bo'lishi kerak")
         site = config.get("site")
@@ -129,11 +157,26 @@ class OnionFeedConnector(Connector):
         mem = config.get("repost_memory", DEFAULT_MEMORY)
         if not isinstance(mem, int) or isinstance(mem, bool) or not 0 <= mem <= 5000:
             raise ConfigError("config.repost_memory — 0..5000")
+        cap = config.get("max_requests_per_day", DEFAULT_DAILY_REQUESTS)
+        if not isinstance(cap, int) or isinstance(cap, bool) or not 1 <= cap <= 500:
+            raise ConfigError("config.max_requests_per_day — 1..500")
 
     def target_urls(self, source: SourceView) -> list[str]:
         # .onion DNS'da yo'q — SSRF (ommaviy IP) tekshiruvi qo'llanmaydi; xost validate_config'da (faqat v3 .onion)
         # va har so'rovda Tor mijozida tekshiriladi
         return []
+
+    @staticmethod
+    def _due(feed: dict, fetched_at: dict, now: datetime) -> bool:
+        every = int(feed.get("every_minutes") or 0)
+        last = fetched_at.get(feed["url"])
+        if not every or not last:
+            return True
+        try:
+            prev = datetime.fromisoformat(last)
+        except (TypeError, ValueError):
+            return True
+        return now - prev >= timedelta(minutes=every * DUE_TOLERANCE)
 
     async def fetch(self, ctx: FetchContext) -> FetchResult:
         cfg = ctx.source.config
@@ -142,18 +185,37 @@ class OnionFeedConnector(Connector):
             raise ConnectorError("Tor mijozi berilmagan")
         site = str(cfg.get("site") or ctx.source.name)[:64]
         memory = int(cfg.get("repost_memory", DEFAULT_MEMORY))
-        seen_before = [] if ctx.dry_run else list((ctx.source.state or {}).get("seen") or [])
-        known = set(seen_before)
+        cap = int(cfg.get("max_requests_per_day", DEFAULT_DAILY_REQUESTS))
+        prev_state = dict(ctx.source.state or {})
+        now = _now()
+        today = now.date().isoformat()
+
+        if ctx.dry_run:
+            # "Sinash": faqat birinchi lenta; holat (xotira, jadval, limit) ishlatilmaydi va saqlanmaydi
+            plan, known, seen_before, fetched_at, used = [cfg["feeds"][0]], set(), [], {}, 0
+        else:
+            seen_before = list(prev_state.get("seen") or [])
+            known = set(seen_before)
+            fetched_at = dict(prev_state.get("fetched_at") or {})
+            budget = prev_state.get("budget") or {}
+            used = int(budget.get("count") or 0) if budget.get("day") == today else 0
+            plan = [f for f in cfg["feeds"] if self._due(f, fetched_at, now)]
 
         items: list[RawItem] = []
         status: int | None = None
         failures: list[ConnectorError] = []
-        for feed in cfg["feeds"]:
+        done = 0
+        capped = False
+        for feed in plan:
+            if not ctx.dry_run and used >= cap:
+                capped = True  # kunlik limit — qolgan lentalar ertaga (xato emas)
+                break
             url = feed["url"]
+            used += 1
             try:
                 resp = await ctx.tor.get(url, headers={"Accept": "application/rss+xml, application/xml;q=0.9, */*;q=0.5"})
             except SourceBlocked:
-                raise  # challenge / taqiq — qolgan lentalarni ham so'rab o'tirmaymiz
+                raise  # 403 / 429 / challenge — qolgan lentalarni ham so'rab o'tirmaymiz
             except ConnectorError as exc:  # bitta lenta (vaqt tugadi) — qolganlari baribir yig'iladi
                 failures.append(exc)
                 continue
@@ -164,7 +226,9 @@ class OnionFeedConnector(Connector):
                 raise SourceBlocked("Lenta o'rniga HTML sahifa qaytdi (login / challenge?) — chetlab o'tilmaydi",
                                     http_status=status)
             items.extend(got)
-        if failures and not items and status is None:
+            fetched_at[url] = now.isoformat()
+            done += 1
+        if failures and done == 0:
             raise failures[0]
 
         fresh: list[RawItem] = []
@@ -175,8 +239,19 @@ class OnionFeedConnector(Connector):
                 continue  # qayta e'lon qilingan reklama / bir xil mavzu
             batch.add(key)
             fresh.append(it)
+        total = len(cfg["feeds"])
+        note = f"lentalar: {done}/{total}"
+        if len(plan) < total:
+            note += " (qolganlari hali navbatda emas)"
+        if capped:
+            note += f"; kunlik so'rov limiti ({cap}) tugadi — qolgan lentalar ertaga"
+        if failures:
+            note += f"; {len(failures)} ta lenta xato: {failures[0]}"[:300]
         if ctx.dry_run:
-            return FetchResult(fresh, status)
-        new_keys = [k for k in dict.fromkeys(it.extra["title_key"] for it in fresh)]
+            return FetchResult(fresh, status, note=note)
+        new_keys = list(dict.fromkeys(it.extra["title_key"] for it in fresh))
         seen = (new_keys + seen_before)[:memory] if memory else []
-        return FetchResult(fresh, status, state={**(ctx.source.state or {}), "seen": seen})
+        known_urls = {f["url"] for f in cfg["feeds"]}
+        state = {**prev_state, "seen": seen, "budget": {"day": today, "count": used},
+                 "fetched_at": {u: t for u, t in fetched_at.items() if u in known_urls}}
+        return FetchResult(fresh, status, state=state, note=note)

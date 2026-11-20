@@ -15,6 +15,10 @@ bo'yicha chaqiradi, natijani `services/events/pipeline.py` bazaga yozadi.
   va faqat mehmonga ochiq RSS / Atom lentalari. Olinadi: mavzu sarlavhasi, havola, vaqt, bo'lim, muallif taxallusi.
   Olinmaydi: post matni, fayllar, rasmlar, mavzu sahifalari; Doxes kabi xususiy shaxslar bo'limlari qo'shilmaydi.
   Tor mijozi faqat `.onion` xostlarga (redirect ham), oddiy mijoz `.onion` ni DNS'ga ham so'ramaydi.
+- `.onion` saytda bloklanmaslik — **xushmuomalalik, niqoblanish emas** (`onion_feed`): har lenta o'z hajmiga mos
+  tezlikda (`every_minutes`), kichik sahifa (`limit` ≤ 30), kunlik qat'iy limit (`max_requests_per_day`, 80),
+  so'rovlar ketma-ket va orasida 10–30 s, "Sinash" — faqat 1 lenta, 403 / 429 / challenge / login — darhol to'xtash.
+  Yo'q: brauzer niqobi, Tor zanjirini ataylab almashtirish, CAPTCHA yechish, akkaunt / login.
 - Kalit faqat muhitda (`backend/.env`), bazada — o'zgaruvchi NOMI (`sources.api_key_env`). Kalit logga, xatoga,
   `extra` ga yozilmaydi.
 - Ishlatishdan oldin API'ning **joriy hujjatini** oching: endpoint, autentifikatsiya, limitlar, javob shakli.
