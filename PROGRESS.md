@@ -59,6 +59,26 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
 
+### "Daryo.uz (UZ) / (RU) — bloklangan: HTTP 403 · qayta urinish 4 soatdan keyin" banneri (2026-11-20)
+- Sabab: daryo.uz 2026-11-19 ~07:50 UTC da yangi dvigatelga (Next.js) o'tdi va avtomatik so'rovlarni Cloudflare
+  qoidasi bilan yopdi — `/feed/`, `/ru/feed/`, sahifada e'lon qilingan yangi `/oz/rss-full/`, `sitemap.xml`,
+  `news-sitemap.xml` va keshlanmagan har qanday sahifa: 403 "Request forbidden by administrative rules" (oddiy curl
+  ham). Faqat Cloudflare keshidagi bosh sahifa ochiladi. Brauzerga o'xshab niqoblanish qoidaga zid — chetlab o'tilmadi.
+- Yechim (migratsiya `0026_daryo_blocked_feeds`; zaxira: `~/osint-backups/osint-pre-daryo-20261120-153713.sql`):
+  **Daryo.uz (UZ)** → tur `telegram`, `t.me/s/Daryo` (sayt sahifasidagi rasmiy kanal, 568K, kuniga o'nlab post,
+  har postda maqola havolasi); **Daryo.uz (RU)** → tur `google_news`, `site:daryo.uz when:7d`, rus nashri, 30 daq
+  (Google News'da o'zbekcha nashr yo'q — UZ uchun Telegram). Ikkalasida ham daryo.uz'ning o'ziga so'rov yo'q.
+  Havolalar boshqa (t.me / news.google.com) — birinchi yig'ish baseline (ogohlantirishsiz). Admin config'ni
+  o'zgartirgan bo'lsa — migratsiya tegmaydi; downgrade — eski RSS.
+- `telegram` ulagichi (t.me/s) tuzatildi: sarlavha — postning **birinchi qatori** (oldin birinchi gapgacha va
+  qatorlar birlashib ketardi: "Sarlavha Matnning birinchi gapi..."), summary — qolgan qatorlar; "Batafsil — havola",
+  "👉 Obuna bo'ling — @kanal", "Подробнее:" kabi xizmat qatorlari tashlanadi. `parse_channel` — alohida funksiya.
+- **Jonli** (10:43 UTC): UZ — 200, 20 post, 4,2 s; RU — 200, 90 maqola, 1,1 s; baseline: 0 yozildi (bu oynada
+  kiber mavzusi yo'q — `cyber_filter`). Banner bo'shadi; holat `degraded` — oxirgi 10 yig'ishda eski 403 lar ≥ 3,
+  ular siqib chiqarilgach o'zi `ok` (UZ ~1,5 soat, RU ~4 soat). `next_run_at` — null (scheduler tarqatadi).
+- Testlar: `test_connector_telegram_public.py` (4: sarlavha / xizmat qatorlari, sarlavhalar saqlanadi, seed Daryo UZ
+  → faqat `t.me/s/Daryo` so'raladi + baseline, Daryo RU → news.google.com `hl=ru`). Fixture sintetik. To'liq: EXIT 0.
+
 ### DarkForums (.onion) — Tor orqali yig'ish, `onion_feed` ulagichi (2026-11-20)
 - Egasi talabi: *"darkfox...onion — tor orqali kiradigan qilib ber, bundagi ma'lumotlarni ham yig'aylik"*. Qoida
   ".onion o'qilmaydi" edi — egasi tanlovi: **umumiy Tor ulagichi + ro'yxat** (faqat admin qo'shgan .onion manbalar) va

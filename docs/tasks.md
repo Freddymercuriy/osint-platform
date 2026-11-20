@@ -105,6 +105,7 @@ Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 - ✅ Sizish (leak) qoidalari: yolg'iz "breach", yozuvlar soni / hajm, "stolen ... data", dark web / forum (`0017`; 42 hodisa → leak)
 - ✅ .onion manbalar Tor orqali: `onion_feed` ulagichi, `tor` konteyneri, kanal `forum`; DarkForums — kiber bo'limlar sarlavhalari (`0024`, egasi qarori 2026-11-20)
 - ✅ DarkForums bloklanmaslik qoidalari: lenta jadvali, kichik sahifa, kunlik limit 80, pauza 10–30 s, Premium bo'limlar olib tashlandi (`0025`)
+- ✅ Daryo.uz RSS yopildi (403, Cloudflare): UZ → rasmiy Telegram kanali (t.me/s/Daryo), RU → Google News; t.me/s sarlavhasi — birinchi qator (`0026`)
 - ⬜ Telegram Global oqimini kuzatish: shovqinli kanallar (BugAlerts ~300/kun) — kerak bo'lsa admin'da o'chirish yoki regional'ga qaytarish
 - ⬜ Next 15 ga ko'chish (alohida ish)
 
