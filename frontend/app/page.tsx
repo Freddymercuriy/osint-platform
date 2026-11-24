@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Activity, AtSign, ArrowRight, Globe, Mail, Phone, ShieldCheck, Users, type LucideIcon } from "lucide-react";
+import { Activity, ArrowRight, BarChart3, Globe, ShieldCheck, Users, type LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { ButtonLink, Card, IconBox, Logo } from "@/components/ui";
@@ -12,9 +12,8 @@ import { getAuthConfig } from "@/lib/api";
 
 const FEATURES: { key: string; icon: LucideIcon; tone: Tone }[] = [
   { key: "events", icon: Activity, tone: "red" },
-  { key: "username", icon: AtSign, tone: "violet" },
-  { key: "email", icon: Mail, tone: "cyan" },
-  { key: "phone", icon: Phone, tone: "emerald" },
+  { key: "dashboard", icon: BarChart3, tone: "cyan" },
+  { key: "coverage", icon: Globe, tone: "emerald" },
 ];
 
 const AUDIENCE = ["analysts", "security", "journalists"] as const;

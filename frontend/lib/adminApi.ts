@@ -232,7 +232,6 @@ export type AdminUserRow = {
   is_active: boolean;
   locale: string | null;
   created_at: string;
-  searches: number;
 };
 export const listUsers = () => request<AdminUserRow[]>("GET", "/api/admin/users");
 export const updateUser = async (id: number, data: { role?: "admin" | "analyst"; is_active?: boolean }) => {

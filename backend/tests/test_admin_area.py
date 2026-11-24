@@ -24,7 +24,7 @@ async def test_users_list_role_and_last_admin(client, make_user, db):
     other, oh = await make_user("user@example.com", role="analyst")
     rows = (await client.get("/api/admin/users", headers=ah)).json()
     assert [r["email"] for r in rows] == ["boss@example.com", "user@example.com"]
-    assert {"role", "is_active", "locale", "searches"} <= set(rows[0])
+    assert {"role", "is_active", "locale"} <= set(rows[0])
 
     # oxirgi faol adminni pasaytirib / o'chirib bo'lmaydi
     r = await client.patch(f"/api/admin/users/{admin.id}", json={"role": "analyst"}, headers=ah)

@@ -1,4 +1,4 @@
-"""Lokalizatsiya: Accept-Language, kodli xatolar, katalog to'liqligi, collector yorliqlari."""
+"""Lokalizatsiya: Accept-Language, kodli xatolar, katalog to'liqligi."""
 
 import string
 
@@ -133,42 +133,7 @@ async def test_validation_error_keeps_detail_list(client):
     assert isinstance(body["detail"], list) and body["detail"]
 
 
-async def test_collector_query_error_is_coded(client, analyst_headers):
-    r = await client.post(
-        "/api/search/username", json={"query": "bad name!"},
-        headers={**analyst_headers, "Accept-Language": "ru"},
-    )
-    assert r.status_code == 422, r.text
-    assert r.json() == {"detail": t("invalid_telegram_query", "ru"), "code": "invalid_telegram_query"}
-
-
 async def test_plain_http_error_gets_code(client):
     r = await client.get("/no/such/route")
     assert r.status_code == 404
     assert r.json()["code"] == "http_404"
-
-
-# ---------------------------------------------------------------- collector yorliqlari (tarmoqsiz)
-async def test_phone_labels_follow_language(client, analyst_headers):
-    sources = {}
-    for lang in LANGS:
-        r = await client.post(
-            "/api/search/phone", json={"query": "+998901234567"},
-            headers={**analyst_headers, "Accept-Language": lang},
-        )
-        assert r.status_code == 200, r.text
-        sources[lang] = [x["source"] for x in r.json()["results"]]
-    assert "Yaroqlilik" in sources["uz"] and "Raqam turi" in sources["uz"]  # uz — avvalgidek
-    assert "Валидность" in sources["ru"]
-    assert "Validity" in sources["en"]
-    assert sources["ru"] != sources["en"] != sources["uz"]
-
-
-async def test_phone_unparsable_detail_localised(client, analyst_headers):
-    r = await client.post(
-        "/api/search/phone", json={"query": "abc"}, headers={**analyst_headers, "Accept-Language": "en"}
-    )
-    assert r.status_code == 200
-    res = r.json()["results"][0]
-    assert res["source"] == "Parsing" and res["status"] == "error"
-    assert res["detail"].startswith("Could not parse the number")

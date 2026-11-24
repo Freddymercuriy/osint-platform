@@ -503,7 +503,6 @@
       "active": "Active",
       "language": "Language",
       "created": "Created",
-      "searches": "Searches",
       "actions": "Actions",
       "role": {
         "admin": "Admin",
@@ -554,107 +553,6 @@
     "telegram_group": "Telegram group",
     "api": "Threat-intel API",
     "forum": "Dark web forum"
-  },
-  "checks": {
-    "modules": {
-      "username": {
-        "label": "Username",
-        "title": "Telegram username",
-        "desc": "ID, username history, shared groups",
-        "pageDesc": "Checks a Telegram account by username or ID: ID, usernames, username changes and shared groups."
-      },
-      "email": {
-        "label": "Email",
-        "title": "Email check",
-        "desc": "Syntax, MX server, Gravatar",
-        "pageDesc": "Checks the address syntax, MX records (mail server) and the Gravatar profile."
-      },
-      "phone": {
-        "label": "Phone",
-        "title": "Phone check",
-        "desc": "Country, carrier, number type",
-        "pageDesc": "Identifies the number's country, carrier, type and time zone (offline)."
-      },
-      "domain": {
-        "label": "Domain / IP",
-        "title": "Domain / IP / WHOIS",
-        "desc": "DNS, WHOIS, subdomains, ASN",
-        "pageDesc": "Collects DNS records, WHOIS, subdomains and network (ASN) data for a domain or IP."
-      },
-      "unknown": {
-        "label": "Other",
-        "title": "Other",
-        "desc": "",
-        "pageDesc": ""
-      }
-    },
-    "username": {
-      "placeholder": "e.g. @botfather, t.me/telegram or 93372553",
-      "checks": {
-        "0": "Account ID, type and flags (bot, premium, scam)",
-        "1": "Active usernames, bio, personal channel",
-        "2": "Username history, recorded by the platform on every search",
-        "3": "Shared groups and message counts in them"
-      }
-    },
-    "email": {
-      "placeholder": "e.g. user@gmail.com",
-      "checks": {
-        "0": "Syntax validity",
-        "1": "MX records (mail server)",
-        "2": "Public Gravatar profile"
-      }
-    },
-    "phone": {
-      "placeholder": "e.g. +998901234567",
-      "checks": {
-        "0": "Country and region",
-        "1": "Mobile carrier",
-        "2": "Number type (mobile / landline)",
-        "3": "Time zone"
-      }
-    },
-    "domain": {
-      "placeholder": "e.g. kun.uz or 8.8.8.8",
-      "checks": {
-        "0": "DNS: A / AAAA, NS, MX",
-        "1": "Mail protection: SPF and DMARC",
-        "2": "WHOIS / RDAP: registrar, dates, status",
-        "3": "Subdomains (Certificate Transparency)",
-        "4": "Hosting: ASN, network, country",
-        "5": "For IPs: reverse DNS (PTR) and network owner"
-      }
-    },
-    "search": {
-      "searching": "Searching",
-      "examples": "Examples",
-      "scanning": "Checking sources…",
-      "target": "Target",
-      "emptyTitle": "Start a search",
-      "publicOnly": "Only public sources are used.",
-      "checked": "Checked",
-      "checkedHint": "sources",
-      "foundHint": "matches",
-      "unclearHint": "no response or error",
-      "foundRatio": "Share of found",
-      "exportReport": "Export report",
-      "filters": "Result filters",
-      "noFilterTitle": "No results in this filter",
-      "noFilterDesc": "Pick another filter or run a new search.",
-      "recent": "Recent searches",
-      "historyError": "Could not load history.",
-      "historyEmpty": "No searches yet.",
-      "fullHistory": "Full history",
-      "whatChecked": "What is checked",
-      "disclaimer": "Public sources only. Results are approximate — verify manually before drawing conclusions."
-    },
-    "export": {
-      "jsonAria": "Download the report as a JSON file",
-      "jsonTitle": "Download JSON report",
-      "pdfAria": "Print the report or save it as PDF (opens in a new window)",
-      "pdfTitle": "Print / PDF",
-      "downloadError": "Could not download the report"
-    }
   },
   "common": {
     "appName": "OSINT Platform",
@@ -1016,45 +914,6 @@
       "politics": "Politics & regulation"
     }
   },
-  "history": {
-    "title": "Search history",
-    "description": "Every check you have run: review results, get a report, repeat a search or delete it.",
-    "clear": "Clear history",
-    "clearModule": "Clear {module} history",
-    "clearConfirm": "Delete for sure?",
-    "clearConfirmAria": "Confirm clearing history",
-    "warnAll": "History of all modules will be deleted. Press again to confirm.",
-    "warnModule": "Only the {module} module history will be deleted. Press again to confirm.",
-    "filterLabel": "Filter by module",
-    "searchPlaceholder": "Search by query...",
-    "searchAria": "Search history by query",
-    "loadingAria": "Loading",
-    "emptyFilteredTitle": "Nothing found",
-    "emptyFilteredDesc": "No entries match this filter or search text. Change the filter or clear the text.",
-    "clearFilters": "Clear filters",
-    "emptyTitle": "History is empty",
-    "emptyDesc": "Run your first check and it will appear here.",
-    "noResults": "No results were saved for this search.",
-    "foundChecked": "Found / checked",
-    "rerun": "Repeat",
-    "rerunTitle": "Repeat search",
-    "rerunAria": "Repeat search: {query}",
-    "deleteAria": "Delete: {query}",
-    "deleteTitle": "Delete",
-    "deleteConfirmAria": "Confirm deletion",
-    "deleteConfirmTitle": "Confirm",
-    "sure": "Sure?",
-    "cancel": "Cancel",
-    "expandAria": "Show results",
-    "collapseAria": "Hide results",
-    "expandTitle": "View results",
-    "collapseTitle": "Close",
-    "resultsFailed": "Could not load results",
-    "deleteFailed": "Could not delete",
-    "loadFailed": "Could not load history",
-    "clearFailed": "Could not clear history",
-    "loadMore": "Load more"
-  },
   "landing": {
     "signIn": "Sign in",
     "createAccount": "Create account",
@@ -1066,17 +925,13 @@
         "title": "Events feed",
         "text": "Reports on ransomware, leaks, phishing and vulnerabilities with source, time and category."
       },
-      "username": {
-        "title": "Telegram username check",
-        "text": "Check a Telegram account by its username."
+      "dashboard": {
+        "title": "Interactive statistics",
+        "text": "Live charts across events — categories, countries and sources in one dashboard."
       },
-      "email": {
-        "title": "Email check",
-        "text": "Address format, domain and public signals."
-      },
-      "phone": {
-        "title": "Phone and domain check",
-        "text": "Country and carrier from a number, public information about a domain."
+      "coverage": {
+        "title": "Central Asia coverage",
+        "text": "Filter by 5 countries, a UI in 4 languages and automatic translation."
       }
     },
     "audienceTitle": "Who it is for",
@@ -1106,12 +961,6 @@
   "nav": {
     "overview": "Overview",
     "events": "Events",
-    "checks": "Checks",
-    "username": "Telegram username",
-    "email": "Email",
-    "phone": "Phone",
-    "domain": "Domain / IP",
-    "history": "History",
     "admin": "Admin",
     "sources": "Sources",
     "categories": "Categories",
@@ -1138,31 +987,6 @@
     "postUnknown": "Unknown whether channel post #{post} was sent — check the channel",
     "webhookConflict": "The bot is used by another system (webhook) — the channel needs its own bot",
     "openSources": "Open sources"
-  },
-  "report": {
-    "title": "Check report",
-    "generatedAt": "Generated",
-    "reportNo": "Report",
-    "target": "Target",
-    "module": "Module",
-    "checkedAt": "Checked at",
-    "summary": "Summary",
-    "checked": "Checked",
-    "found": "Found",
-    "notFound": "Not found",
-    "unclear": "Unclear",
-    "results": "Results",
-    "noResults": "No results were saved for this search.",
-    "source": "Source",
-    "status": "Status",
-    "result": "Result",
-    "notice": "This report is based only on data from open (public) sources and has no legal force.",
-    "back": "Search history",
-    "print": "Print / PDF",
-    "pdfHint": "For a PDF, press \"Print / PDF\" and choose \"Save as PDF\" instead of a printer.",
-    "loadFailed": "Could not load the report",
-    "invalidId": "Invalid report number",
-    "loadingAria": "Loading report"
   },
   "scope": {
     "label": "Scope",

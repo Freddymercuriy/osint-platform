@@ -23,29 +23,11 @@ orqali boradi; Tor mijozi faqat `.onion` xostlarga so'rov yuboradi, oddiy mijoz 
 
 - `main.py` — FastAPI ilovasi, CORS, router'larni ulash
 - `core/` — konfiguratsiya (`config.py`), xavfsizlik (`security.py`), DB ulanish (`db.py`)
-- `models/` — SQLAlchemy modellari (User, SearchJob, Result, ...)
-- `api/` — endpoint'lar (routerlar): `auth.py`, `search.py`, ...
-- `services/collectors/` — OSINT yig'uvchilar. Har biri umumiy `BaseCollector` interfeysiga amal qiladi.
+- `models/` — SQLAlchemy modellari (User, EventRecord, Source, SourceRun, Category, EventTranslation, publisher.* ...)
+- `api/` — endpoint'lar (routerlar): `auth.py`, `events.py`, `stats_v2.py`, `media.py`, `telegram.py`, `notifications.py`, `admin_*`
+- `services/` — `connectors/` (manba ulagichlari), `events/` (scheduler/yig'uvchi, pipeline, filtrlar), `i18n/` (tarjima), `media/` (hodisa rasmlari), `publisher/` (Telegram kanal)
 
-### Collector interfeysi
-
-Har bir OSINT moduli (`UsernameCollector`, `DomainCollector`, ...) bir xil shaklga ega:
-
-```python
-class BaseCollector:
-    name: str
-    async def run(self, query: str) -> list[CollectResult]: ...
-```
-
-Bu yangi modul qo'shishni oson qiladi — faqat yangi collector yozib, ro'yxatga qo'shiladi.
-
-Mavjud collectorlar: `username` (faqat Telegram — `telegram_account.py`: akkaunt, username tarixi, umumiy guruhlar), `email`, `phone`, `domain` (domen yoki IP). Har biri `POST /api/search/<kind>` orqali
-chaqiriladi; natija `search_jobs` + `results` jadvallariga yoziladi (tarix: `GET /api/search/history`, tur bo'yicha sonlar `GET /api/search/history/counts`, `GET|DELETE /api/search/jobs/{id}`; hisobot: `GET /api/search/jobs/{id}/export` →
-JSON fayl yoki `/report/{id}` chop etish sahifasi orqali PDF).
-
-`DomainCollector` qoidalari: foydalanuvchi kiritgan host'ga to'g'ridan-to'g'ri ulanmaydi (SSRF) — faqat DNS so'rovlari va
-qat'iy belgilangan ochiq xizmatlar (rdap.org, crt.sh, WHOIS serverlari); WHOIS/RDAP'dagi shaxsiy ma'lumotlar
-(registrant ismi, email, telefon, manzil) o'qilmaydi va saqlanmaydi.
+> Eslatma: OSINT tekshiruv modullari (username / email / telefon / domen qidiruvi, `services/collectors/`, `/api/search/*`, `search_jobs` + `results` jadvallari) 2026-11-24 da butunlay olib tashlandi (egasi talabi). Platforma endi hodisalar lentasiga, statistikaga va Telegram kanaliga qaratilgan.
 
 ## Events: manbalar, yig'uvchi, hodisalar (v2)
 
@@ -136,7 +118,7 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   `/api/admin/categories` (CRUD, reorder, reclassify), `/api/admin/translations`, `/api/admin/users`;
   adminlar uchun tizim ogohlantirishlari (`admin_alerts`, uzoq ishlamayotgan manba).
 - Xatolar: `core/errors.py` — `{"detail": <tarjima>, "code": ...}` (`core/i18n.py`, `Accept-Language`);
-  rate limiting: `core/ratelimit.py` (login, tekshiruvlar, qo'lda yig'ish; jarayon xotirasida). Proxy ortida:
+  rate limiting: `core/ratelimit.py` (login, qo'lda yig'ish; jarayon xotirasida). Proxy ortida:
   `TRUSTED_PROXIES` (IP/CIDR) — faqat shulardan kelgan so'rovda `X-Forwarded-For` o'qiladi (o'ngdan birinchi ishonchsiz
   manzil = mijoz); bo'sh bo'lsa sarlavha e'tiborsiz (soxtalashtirib bo'lmaydi).
 - Rollar: `admin` (manbalar, kategoriyalar, yig'uvchi, Telegram) va `analyst`.
@@ -148,10 +130,8 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
   `next-intl` (uz/uz-Cyrl/ru/en, cookie `NEXT_LOCALE` + `users.locale`, `messages/*.json`; `uz-Cyrl.json` —
   `backend/scripts/gen_uz_cyrl_messages.py` bilan `uz.json` dan), `lib/format.ts`.
 - Next.js App Router
-- `app/` — sahifalar (login, dashboard, search)
+- `app/` — sahifalar (login, register, dashboard, dashboard/events, dashboard/admin)
 - `lib/api.ts` — backend bilan ishlash (fetch wrapper)
-- `lib/modules.ts` — tekshiruv modullari ro'yxati (nom, rang, ikon, yo'l)
-- `components/SearchModule.tsx` — barcha qidiruv sahifalari uchun umumiy komponent
 - `scripts/qa/` — UI smoke-test (headless Chrome)
 - Tailwind CSS
 
@@ -164,7 +144,7 @@ filters (hudud / mavzu / chet el)  →  pipeline (URL, muddat, baseline, takror 
 
 ## Xavfsizlik & axloq
 
-- Rate limiting: login (IP va email bo'yicha), tekshiruvlar, qo'lda yig'ish — 429 + `Retry-After`.
+- Rate limiting: login (IP va email bo'yicha), qo'lda yig'ish — 429 + `Retry-After`.
 - Tashqi manbalarga: xost bo'yicha navbat va pauza, jadval jitter bilan, backoff, `Retry-After` hurmati.
 - SSRF: manba so'rovlari (redirect'lar ham) xususiy/loopback/link-local manzillarga yuborilmaydi.
 - Faqat ochiq (public) ma'lumotlar yig'iladi.

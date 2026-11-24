@@ -80,8 +80,7 @@ Rang hech qachon yolg'iz ma'no tashimaydi — doim matn (va kerak bo'lsa ikon) b
 - Atamalar (CVE, IOC, TLP, baseline ...) uchun qisqa yordam matni yoki `title`/tooltip.
 - Bo'sh holat: **bu yerda nima paydo bo'lishini** va **hozir nega bo'shligini** aytadi (`EmptyState title + description`).
 - Yuklanish — `Skeleton`; xato — `ErrorBanner` (nima bo'ldi + nima qilish mumkin).
-- Navigatsiya: **Umumiy ko'rinish**, **Hodisalar**, **Tekshiruvlar** (username, email, telefon, domen, tarix),
-  **Admin** (faqat adminlar).
+- Navigatsiya: **Umumiy ko'rinish**, **Hodisalar**, **Admin** (faqat adminlar).
 
 ## Komponentlar (`@/components/ui`)
 `Card` · `Button` (`primary|secondary|ghost|danger`, `sm|md|lg`, `loading`, `icon`) · `ButtonLink` · `Input` · `Select` ·

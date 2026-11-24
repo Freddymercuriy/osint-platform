@@ -2,7 +2,7 @@
 
 Markaziy Osiyo (O'zbekiston, Qozog'iston, Qirg'iziston, Tojikiston, Turkmaniston) uchun ochiq manbalar razvedkasi va
 kibertahdidlar monitoringi: ransomware qurbonlari, ma'lumotlar sizib chiqishi, fishing, zaifliklar va boshqa kiber
-hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / telefon / domen tekshiruvlari.
+hodisalar lentasi va statistika dashboard'i.
 
 > ⚠️ **Faqat qonuniy va axloqiy maqsadlar uchun.** Platforma faqat ochiq sahifalar, lentalar va rasmiy API'lardan
 > metadata yig'adi (kim, nima, qachon, qaysi guruh, havola). Login devori, CAPTCHA yoki Cloudflare tekshiruvi chetlab
@@ -27,7 +27,6 @@ hodisalar lentasi, statistika dashboard'i, hamda Telegram username / email / tel
 - **Filtrlar** — kategoriya, jiddiylik, davlat, kanal, manba, qamrov (mintaqa/global), asl til, sana, matn — URL'da.
 - **Dashboard** — KPI (oldingi davrga nisbatan), vaqt bo'yicha, kategoriyalar, davlatlar, jiddiylik trendi, hafta×soat,
   manbalar, ransomware guruhlari, sohalar, so'nggi muhim hodisalar, manbalar sog'lig'i; kesishma filtr, jadval, CSV.
-- **Tekshiruvlar** — Telegram username/ID, email, telefon, domen/IP/WHOIS; tarix va hisobot (JSON / PDF).
 - **Admin** — manbalar (CRUD, sinash, hozir yig'ish, tarix, eksport/import), kategoriyalar (qoidalar, qayta tasniflash),
   tizim (yig'uvchi, tarjima, Telegram, foydalanuvchilar). Rollar: `admin`, `analyst`.
 
@@ -115,7 +114,7 @@ TOKEN=$(docker-compose exec -T backend python scripts/qa_token.py --role admin) 
 ```
 osint/
 ├── backend/          FastAPI: api/, core/ (config, i18n, errors, ratelimit), models/, services/ (connectors/, events/,
-│                     i18n/, collectors/), migrations/ (Alembic), scripts/, tests/
+│                     i18n/, media/, publisher/), migrations/ (Alembic), scripts/, tests/
 ├── frontend/         Next.js: app/, components/, lib/, messages/ (uz/uz-Cyrl/ru/en), scripts/ (qa, i18n, kontrast)
 ├── docs/             Arxitektura, dizayn tizimi, ulagichlar, vazifalar, v2 spetsifikatsiyasi
 ├── .claude/agents/   AI agentlar ta'riflari

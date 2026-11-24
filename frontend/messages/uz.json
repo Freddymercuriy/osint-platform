@@ -503,7 +503,6 @@
       "active": "Faol",
       "language": "Til",
       "created": "Yaratilgan",
-      "searches": "Tekshiruvlar",
       "actions": "Amallar",
       "role": {
         "admin": "Administrator",
@@ -554,107 +553,6 @@
     "telegram_group": "Telegram guruh",
     "api": "Threat-intel API",
     "forum": "Darknet forum"
-  },
-  "checks": {
-    "modules": {
-      "username": {
-        "label": "Username",
-        "title": "Telegram username",
-        "desc": "ID, username tarixi, umumiy guruhlar",
-        "pageDesc": "Telegram akkauntini username yoki ID bo'yicha tekshiradi: ID, usernamelar, username o'zgarishlari va umumiy guruhlar."
-      },
-      "email": {
-        "label": "Email",
-        "title": "Email tekshiruvi",
-        "desc": "Sintaksis, MX server, Gravatar",
-        "pageDesc": "Manzil sintaksisi, MX (pochta serveri) yozuvlari va Gravatar profilini tekshiradi."
-      },
-      "phone": {
-        "label": "Telefon",
-        "title": "Telefon tekshiruvi",
-        "desc": "Davlat, operator, raqam turi",
-        "pageDesc": "Raqamning davlati, operatori, turi va vaqt mintaqasini aniqlaydi (internetsiz)."
-      },
-      "domain": {
-        "label": "Domen / IP",
-        "title": "Domen / IP / WHOIS",
-        "desc": "DNS, WHOIS, subdomenlar, ASN",
-        "pageDesc": "Domen yoki IP bo'yicha DNS, WHOIS, subdomenlar va tarmoq (ASN) ma'lumotlarini yig'adi."
-      },
-      "unknown": {
-        "label": "Boshqa",
-        "title": "Boshqa",
-        "desc": "",
-        "pageDesc": ""
-      }
-    },
-    "username": {
-      "placeholder": "masalan: @botfather, t.me/telegram yoki 93372553",
-      "checks": {
-        "0": "Akkaunt ID'si, turi va belgilar (bot, premium, scam)",
-        "1": "Faol usernamelar, bio, shaxsiy kanal",
-        "2": "Username tarixi — platforma har qidiruvda yozib boradi",
-        "3": "Umumiy guruhlar va ulardagi xabarlar soni"
-      }
-    },
-    "email": {
-      "placeholder": "masalan: user@gmail.com",
-      "checks": {
-        "0": "Sintaksis to'g'riligi",
-        "1": "MX yozuvlari (pochta serveri)",
-        "2": "Gravatar ochiq profili"
-      }
-    },
-    "phone": {
-      "placeholder": "masalan: +998901234567",
-      "checks": {
-        "0": "Davlat va hudud",
-        "1": "Mobil operator",
-        "2": "Raqam turi (mobil / statsionar)",
-        "3": "Vaqt mintaqasi"
-      }
-    },
-    "domain": {
-      "placeholder": "masalan: kun.uz yoki 8.8.8.8",
-      "checks": {
-        "0": "DNS: A / AAAA, NS, MX",
-        "1": "Pochta himoyasi: SPF va DMARC",
-        "2": "WHOIS / RDAP: registrator, sanalar, holat",
-        "3": "Subdomenlar (Certificate Transparency)",
-        "4": "Hosting: ASN, tarmoq, davlat",
-        "5": "IP uchun: teskari DNS (PTR) va tarmoq egasi"
-      }
-    },
-    "search": {
-      "searching": "Qidirilmoqda",
-      "examples": "Namuna",
-      "scanning": "Manbalar tekshirilmoqda…",
-      "target": "Nishon",
-      "emptyTitle": "Qidiruvni boshlang",
-      "publicOnly": "Faqat ochiq manbalardan foydalaniladi.",
-      "checked": "Tekshirildi",
-      "checkedHint": "manba",
-      "foundHint": "mos kelish",
-      "unclearHint": "javob yo'q yoki xato",
-      "foundRatio": "Topilganlar ulushi",
-      "exportReport": "Hisobotni eksport qilish",
-      "filters": "Natija filtrlari",
-      "noFilterTitle": "Bu filtrda natija yo'q",
-      "noFilterDesc": "Boshqa filtrni tanlang yoki yangi qidiruv bajaring.",
-      "recent": "So'nggi qidiruvlar",
-      "historyError": "Tarixni yuklab bo'lmadi.",
-      "historyEmpty": "Hali qidiruv bajarilmagan.",
-      "fullHistory": "Butun tarix",
-      "whatChecked": "Nimalar tekshiriladi",
-      "disclaimer": "Faqat ochiq manbalar. Natijalar taxminiy — muhim xulosadan oldin qo'lda tasdiqlang."
-    },
-    "export": {
-      "jsonAria": "Hisobotni JSON fayl sifatida yuklash",
-      "jsonTitle": "JSON hisobotni yuklash",
-      "pdfAria": "Hisobotni chop etish yoki PDF sifatida saqlash (yangi oynada)",
-      "pdfTitle": "Chop etish / PDF",
-      "downloadError": "Hisobotni yuklab bo'lmadi"
-    }
   },
   "common": {
     "appName": "OSINT Platform",
@@ -1016,45 +914,6 @@
       "politics": "Siyosat va qonunchilik"
     }
   },
-  "history": {
-    "title": "Qidiruv tarixi",
-    "description": "Bajarilgan barcha tekshiruvlar: natijalarni qayta ko'ring, hisobot oling, qayta qidiring yoki o'chiring.",
-    "clear": "Tarixni tozalash",
-    "clearModule": "{module} tarixini tozalash",
-    "clearConfirm": "Aniq o'chirilsinmi?",
-    "clearConfirmAria": "Tarixni tozalashni tasdiqlash",
-    "warnAll": "Barcha modullar tarixi o'chiriladi. Tasdiqlash uchun yana bosing.",
-    "warnModule": "Faqat {module} moduli tarixi o'chiriladi. Tasdiqlash uchun yana bosing.",
-    "filterLabel": "Modul bo'yicha filtr",
-    "searchPlaceholder": "So'rov bo'yicha qidirish...",
-    "searchAria": "Tarixda so'rov bo'yicha qidirish",
-    "loadingAria": "Yuklanmoqda",
-    "emptyFilteredTitle": "Hech narsa topilmadi",
-    "emptyFilteredDesc": "Bu filtr yoki qidiruv matniga mos yozuv yo'q. Filtrni o'zgartirib yoki matnni tozalab ko'ring.",
-    "clearFilters": "Filtrlarni tozalash",
-    "emptyTitle": "Tarix hali bo'sh",
-    "emptyDesc": "Birinchi tekshiruvni bajaring, u shu yerda paydo bo'ladi.",
-    "noResults": "Bu qidiruvda natija saqlanmagan.",
-    "foundChecked": "Topildi / tekshirildi",
-    "rerun": "Qayta",
-    "rerunTitle": "Qayta qidirish",
-    "rerunAria": "Qayta qidirish: {query}",
-    "deleteAria": "O'chirish: {query}",
-    "deleteTitle": "O'chirish",
-    "deleteConfirmAria": "O'chirishni tasdiqlash",
-    "deleteConfirmTitle": "Tasdiqlash",
-    "sure": "Aniq?",
-    "cancel": "Bekor qilish",
-    "expandAria": "Natijalarni ochish",
-    "collapseAria": "Natijalarni yopish",
-    "expandTitle": "Natijalarni ko'rish",
-    "collapseTitle": "Yopish",
-    "resultsFailed": "Natijalarni yuklab bo'lmadi",
-    "deleteFailed": "O'chirib bo'lmadi",
-    "loadFailed": "Tarixni yuklab bo'lmadi",
-    "clearFailed": "Tarixni tozalab bo'lmadi",
-    "loadMore": "Yana yuklash"
-  },
   "landing": {
     "signIn": "Kirish",
     "createAccount": "Hisob yaratish",
@@ -1066,17 +925,13 @@
         "title": "Hodisalar lentasi",
         "text": "Ransomware, sizib chiqishlar, fishing va zaifliklar haqidagi xabarlar manba, vaqt va kategoriya bilan."
       },
-      "username": {
-        "title": "Telegram username tekshiruvi",
-        "text": "Telegram akkauntini username bo'yicha tekshiring."
+      "dashboard": {
+        "title": "Interaktiv statistika",
+        "text": "Hodisalar bo'yicha jonli grafiklar: kategoriyalar, davlatlar va manbalar kesimida tahlil."
       },
-      "email": {
-        "title": "Email tekshiruvi",
-        "text": "Manzil formati, domen va ochiq belgilarni tekshiring."
-      },
-      "phone": {
-        "title": "Telefon va domen tekshiruvi",
-        "text": "Raqam bo'yicha davlat va operatorni, domen bo'yicha ochiq ma'lumotni aniqlang."
+      "coverage": {
+        "title": "Markaziy Osiyo qamrovi",
+        "text": "5 davlat bo'yicha filtr, 4 tilda interfeys va avtomatik tarjima."
       }
     },
     "audienceTitle": "Kim uchun",
@@ -1106,12 +961,6 @@
   "nav": {
     "overview": "Umumiy ko'rinish",
     "events": "Hodisalar",
-    "checks": "Tekshiruvlar",
-    "username": "Telegram username",
-    "email": "Email",
-    "phone": "Telefon",
-    "domain": "Domen / IP",
-    "history": "Tarix",
     "admin": "Admin",
     "sources": "Manbalar",
     "categories": "Kategoriyalar",
@@ -1138,31 +987,6 @@
     "postUnknown": "Kanal posti #{post} yuborilgan-yuborilmagani noma'lum — kanalni tekshiring",
     "webhookConflict": "Bot boshqa tizimda ishlatilmoqda (webhook) — kanal uchun alohida bot kerak",
     "openSources": "Manbalarni ochish"
-  },
-  "report": {
-    "title": "Tekshiruv hisoboti",
-    "generatedAt": "Tuzilgan",
-    "reportNo": "Hisobot",
-    "target": "Nishon",
-    "module": "Modul",
-    "checkedAt": "Tekshirilgan vaqt",
-    "summary": "Xulosa",
-    "checked": "Tekshirildi",
-    "found": "Topildi",
-    "notFound": "Topilmadi",
-    "unclear": "Noaniq",
-    "results": "Natijalar",
-    "noResults": "Bu qidiruvda natija saqlanmagan.",
-    "source": "Manba",
-    "status": "Holat",
-    "result": "Natija",
-    "notice": "Hisobot faqat ochiq (public) manbalardagi ma'lumotlar asosida tuzilgan va yuridik kuchga ega emas.",
-    "back": "Qidiruv tarixi",
-    "print": "Chop etish / PDF",
-    "pdfHint": "PDF olish uchun «Chop etish / PDF» ni bosib, printer o'rniga «PDF sifatida saqlash» ni tanlang.",
-    "loadFailed": "Hisobotni yuklab bo'lmadi",
-    "invalidId": "Hisobot raqami noto'g'ri",
-    "loadingAria": "Hisobot yuklanmoqda"
   },
   "scope": {
     "label": "Qamrov",

@@ -6,7 +6,8 @@
 
 **Bosqich:** v2 yangilanishi tugadi (Bosqich 0–9) — tarmoq `feat/v2-upgrade` (`main` ga merge qilinmagan; v1 — `main` da).
 GitHub'da **default branch — `feat/v2-upgrade`** (2026-11-16, foydalanuvchi talabi bilan; `main` o'zgarmagan). Spetsifikatsiya: [`docs/upgrade-v2-spec.md`](docs/upgrade-v2-spec.md).
-**Oxirgi yangilanish:** 2026-11-20
+Yon tarmoqlar: `feat/telegram-channel` (kanal, tugamagan), **`feat/remove-checks`** (tekshiruvlar bo'limi olib tashlandi — pastda).
+**Oxirgi yangilanish:** 2026-11-24
 
 ## ▶️ DAVOM ETISH UCHUN
 
@@ -58,6 +59,35 @@ docker-compose build && docker-compose up -d                # db + backend + fro
 # frontend'ni dev rejimida: (cd frontend && npm install && cp .env.example .env.local) va yuqoridagi "ishlab chiqish"
 ```
 Push uchun `gh auth login` kerak. Claude'ga: "PROGRESS.md ni o'qib, davom et" deyish yetarli.
+
+### Tekshiruvlar bo'limi butunlay olib tashlandi (2026-11-24)
+- Egasi talabi: *"qara tekshiruvlar bulimini polniy olip tashla"*. Tarmoq **`feat/remove-checks`** (`feat/telegram-channel`
+  dan — jonli baza shu qatorda, migratsiya zanjiri uzilmasin; `feat/v2-upgrade` emas). Baza nusxasi (migratsiyadan oldin):
+  `~/osint-backups/osint-pre-remove-checks-20261124-152334.sql` (to'liq `pg_dump`, 38M).
+- Olib tashlandi — OSINT tekshiruv modullari: Telegram username, email, telefon, domen/IP qidiruvi, qidiruv tarixi,
+  hisobot eksporti (JSON/PDF).
+  - **Backend:** `api/search.py`, `services/collectors/` (butun papka: `base`, `username`, `telegram_account`, `email`,
+    `phone`, `domain`), `models/search.py` (`SearchJob`, `Result`); `main.py` dan router, `models/__init__.py` eksportlari,
+    `schemas.py` (SearchRequest/CollectResultOut/SearchResponse/SearchJobOut/Report*/JobReport), `config.py` dan
+    `search_rate`/`search_rate_window`. `stats.py` (`/api/stats/overview` dan `searches_total`/`searches_by_kind`) va
+    `admin_users.py` (foydalanuvchi ro'yxatidagi qidiruvlar soni) tozalandi.
+  - **Migratsiya `0027_remove_checks`:** `results` + `search_jobs` jadvallari tashlanadi (downgrade bo'sh holda qayta
+    yaratadi — ma'lumot qaytmaydi). Jonli bazaga qo'llandi: `alembic_version = 0027_remove_checks`, ikkala jadval yo'q.
+  - **Frontend:** `app/dashboard/{username,email,phone,domain,history}`, `app/report/`, `components/SearchModule.tsx`,
+    `components/ExportButtons.tsx`, `lib/modules.ts`, `lib/report.ts`; sidebar "Tekshiruvlar" bo'limi (`nav.ts`),
+    `lib/api.ts` qidiruv funksiya/tiplari, `lib/adminApi.ts` + admin `UsersCard.tsx` dagi "searches" ustuni.
+  - **Landing (`app/page.tsx`):** username/email/phone reklama kartalari o'rniga mavjud imkoniyatlar — "Interaktiv
+    statistika" va "Markaziy Osiyo qamrovi" (4 tilda, i18n + uz-Cyrl generatsiya).
+  - **i18n:** `checks`/`history`/`report` namespace'lari, `nav` ichidagi tekshiruv kalitlari, `adminSystem.users.searches`
+    o'chirildi (4 til); uz-Cyrl `gen_uz_cyrl_messages.py` bilan qayta generatsiya → 841 kalit × 4.
+  - **Testlar:** `test_ratelimit.py` (search rate testi), `test_i18n_errors.py` (collector testlari), `test_followups.py`
+    (`test_history_counts`), `test_admin_area.py` ("searches" tekshiruvi) tozalandi. `core/i18n.py` dagi collector xato
+    kodlari (`invalid_username_query` ...) qoldirildi — zararsiz, katalog testi tekshiradi.
+- **Tekshirildi:** backend restart — toza import, `/health` 200; `/api/search/*` → 404; frontend `npm run build` EXIT 0
+  (route ro'yxatida tekshiruv sahifalari yo'q), `tsc --noEmit` toza (manba), `i18n-check` OK (841 × 4). Backend `pytest` —
+  pastda (olib tashlashdan keyin).
+- **Orqaga qaytarish:** `docker-compose exec backend python scripts/migrate.py downgrade 0026_daryo_blocked_feeds`,
+  keyin `git checkout feat/telegram-channel`.
 
 ### "Daryo.uz (UZ) / (RU) — bloklangan: HTTP 403 · qayta urinish 4 soatdan keyin" banneri (2026-11-20)
 - Sabab: daryo.uz 2026-11-19 ~07:50 UTC da yangi dvigatelga (Next.js) o'tdi va avtomatik so'rovlarni Cloudflare

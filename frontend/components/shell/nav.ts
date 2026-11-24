@@ -1,4 +1,4 @@
-import { AtSign, Globe, History, LayoutDashboard, Mail, Phone, Radar, Shield, type LucideIcon } from "lucide-react";
+import { LayoutDashboard, Radar, Shield, type LucideIcon } from "lucide-react";
 
 export type NavItem = {
   href: string;
@@ -10,23 +10,13 @@ export type NavItem = {
 };
 export type NavSection = { key: string; items: NavItem[]; adminOnly?: boolean };
 
-/** Navigatsiya: Umumiy ko'rinish · Hodisalar · Tekshiruvlar · Admin (faqat adminlar). */
+/** Navigatsiya: Umumiy ko'rinish · Hodisalar · Admin (faqat adminlar). */
 export const NAV: NavSection[] = [
   {
     key: "overview",
     items: [
       { href: "/dashboard", key: "overview", icon: LayoutDashboard },
       { href: "/dashboard/events", key: "events", icon: Radar, badge: "notifications" },
-    ],
-  },
-  {
-    key: "checks",
-    items: [
-      { href: "/dashboard/username", key: "username", icon: AtSign },
-      { href: "/dashboard/email", key: "email", icon: Mail },
-      { href: "/dashboard/phone", key: "phone", icon: Phone },
-      { href: "/dashboard/domain", key: "domain", icon: Globe },
-      { href: "/dashboard/history", key: "history", icon: History },
     ],
   },
   {

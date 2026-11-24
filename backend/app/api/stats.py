@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, select
 
 from app.api.deps import CurrentUser, DbSession
-from app.models import EventRecord, SearchJob
+from app.models import EventRecord
 from app.schemas import EventItemOut
 
 router = APIRouter(prefix="/api/stats", tags=["stats"])
@@ -29,13 +29,11 @@ class Overview(BaseModel):
     daily: list[DayBucket]  # eski → yangi, bo'sh kunlar 0 bilan
     top_sources: list[SourceCount]
     critical: list[EventItemOut]  # so'nggi ransomware/leak
-    searches_total: int
-    searches_by_kind: dict[str, int]
 
 
 @router.get("/overview", response_model=Overview)
 async def overview(
-    current_user: CurrentUser,
+    _: CurrentUser,
     db: DbSession,
     days: int = Query(14, ge=7, le=90),
 ) -> Overview:
@@ -78,11 +76,6 @@ async def overview(
         .order_by(when.desc()).limit(6)
     )).all()
 
-    by_kind = dict((await db.execute(
-        select(SearchJob.kind, func.count(SearchJob.id))
-        .where(SearchJob.user_id == current_user.id).group_by(SearchJob.kind)
-    )).all())
-
     return Overview(
         total_events=sum(by_cat.values()),
         new_24h=new_24h,
@@ -90,6 +83,4 @@ async def overview(
         daily=daily,
         top_sources=top_sources,
         critical=[EventItemOut.model_validate(r) for r in critical],
-        searches_total=sum(by_kind.values()),
-        searches_by_kind=by_kind,
     )

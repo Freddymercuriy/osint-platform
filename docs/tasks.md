@@ -2,6 +2,13 @@
 
 Belgilar: ✅ bajarildi · 🔄 jarayonda · ⬜ kutilmoqda
 
+> ❌ **Tekshiruvlar bo'limi olib tashlandi (2026-11-24, egasi talabi; tarmoq `feat/remove-checks`).**
+> OSINT tekshiruv modullari — Telegram username, email, telefon, domen/IP qidiruvi, qidiruv tarixi va hisobot
+> eksporti (Bosqich 4, 5, 10, 11-ning hisobot qismi, 13) — frontend, backend, `services/collectors/`,
+> `/api/search/*`, `search_jobs` + `results` jadvallari (migratsiya `0027_remove_checks`) bilan birga butunlay
+> olib tashlandi. Quyidagi "✅ bajarildi" yozuvlari shu sananing oldidagi tarixni aks ettiradi. Platforma endi
+> hodisalar lentasi, statistika va Telegram kanaliga qaratilgan.
+
 ## Bosqich 1 — Skelet
 - ✅ Git repo, `.gitignore`, `README.md`
 - ✅ Hujjatlar (`PROGRESS.md`, `docs/`)

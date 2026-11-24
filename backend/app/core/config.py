@@ -94,8 +94,6 @@ class Settings(BaseSettings):
     login_rate_ip: int = 20  # bitta IP dan 15 daqiqada
     login_rate_email: int = 10  # bitta email uchun 15 daqiqada
     login_rate_window: int = 900
-    search_rate: int = 30  # tekshiruvlar: foydalanuvchi boshiga daqiqada
-    search_rate_window: int = 60
     refresh_rate: int = 5  # qo'lda yig'ish: foydalanuvchi boshiga 10 daqiqada
     refresh_rate_window: int = 600
     # Ishonchli reverse proxy'lar (IP yoki CIDR, vergul bilan). Faqat so'rov shulardan kelsa `X-Forwarded-For`

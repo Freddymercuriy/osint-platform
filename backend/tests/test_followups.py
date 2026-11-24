@@ -9,7 +9,7 @@ from starlette.requests import Request
 
 from app.core import ratelimit
 from app.core.config import Settings, settings
-from app.models import EventRecord, SearchJob
+from app.models import EventRecord
 
 
 # ---------------------------------------------------------------- Events: range=24h|7d|30d|90d
@@ -80,20 +80,6 @@ async def test_login_limit_per_forwarded_client(client, monkeypatch):
 
     assert [await login("1.1.1.1") for _ in range(3)] == [401, 401, 429]
     assert await login("2.2.2.2") == 401  # boshqa mijoz proxy ortida ham alohida hisoblanadi
-
-
-# ---------------------------------------------------------------- tarix hisoblagichi
-async def test_history_counts(client, make_user, db):
-    me, headers = await make_user("me@example.com")
-    other, _ = await make_user("other@example.com")
-    for uid, kind in [(me.id, "domain"), (me.id, "domain"), (me.id, "phone"), (other.id, "email")]:
-        db.add(SearchJob(user_id=uid, kind=kind, query="q"))
-    await db.commit()
-
-    r = await client.get("/api/search/history/counts", headers=headers)
-    assert r.status_code == 200
-    assert r.json() == {"total": 3, "by_kind": {"domain": 2, "phone": 1}}
-    assert (await client.get("/api/search/history/counts")).status_code == 401
 
 
 # ---------------------------------------------------------------- CORS_ALLOW_LAN

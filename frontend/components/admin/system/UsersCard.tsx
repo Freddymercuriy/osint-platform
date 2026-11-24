@@ -88,7 +88,6 @@ export default function UsersCard() {
                 <th scope="col" className="px-3 py-2 font-medium">{t("users.active")}</th>
                 <th scope="col" className="px-3 py-2 font-medium">{t("users.language")}</th>
                 <th scope="col" className="px-3 py-2 font-medium">{t("users.created")}</th>
-                <th scope="col" className="px-3 py-2 text-right font-medium">{t("users.searches")}</th>
                 <th scope="col" className="px-3 py-2 font-medium">{t("users.actions")}</th>
               </tr>
             </thead>
@@ -106,7 +105,6 @@ export default function UsersCard() {
                     <td className="px-3 py-2"><Badge tone={u.is_active ? "green" : "slate"}>{u.is_active ? t("users.activeYes") : t("users.activeNo")}</Badge></td>
                     <td className="px-3 py-2 uppercase text-fg-muted">{u.locale ?? "—"}</td>
                     <td className="whitespace-nowrap px-3 py-2 text-fg-muted">{f.date(u.created_at)}</td>
-                    <td className="px-3 py-2 text-right tabular-nums">{f.number(u.searches)}</td>
                     <td className="px-3 py-2">
                       <div className="flex flex-wrap gap-1.5">
                         <Button variant="secondary" size="sm" onClick={() => ask(u, { role: otherRole })}>

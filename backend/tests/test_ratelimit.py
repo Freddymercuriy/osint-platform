@@ -1,4 +1,4 @@
-"""Bosqich 9: rate limiting (login, tekshiruvlar, qo'lda yig'ish) va admin route'lari to'liq qamrovi."""
+"""Bosqich 9: rate limiting (login, qo'lda yig'ish) va admin route'lari to'liq qamrovi."""
 
 from __future__ import annotations
 
@@ -45,16 +45,6 @@ async def test_login_rate_limited_by_ip(client, monkeypatch):
         await client.post("/api/auth/login", data={"username": f"u{i}@example.com", "password": "x"})
     r = await client.post("/api/auth/login", data={"username": "u9@example.com", "password": "x"})
     assert r.status_code == 429
-
-
-async def test_search_rate_limited_per_user(client, analyst_headers, admin_headers, monkeypatch):
-    monkeypatch.setattr(settings, "search_rate", 2)
-    for _ in range(2):
-        assert (await client.post("/api/search/phone", json={"query": "+998901234567"}, headers=analyst_headers)).status_code == 200
-    r = await client.post("/api/search/phone", json={"query": "+998901234567"}, headers=analyst_headers)
-    assert r.status_code == 429
-    # boshqa foydalanuvchi alohida hisoblanadi
-    assert (await client.post("/api/search/phone", json={"query": "+998901234567"}, headers=admin_headers)).status_code == 200
 
 
 async def test_refresh_rate_limited(client, admin_headers, monkeypatch):

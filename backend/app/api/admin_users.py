@@ -11,7 +11,7 @@ from sqlalchemy import func, select
 
 from app.api.deps import AdminUser, DbSession
 from app.core.errors import api_error
-from app.models import SearchJob, User
+from app.models import User
 
 router = APIRouter(prefix="/api/admin/users", tags=["admin"])
 
@@ -25,7 +25,6 @@ class UserRow(BaseModel):
     is_active: bool
     locale: str | None
     created_at: datetime
-    searches: int = 0
 
 
 class UserPatch(BaseModel):
@@ -35,9 +34,8 @@ class UserPatch(BaseModel):
 
 @router.get("", response_model=list[UserRow])
 async def list_users(_: AdminUser, db: DbSession) -> list[UserRow]:
-    counts = dict((await db.execute(select(SearchJob.user_id, func.count(SearchJob.id)).group_by(SearchJob.user_id))).all())
     rows = (await db.scalars(select(User).order_by(User.created_at, User.id))).all()
-    return [UserRow.model_validate(u).model_copy(update={"searches": counts.get(u.id, 0)}) for u in rows]
+    return [UserRow.model_validate(u) for u in rows]
 
 
 @router.patch("/{user_id}", response_model=UserRow)
@@ -57,5 +55,4 @@ async def update_user(user_id: int, data: UserPatch, _: AdminUser, db: DbSession
         user.is_active = data.is_active
     await db.commit()
     await db.refresh(user)
-    n = await db.scalar(select(func.count(SearchJob.id)).where(SearchJob.user_id == user.id)) or 0
-    return UserRow.model_validate(user).model_copy(update={"searches": n})
+    return UserRow.model_validate(user)
