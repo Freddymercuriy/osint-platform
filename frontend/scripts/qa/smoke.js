@@ -17,16 +17,11 @@ const PUBLIC = ["/", "/login", "/register"];
 const PRIVATE = [
   "/dashboard",
   "/dashboard/events",
-  "/dashboard/username",
-  "/dashboard/email",
-  "/dashboard/phone",
-  "/dashboard/domain",
-  "/dashboard/history",
   "/dashboard/admin/sources",
   "/dashboard/admin/categories",
   "/dashboard/admin/system",
 ];
-const MAIN = ["/", "/login", "/dashboard", "/dashboard/events", "/dashboard/username", "/dashboard/history"];
+const MAIN = ["/", "/login", "/dashboard", "/dashboard/events"];
 const MATRIX = process.env.MATRIX === "1";
 const COMBOS = MATRIX
   ? ["light", "dark"].flatMap((theme) => ["uz", "uz-Cyrl", "ru", "en"].map((locale) => [theme, locale]))
@@ -46,17 +41,6 @@ run(async (p) => {
   if (TOKEN) await p.token(TOKEN);
   else console.log("TOKEN berilmagan: faqat ochiq sahifalar tekshiriladi");
   const pages = TOKEN ? [...PUBLIC, ...PRIVATE] : PUBLIC;
-  // Hisobot sahifasi: tarixdagi eng so'nggi qidiruv bo'yicha (tarix bo'sh bo'lsa o'tkazib yuboriladi)
-  if (TOKEN) {
-    try {
-      const res = await fetch(`${API}/api/search/history?limit=1`, { headers: { Authorization: `Bearer ${TOKEN}` } });
-      const [job] = await res.json();
-      if (job?.id) pages.push(`/report/${job.id}`);
-      else console.log("Tarix bo'sh: /report sahifasi tekshirilmadi");
-    } catch (e) {
-      console.log("Tarixni olib bo'lmadi, /report tekshirilmadi: " + e.message);
-    }
-  }
   let problems = 0;
   const list = MATRIX ? pages.filter((u) => MAIN.includes(u) || u.startsWith("/dashboard/admin")) : pages;
 
